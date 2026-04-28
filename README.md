@@ -2,7 +2,7 @@
 
 Dự án này sử dụng kiến trúc **Feature-based** (Feature-Sliced Design), giúp code dễ dàng mở rộng (scale), dễ bảo trì và phân tách rõ ràng trách nhiệm của từng module.
 
-## 📂 Cấu trúc thư mục (Folder Structure)
+## Cấu trúc thư mục (Folder Structure)
 
 ```text
 src/
@@ -41,7 +41,7 @@ src/
 └── main.jsx              # Entry point gắn React vào DOM
 ```
 
-## 📝 Quy tắc làm việc (Dành cho Team)
+## Quy tắc làm việc
 
 1. **KHÔNG import chéo giữa các Feature**: 
    - Feature `A` không được import sâu vào trong cấu trúc của Feature `B`. 
@@ -55,7 +55,7 @@ src/
    - Chỉ lưu vào Redux Store (`features/*/slice.js`) những state cần chia sẻ giữa nhiều component không có quan hệ cha-con.
    - Các state nội bộ (như input form, modal open/close) thì nên dùng `useState` ở mức component.
 
-## 🚀 Cài đặt & Chạy dự án
+## Cài đặt & Chạy dự án
 
 ```bash
 # Cài đặt thư viện

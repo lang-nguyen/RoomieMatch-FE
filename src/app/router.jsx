@@ -1,13 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom';
+import Homepage from '../features/homepage/Homepage';
 
 // Các component tạm thời cho các trang
-const Home = () => <div>Trang chủ - RoomieMatch</div>;
 const Login = () => <div>Trang Đăng nhập</div>;
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Home />,
+    element: <Homepage />,
   },
   {
     path: '/login',

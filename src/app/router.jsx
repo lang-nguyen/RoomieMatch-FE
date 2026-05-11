@@ -3,13 +3,17 @@ import AuthLayout from '../layouts/AuthLayout';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
+import Homepage from '../features/homepage/Homepage';
 
-const Home = () => <div>Trang chủ - RoomieMatch <br/><a href="/login">Go to Login</a></div>;
+
+
+// Các component tạm thời cho các trang
+const Login = () => <div>Trang Đăng nhập</div>;
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Home />,
+    element: <Homepage />,
   },
   {
     element: <AuthLayout />,

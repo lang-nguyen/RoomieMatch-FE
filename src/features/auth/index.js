@@ -1,4 +1,5 @@
 export * from './slice';
 export * from './api/authApi';
-// Export các component tại đây khi chúng được tạo ra
-// export * from './components/LoginForm';
+export { LoginForm } from './components/LoginForm';
+export { RegisterForm } from './components/RegisterForm';
+export { ForgotPasswordForm } from './components/ForgotPasswordForm';

@@ -3,12 +3,12 @@ import AuthLayout from '../layouts/AuthLayout';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
-import Home from '../pages/Home';
+import Homepage from '../features/homepage/Homepage'; 
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Home />,
+    element: <Homepage />,
   },
   {
     element: <AuthLayout />,

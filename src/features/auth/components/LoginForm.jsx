@@ -1,4 +1,10 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLoginMutation } from '../api/authApi';
+import { setCredentials, setError, clearError } from '../slice';
+import { selectAuthError } from '../slice';
+import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
 import styles from './Auth.module.css';
 
 const GoogleIcon = () => (
@@ -11,6 +17,29 @@ const GoogleIcon = () => (
 );
 
 export const LoginForm = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [login, { isLoading }] = useLoginMutation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const error = useSelector(selectAuthError);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    dispatch(clearError());
+    setSuccessMessage('');
+
+    try {
+      const response = await login({ email, password }).unwrap();
+      dispatch(setCredentials(response));
+      setSuccessMessage('Đăng nhập thành công. Đang chuyển trang...');
+      setTimeout(() => navigate('/'), 700);
+    } catch (err) {
+      dispatch(setError(getApiErrorMessage(err, 'Đăng nhập thất bại')));
+    }
+  };
+
   return (
     <div className={styles.formWrapper}>
       <div className={styles.tabs}>
@@ -18,15 +47,34 @@ export const LoginForm = () => {
         <Link to="/register" className={styles.tab}>Tạo tài khoản mới</Link>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()}>
+      {successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+      {error && <div className={styles.errorMessage}>{error}</div>}
+
+      <form onSubmit={handleSubmit}>
         <div className={styles.inputGroup}>
-          <input type="email" placeholder="Email" className={styles.input} required />
+          <input 
+            type="email" 
+            placeholder="Email" 
+            className={styles.input} 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required 
+          />
         </div>
         <div className={styles.inputGroup}>
-          <input type="password" placeholder="Mật khẩu" className={styles.input} required />
+          <input 
+            type="password" 
+            placeholder="Mật khẩu" 
+            className={styles.input} 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required 
+          />
         </div>
 
-        <button type="submit" className={styles.primaryButton}>Đăng nhập</button>
+        <button type="submit" className={styles.primaryButton} disabled={isLoading}>
+          {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+        </button>
         
         <Link to="/forgot-password" className={styles.forgotPassword}>
           Bạn quên mật khẩu?

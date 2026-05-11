@@ -4,11 +4,14 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    // Lấy URL từ biến môi trường hoặc dùng localhost nếu không có
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+    // Trong môi trường dev luôn gọi relative path để đi qua Vite proxy,
+    // tránh browser gọi thẳng BE dẫn tới CORS preflight (OPTIONS).
+    baseUrl: import.meta.env.DEV
+      ? '/api/v1'
+      : (import.meta.env.VITE_API_URL || '/api/v1'),
     prepareHeaders: (headers, { getState }) => {
       // Tự động thêm Token vào Header nếu đã đăng nhập
-      const token = getState().auth?.token;
+      const token = getState().auth?.access_token;
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }

@@ -1,8 +1,10 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import AuthLayout from '../layouts/AuthLayout';
+import LoginPage from '../pages/LoginPage';
+import RegisterPage from '../pages/RegisterPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 
-// Các component tạm thời cho các trang
-const Home = () => <div>Trang chủ - RoomieMatch</div>;
-const Login = () => <div>Trang Đăng nhập</div>;
+const Home = () => <div>Trang chủ - RoomieMatch <br/><a href="/login">Go to Login</a></div>;
 
 export const router = createBrowserRouter([
   {
@@ -10,7 +12,20 @@ export const router = createBrowserRouter([
     element: <Home />,
   },
   {
-    path: '/login',
-    element: <Login />,
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '/login',
+        element: <LoginPage />,
+      },
+      {
+        path: '/register',
+        element: <RegisterPage />,
+      },
+      {
+        path: '/forgot-password',
+        element: <ForgotPasswordPage />,
+      },
+    ],
   },
 ]);

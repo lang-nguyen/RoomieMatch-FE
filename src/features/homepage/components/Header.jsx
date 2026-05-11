@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import '../Homepage.css';
 
 const navItems = [
@@ -18,7 +18,7 @@ const Header = () => {
     // Determine which item to highlight
     const targetIndex = hoverIndex !== null ? hoverIndex : activeIndex;
     const navContainer = navRef.current;
-    
+
     if (navContainer) {
       const navLinks = navContainer.querySelectorAll('.nav-link');
       if (navLinks[targetIndex]) {
@@ -45,18 +45,18 @@ const Header = () => {
           </div>
           <span className="logo-text">RoomieMatch</span>
         </div>
-        
+
         <nav className="nav-links" ref={navRef}>
           {/* Background Indicator that slides */}
           <div className="nav-indicator" style={indicatorStyle}>
             <div className="indicator-curve-left"></div>
             <div className="indicator-curve-right"></div>
           </div>
-          
+
           {navItems.map((item, index) => (
-            <a 
-              key={item.id} 
-              href={`#${item.id}`} 
+            <a
+              key={item.id}
+              href={`#${item.id}`}
               className={`nav-link ${(hoverIndex !== null ? hoverIndex === index : activeIndex === index) ? 'active' : ''}`}
               onMouseEnter={() => setHoverIndex(index)}
               onMouseLeave={() => setHoverIndex(null)}
@@ -69,9 +69,9 @@ const Header = () => {
             </a>
           ))}
         </nav>
-        
+
         <div className="header-actions">
-          <a href="#login" className="nav-link login-link">Đăng nhập</a>
+          <a href="login" className="nav-link login-link">Đăng nhập</a>
           <button className="icon-btn wishlist-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
           </button>

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import RoomCard from './components/RoomCard';
 import Sidebar from './components/Sidebar';
 import CustomDropdown from './components/CustomDropdown';
-import { mockRooms, citiesData, faqData } from './mockData';
+import { citiesData, faqData } from './mockData';
+import { useGetPostsQuery } from './api/postsApi';
+import { getApiErrorMessage } from '../../shared/utils/getApiErrorMessage';
 import './Homepage.css';
 
 const cityOptions = [
@@ -38,6 +39,45 @@ const amenityOptions = [
   { value: 'parking', label: 'Chỗ để xe' }
 ];
 
+const HOME_POST_PREVIEW_LIMIT = 6;
+const DEFAULT_ROOM_IMAGE =
+  'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22 viewBox=%220 0 800 600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%23f3f4f6%22/%3E%3Cpath d=%22M160 410l120-120 90 90 120-120 170 170v70H160z%22 fill=%23d1d5db%22/%3E%3Ccircle cx=%22585%22 cy=%22210%22 r=%2240%22 fill=%23e5e7eb%22/%3E%3Ctext x=%22400%22 y=%22330%22 text-anchor=%22middle%22 font-family=%22Arial,%20sans-serif%22 font-size=%2230%22 fill=%239ca3af%22%3EKhông có ảnh%3C/text%3E%3C/svg%3E';
+
+const formatRelativeTime = (createdAt) => {
+  if (!createdAt) return 'Vừa đăng';
+
+  const createdDate = new Date(createdAt);
+  if (Number.isNaN(createdDate.getTime())) return 'Vừa đăng';
+
+  const diffInSeconds = Math.floor((Date.now() - createdDate.getTime()) / 1000);
+  if (diffInSeconds < 60) return 'Vừa đăng';
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} giờ trước`;
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays} ngày trước`;
+};
+
+const mapPostToRoom = (post) => ({
+  id: post.post_id,
+  title: post.title,
+  price: Number(post.price) || 0,
+  area: Number(post.area) || 0,
+  bedrooms: Number(post.bedroom_count) || 0,
+  type: post.room_type || 'Phòng trọ',
+  city: post.city || '',
+  district: post.district || '',
+  ward: post.ward || '',
+  verified: Boolean(post.is_vip),
+  timeAgo: formatRelativeTime(post.created_at),
+  image: post.thumbnail || post.image || post.cover_image || DEFAULT_ROOM_IMAGE,
+  status: post.status,
+});
+
 const Homepage = () => {
   const [searchParams, setSearchParams] = useState({
     city: '',
@@ -46,40 +86,70 @@ const Homepage = () => {
     price: ''
   });
 
-  const [filteredRooms, setFilteredRooms] = useState(mockRooms);
+  const [appliedFilters, setAppliedFilters] = useState(searchParams);
+  const { data, isLoading, isFetching, isError, error, refetch } = useGetPostsQuery({
+    page: 1,
+    page_size: 20,
+  });
+
   const [openFaq, setOpenFaq] = useState(null);
+
+  const rooms = useMemo(() => (data?.items || []).map(mapPostToRoom), [data]);
+
+  const filteredRooms = useMemo(() => {
+    let result = [...rooms];
+
+    if (appliedFilters.city) {
+      result = result.filter((room) =>
+        [room.city, room.district, room.ward].some((field) =>
+          (field || '').toLowerCase().includes(appliedFilters.city.toLowerCase())
+        )
+      );
+    }
+
+    if (appliedFilters.district) {
+      result = result.filter((room) =>
+        [room.district, room.ward].some((field) =>
+          (field || '').toLowerCase().includes(appliedFilters.district.toLowerCase())
+        )
+      );
+    }
+
+    if (appliedFilters.type) {
+      result = result.filter((room) =>
+        room.type.toLowerCase().includes(appliedFilters.type.toLowerCase())
+      );
+    }
+
+    if (appliedFilters.price) {
+      const limit = parseInt(appliedFilters.price, 10);
+      if (limit) {
+        result = result.filter((room) => room.price <= limit);
+      }
+    }
+
+    return result;
+  }, [rooms, appliedFilters]);
+
+  const previewRooms = useMemo(
+    () => filteredRooms.slice(0, HOME_POST_PREVIEW_LIMIT),
+    [filteredRooms]
+  );
 
   const toggleFaq = (id) => {
     setOpenFaq(openFaq === id ? null : id);
   };
 
   const handleSearch = () => {
-    let result = [...mockRooms];
-
-    if (searchParams.city) {
-      result = result.filter(r => r.city.toLowerCase().includes(searchParams.city.toLowerCase()));
-    }
-    if (searchParams.district) {
-      result = result.filter(r => r.district.toLowerCase().includes(searchParams.district.toLowerCase()));
-    }
-    if (searchParams.type) {
-      result = result.filter(r => r.type.toLowerCase().includes(searchParams.type.toLowerCase()));
-    }
-    // simple price filter logic
-    if (searchParams.price) {
-      const limit = parseInt(searchParams.price);
-      if (limit) {
-        result = result.filter(r => r.price <= limit);
-      }
-    }
-
-    setFilteredRooms(result);
+    setAppliedFilters(searchParams);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setSearchParams(prev => ({ ...prev, [name]: value }));
   };
+
+  const errorMessage = isError ? getApiErrorMessage(error, 'Không tải được danh sách bài đăng') : '';
 
   return (
     <div className="homepage">
@@ -153,18 +223,31 @@ const Homepage = () => {
             <section className="section">
               <div className="section-header">
                 <h2 className="section-title">Phòng trọ mới đăng</h2>
-                <a href="#" className="view-all">Xem tất cả &gt;</a>
+                <a href="#posts" className="view-all">Xem tất cả &gt;</a>
               </div>
 
-              <div className="rooms-grid">
-                {filteredRooms.length > 0 ? (
-                  filteredRooms.map(room => (
-                    <RoomCard key={room.id} room={room} />
-                  ))
-                ) : (
-                  <p className="no-results">Không tìm thấy phòng trọ phù hợp.</p>
-                )}
-              </div>
+              {isLoading ? (
+                <div className="rooms-state rooms-loading">Đang tải danh sách phòng trọ...</div>
+              ) : isError ? (
+                <div className="rooms-state rooms-error">
+                  <p>{errorMessage}</p>
+                  <button type="button" className="retry-button" onClick={() => refetch()}>
+                    Thử lại
+                  </button>
+                </div>
+              ) : (
+                <div className="rooms-grid">
+                  {previewRooms.length > 0 ? (
+                    previewRooms.map(room => (
+                      <RoomCard key={room.id} room={room} />
+                    ))
+                  ) : (
+                    <p className="no-results">
+                      {isFetching ? 'Đang cập nhật dữ liệu...' : 'Không tìm thấy phòng trọ phù hợp.'}
+                    </p>
+                  )}
+                </div>
+              )}
             </section>
 
             <section className="section cities-section">

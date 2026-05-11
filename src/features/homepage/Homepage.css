@@ -408,6 +408,38 @@
   gap: 24px;
 }
 
+.rooms-state {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  color: #4B5563;
+}
+
+.rooms-loading {
+  font-size: 16px;
+}
+
+.rooms-error {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.retry-button {
+  background: #D45B13;
+  color: white;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 10px 20px;
+}
+
+.retry-button:hover {
+  background: #b54d10;
+}
+
 .room-card {
   background: white;
   border-radius: 16px;

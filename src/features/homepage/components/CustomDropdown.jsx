@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import '../Homepage.css';
 
 const CustomDropdown = ({ icon, placeholder, options, value, onChange, name }) => {

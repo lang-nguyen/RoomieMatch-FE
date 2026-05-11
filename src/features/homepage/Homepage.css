@@ -208,7 +208,8 @@
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  overflow: visible; /* Ensure dropdowns are not cut off */
+  overflow: visible;
+  /* Ensure dropdowns are not cut off */
 }
 
 .search-grid {
@@ -289,9 +290,12 @@
   border: 1px solid #E0E0E0;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  z-index: 1000; /* High z-index to show over everything */
-  overflow: hidden; /* This clips the options inside the rounded menu, which is fine */
-  text-align: left; /* Override parent center alignment */
+  z-index: 1000;
+  /* High z-index to show over everything */
+  overflow: hidden;
+  /* This clips the options inside the rounded menu, which is fine */
+  text-align: left;
+  /* Override parent center alignment */
 }
 
 .dropdown-option {
@@ -301,15 +305,18 @@
   cursor: pointer;
   transition: box-shadow 0.2s;
   background-color: white;
-  text-align: left; /* Explicitly left align */
+  text-align: left;
+  /* Explicitly left align */
 }
 
 .dropdown-menu.with-icon .dropdown-option {
-  padding-left: 44px; /* Align with trigger text when icon is present */
+  padding-left: 44px;
+  /* Align with trigger text when icon is present */
 }
 
 .dropdown-option:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Bóng ngoài tạo nổi */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* Bóng ngoài tạo nổi */
   z-index: 1;
   position: relative;
   background-color: white;
@@ -646,7 +653,7 @@
   font-size: 24px;
   font-weight: 800;
   margin-bottom: 4px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
@@ -654,7 +661,7 @@
   font-size: 13px;
   font-weight: 500;
   opacity: 0.9;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 

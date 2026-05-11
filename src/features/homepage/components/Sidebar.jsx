@@ -12,10 +12,10 @@ const Sidebar = () => {
           </button>
         </div>
       </div>
-      
+
       <div className="feature-highlight">
         <h3 className="highlight-title">Trải nghiệm tuyệt vời với RoomieMatch</h3>
-        
+
         <ul className="feature-list">
           <li className="feature-item">
             <div className="feature-icon">
@@ -36,7 +36,7 @@ const Sidebar = () => {
             <span>Thêm nhiều tính năng nâng cao</span>
           </li>
         </ul>
-        
+
         <button className="upgrade-btn">Nâng cấp tài khoản</button>
       </div>
     </aside>

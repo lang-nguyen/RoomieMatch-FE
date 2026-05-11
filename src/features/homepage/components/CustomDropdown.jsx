@@ -29,15 +29,15 @@ const CustomDropdown = ({ icon, placeholder, options, value, onChange, name }) =
         <span className="dropdown-value">{selectedOption ? selectedOption.label : placeholder}</span>
         <svg className="dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </div>
-      
+
       {isOpen && (
         <div className={`dropdown-menu ${icon ? 'with-icon' : ''}`}>
           <div className="dropdown-option placeholder" onClick={() => handleSelect('')}>
             {placeholder}
           </div>
           {options.map((option) => (
-            <div 
-              key={option.value} 
+            <div
+              key={option.value}
               className={`dropdown-option ${value === option.value ? 'selected' : ''}`}
               onClick={() => handleSelect(option.value)}
             >

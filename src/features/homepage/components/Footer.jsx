@@ -8,7 +8,7 @@ const Footer = () => {
           <h2 className="footer-logo">SmartRoom</h2>
           <p className="footer-desc">Nền tảng tìm kiếm phòng trọ và người ở ghép số 1 Việt Nam, giúp bạn tìm được không gian sống lý tưởng.</p>
         </div>
-        
+
         <div className="footer-col">
           <h3 className="footer-title">Liên hệ</h3>
           <ul className="footer-links">
@@ -17,7 +17,7 @@ const Footer = () => {
             <li><strong>Địa chỉ:</strong> 16 Quốc lộ 1A, P. Linh Trung, TP. Thủ Đức, TP.HCM</li>
           </ul>
         </div>
-        
+
         <div className="footer-col">
           <h3 className="footer-title">Về chúng tôi</h3>
           <ul className="footer-links">
@@ -27,7 +27,7 @@ const Footer = () => {
             <li><a href="#">Câu hỏi thường gặp</a></li>
           </ul>
         </div>
-        
+
         <div className="footer-col">
           <h3 className="footer-title">Kết nối với chúng tôi</h3>
           <div className="social-links">

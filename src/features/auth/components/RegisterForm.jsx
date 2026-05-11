@@ -1,4 +1,10 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRegisterMutation } from '../api/authApi';
+import { setCredentials, setError, clearError } from '../slice';
+import { selectAuthError } from '../slice';
+import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
 import styles from './Auth.module.css';
 
 const GoogleIcon = () => (
@@ -11,6 +17,53 @@ const GoogleIcon = () => (
 );
 
 export const RegisterForm = () => {
+  const [formData, setFormData] = useState({
+    display_name: '',
+    email: '',
+    password: '',
+    password_confirm: '',
+    account_type: 'tenant',
+  });
+  const [successMessage, setSuccessMessage] = useState('');
+  const [register, { isLoading }] = useRegisterMutation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const error = useSelector(selectAuthError);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    dispatch(clearError());
+    setSuccessMessage('');
+    
+    // Validate passwords match
+    if (formData.password !== formData.password_confirm) {
+      dispatch(setError('Mật khẩu không khớp'));
+      return;
+    }
+
+    try {
+      const response = await register({
+        display_name: formData.display_name,
+        email: formData.email,
+        password: formData.password,
+        account_type: formData.account_type,
+      }).unwrap();
+      dispatch(setCredentials(response));
+      setSuccessMessage('Tạo tài khoản thành công. Đang chuyển trang...');
+      setTimeout(() => navigate('/'), 900);
+    } catch (err) {
+      dispatch(setError(getApiErrorMessage(err, 'Tạo tài khoản thất bại')));
+    }
+  };
+
   return (
     <div className={styles.formWrapper}>
       <div className={styles.tabs}>
@@ -18,33 +71,84 @@ export const RegisterForm = () => {
         <Link to="/register" className={`${styles.tab} ${styles.activeTab}`}>Tạo tài khoản mới</Link>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()}>
+      {successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+      {error && <div className={styles.errorMessage}>{error}</div>}
+
+      <form onSubmit={handleSubmit}>
         <div className={styles.inputGroup}>
-          <input type="text" placeholder="Họ tên" className={styles.input} required />
+          <input 
+            type="text" 
+            name="display_name"
+            placeholder="Họ tên" 
+            className={styles.input} 
+            value={formData.display_name}
+            onChange={handleChange}
+            required 
+          />
         </div>
         <div className={styles.inputGroup}>
-          <input type="email" placeholder="Email" className={styles.input} required />
+          <input 
+            type="email" 
+            name="email"
+            placeholder="Email" 
+            className={styles.input} 
+            value={formData.email}
+            onChange={handleChange}
+            required 
+          />
         </div>
         <div className={styles.inputGroup}>
-          <input type="password" placeholder="Mật khẩu" className={styles.input} required />
+          <input 
+            type="password" 
+            name="password"
+            placeholder="Mật khẩu" 
+            className={styles.input} 
+            value={formData.password}
+            onChange={handleChange}
+            required 
+          />
         </div>
         <div className={styles.inputGroup}>
-          <input type="password" placeholder="Xác nhận lại mật khẩu" className={styles.input} required />
+          <input 
+            type="password" 
+            name="password_confirm"
+            placeholder="Xác nhận lại mật khẩu" 
+            className={styles.input} 
+            value={formData.password_confirm}
+            onChange={handleChange}
+            required 
+          />
         </div>
 
         <div className={styles.radioGroup}>
           <span>Loại tài khoản:</span>
           <label className={styles.radioLabel}>
-            <input type="radio" name="accountType" value="tenant" className={styles.radioInput} defaultChecked />
+            <input 
+              type="radio" 
+              name="account_type" 
+              value="tenant" 
+              className={styles.radioInput} 
+              checked={formData.account_type === 'tenant'}
+              onChange={handleChange}
+            />
             Người thuê trọ
           </label>
           <label className={styles.radioLabel}>
-            <input type="radio" name="accountType" value="landlord" className={styles.radioInput} />
+            <input 
+              type="radio" 
+              name="account_type" 
+              value="landlord" 
+              className={styles.radioInput} 
+              checked={formData.account_type === 'landlord'}
+              onChange={handleChange}
+            />
             Chủ trọ
           </label>
         </div>
 
-        <button type="submit" className={styles.primaryButton}>Tạo tài khoản</button>
+        <button type="submit" className={styles.primaryButton} disabled={isLoading}>
+          {isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
+        </button>
       </form>
 
       <div className={styles.divider}>Hoặc</div>

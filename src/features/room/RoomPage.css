@@ -259,6 +259,46 @@
   padding: 0 24px;
 }
 
+.room-page .room-card {
+  border-radius: 16px;
+}
+
+.room-page .room-image-container {
+  height: 230px;
+}
+
+.room-page .room-info {
+  padding: 20px;
+}
+
+.room-page .room-meta-top {
+  margin-bottom: 16px;
+}
+
+.room-page .room-title {
+  font-size: 18px;
+  margin-bottom: 12px;
+  height: 50px;
+}
+
+.room-page .room-location {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.room-page .room-divider {
+  margin: 16px 0;
+}
+
+.room-page .room-tags {
+  gap: 12px;
+}
+
+.room-page .tag-pill {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
 .room-list-header {
   display: flex;
   justify-content: space-between;

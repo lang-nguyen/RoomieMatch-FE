@@ -39,7 +39,7 @@ const amenityOptions = [
   { value: 'parking', label: 'Chỗ để xe' }
 ];
 
-const HOME_POST_PREVIEW_LIMIT = 6;
+const HOME_POST_PREVIEW_LIMIT = 3;
 const DEFAULT_ROOM_IMAGE =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22 viewBox=%220 0 800 600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%23f3f4f6%22/%3E%3Cpath d=%22M160 410l120-120 90 90 120-120 170 170v70H160z%22 fill=%23d1d5db%22/%3E%3Ccircle cx=%22585%22 cy=%22210%22 r=%2240%22 fill=%23e5e7eb%22/%3E%3Ctext x=%22400%22 y=%22330%22 text-anchor=%22middle%22 font-family=%22Arial,%20sans-serif%22 font-size=%2230%22 fill=%239ca3af%22%3EKhông có ảnh%3C/text%3E%3C/svg%3E';
 
@@ -89,7 +89,8 @@ const Homepage = () => {
   const [appliedFilters, setAppliedFilters] = useState(searchParams);
   const { data, isLoading, isFetching, isError, error, refetch } = useGetPostsQuery({
     page: 1,
-    page_size: 20,
+    page_size: 3,
+    sort_by: 'newest',
   });
 
   const [openFaq, setOpenFaq] = useState(null);
@@ -155,165 +156,167 @@ const Homepage = () => {
     <div className="homepage">
       <Header />
 
-      <section className="hero-section">
-        <div className="hero-overlay"></div>
-        <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Hero background" className="hero-bg" />
+      <div className="homepage-content">
+        <section className="hero-section">
+          <div className="hero-overlay"></div>
+          <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Hero background" className="hero-bg" />
 
-        <div className="hero-content">
-          <h1 className="hero-title">Tìm Phòng Trọ Ưng Ý Nhanh Chóng & Dễ Dàng</h1>
-          <p className="hero-subtitle">SmartRoom kết nối người thuê với phòng đang trống theo thời<br />gian thực - không tin ảo - minh bạch chi phí</p>
+          <div className="hero-content">
+            <h1 className="hero-title">Tìm Phòng Trọ Ưng Ý Nhanh Chóng & Dễ Dàng</h1>
+            <p className="hero-subtitle">SmartRoom kết nối người thuê với phòng đang trống theo thời<br />gian thực - không tin ảo - minh bạch chi phí</p>
 
-          <div className="search-filter-box">
-            <div className="search-grid">
-              <CustomDropdown
-                name="city"
-                value={searchParams.city}
-                onChange={handleInputChange}
-                options={cityOptions}
-                placeholder="Tỉnh/Thành phố"
-                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}
-              />
+            <div className="search-filter-box">
+              <div className="search-grid">
+                <CustomDropdown
+                  name="city"
+                  value={searchParams.city}
+                  onChange={handleInputChange}
+                  options={cityOptions}
+                  placeholder="Tỉnh/Thành phố"
+                  icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}
+                />
 
-              <CustomDropdown
-                name="district"
-                value={searchParams.district}
-                onChange={handleInputChange}
-                options={districtOptions}
-                placeholder="Quận/Huyện"
-              />
+                <CustomDropdown
+                  name="district"
+                  value={searchParams.district}
+                  onChange={handleInputChange}
+                  options={districtOptions}
+                  placeholder="Quận/Huyện"
+                />
 
-              <button className="search-btn pill-btn" onClick={handleSearch}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                Tìm kiếm
-              </button>
-            </div>
+                <button className="search-btn pill-btn" onClick={handleSearch}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  Tìm kiếm
+                </button>
+              </div>
 
-            <div className="search-grid bottom-row">
-              <CustomDropdown
-                name="type"
-                value={searchParams.type}
-                onChange={handleInputChange}
-                options={typeOptions}
-                placeholder="Loại phòng"
-              />
+              <div className="search-grid bottom-row">
+                <CustomDropdown
+                  name="type"
+                  value={searchParams.type}
+                  onChange={handleInputChange}
+                  options={typeOptions}
+                  placeholder="Loại phòng"
+                />
 
-              <CustomDropdown
-                name="price"
-                value={searchParams.price}
-                onChange={handleInputChange}
-                options={priceOptions}
-                placeholder="Khoảng giá"
-              />
+                <CustomDropdown
+                  name="price"
+                  value={searchParams.price}
+                  onChange={handleInputChange}
+                  options={priceOptions}
+                  placeholder="Khoảng giá"
+                />
 
-              <CustomDropdown
-                name="amenity"
-                value=""
-                onChange={() => { }}
-                options={amenityOptions}
-                placeholder="Tiện ích"
-              />
+                <CustomDropdown
+                  name="amenity"
+                  value=""
+                  onChange={() => { }}
+                  options={amenityOptions}
+                  placeholder="Tiện ích"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <main className="main-content">
-        <div className="content-container">
-          <div className="left-column">
-            <section className="section">
-              <div className="section-header">
-                <h2 className="section-title">Phòng trọ mới đăng</h2>
-                <a href="#posts" className="view-all">Xem tất cả &gt;</a>
-              </div>
+        <main className="main-content">
+          <div className="content-container">
+            <div className="left-column">
+              <section className="section">
+                <div className="section-header">
+                  <h2 className="section-title">Phòng trọ mới đăng</h2>
+                  <a href="#posts" className="view-all">Xem tất cả &gt;</a>
+                </div>
 
-              {isLoading ? (
-                <div className="rooms-state rooms-loading">Đang tải danh sách phòng trọ...</div>
-              ) : isError ? (
-                <div className="rooms-state rooms-error">
-                  <p>{errorMessage}</p>
-                  <button type="button" className="retry-button" onClick={() => refetch()}>
-                    Thử lại
-                  </button>
-                </div>
-              ) : (
-                <div className="rooms-grid">
-                  {previewRooms.length > 0 ? (
-                    previewRooms.map(room => (
-                      <RoomCard key={room.id} room={room} />
-                    ))
-                  ) : (
-                    <p className="no-results">
-                      {isFetching ? 'Đang cập nhật dữ liệu...' : 'Không tìm thấy phòng trọ phù hợp.'}
-                    </p>
-                  )}
-                </div>
-              )}
-            </section>
-
-            <section className="section cities-section">
-              <div className="section-header">
-                <div className="title-with-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
-                  <h2 className="section-title">Phòng trọ theo các tỉnh thành khác</h2>
-                </div>
-                <a href="#" className="view-all">Xem tất cả</a>
-              </div>
-              <div className="cities-grid">
-                {citiesData.map(city => (
-                  <div key={city.id} className="city-card">
-                    <img src={city.image} alt={city.name} className="city-image" />
-                    <div className="city-card-overlay">
-                      <h3 className="city-card-name">{city.name}</h3>
-                      <p className="city-card-count">Xem ngay {city.count} phòng trống tại đây</p>
-                    </div>
+                {isLoading ? (
+                  <div className="rooms-state rooms-loading">Đang tải danh sách phòng trọ...</div>
+                ) : isError ? (
+                  <div className="rooms-state rooms-error">
+                    <p>{errorMessage}</p>
+                    <button type="button" className="retry-button" onClick={() => refetch()}>
+                      Thử lại
+                    </button>
                   </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="section faq-section">
-              <div className="faq-header">
-                <div className="wavy-line left"></div>
-                <div className="faq-title-container">
-                  <div className="faq-icon-circle">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                  </div>
-                  <h2 className="faq-title">Câu hỏi thường gặp về SmartRoom</h2>
-                </div>
-                <div className="wavy-line right"></div>
-              </div>
-
-              <div className="faq-list">
-                {faqData.map((faq) => (
-                  <div key={faq.id} className={`faq-item ${openFaq === faq.id ? 'open' : ''}`} onClick={() => toggleFaq(faq.id)}>
-                    <div className="faq-question-row">
-                      <div className="faq-question-left">
-                        <div className="faq-q-icon">
-                          {faq.icon === 'verified' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-                          {faq.icon === 'help' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>}
-                          {faq.icon === 'users' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>}
-                          {faq.icon === 'chat' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>}
-                        </div>
-                        <span className="faq-question">{faq.question}</span>
-                      </div>
-                      <svg className="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </div>
-                    {openFaq === faq.id && (
-                      <div className="faq-answer">
-                        {faq.answer}
-                      </div>
+                ) : (
+                  <div className="rooms-grid">
+                    {previewRooms.length > 0 ? (
+                      previewRooms.map(room => (
+                        <RoomCard key={room.id} room={room} />
+                      ))
+                    ) : (
+                      <p className="no-results">
+                        {isFetching ? 'Đang cập nhật dữ liệu...' : 'Không tìm thấy phòng trọ phù hợp.'}
+                      </p>
                     )}
                   </div>
-                ))}
-              </div>
-            </section>
-          </div>
+                )}
+              </section>
 
-          <div className="right-column">
-            <Sidebar />
+              <section className="section cities-section">
+                <div className="section-header">
+                  <div className="title-with-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+                    <h2 className="section-title">Phòng trọ theo các tỉnh thành khác</h2>
+                  </div>
+                  <a href="#" className="view-all">Xem tất cả</a>
+                </div>
+                <div className="cities-grid">
+                  {citiesData.map(city => (
+                    <div key={city.id} className="city-card">
+                      <img src={city.image} alt={city.name} className="city-image" />
+                      <div className="city-card-overlay">
+                        <h3 className="city-card-name">{city.name}</h3>
+                        <p className="city-card-count">Xem ngay {city.count} phòng trống tại đây</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="section faq-section">
+                <div className="faq-header">
+                  <div className="wavy-line left"></div>
+                  <div className="faq-title-container">
+                    <div className="faq-icon-circle">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </div>
+                    <h2 className="faq-title">Câu hỏi thường gặp về SmartRoom</h2>
+                  </div>
+                  <div className="wavy-line right"></div>
+                </div>
+
+                <div className="faq-list">
+                  {faqData.map((faq) => (
+                    <div key={faq.id} className={`faq-item ${openFaq === faq.id ? 'open' : ''}`} onClick={() => toggleFaq(faq.id)}>
+                      <div className="faq-question-row">
+                        <div className="faq-question-left">
+                          <div className="faq-q-icon">
+                            {faq.icon === 'verified' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                            {faq.icon === 'help' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>}
+                            {faq.icon === 'users' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>}
+                            {faq.icon === 'chat' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>}
+                          </div>
+                          <span className="faq-question">{faq.question}</span>
+                        </div>
+                        <svg className="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </div>
+                      {openFaq === faq.id && (
+                        <div className="faq-answer">
+                          {faq.answer}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            <div className="right-column">
+              <Sidebar />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <Footer />
     </div>

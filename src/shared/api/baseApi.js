@@ -1,7 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { serializeQueryParams } from './serializeQueryParams';
+import { getAccessToken } from '../utils/authToken';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || import.meta.env.DEV;
+// Use mock only when explicitly enabled via VITE_USE_MOCK.
+// Previously DEV always enabled mock which prevented calling real APIs in development.
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 const mockUser = {
   id: 1,
@@ -62,8 +65,13 @@ export const baseApi = createApi({
           : (import.meta.env.VITE_API_URL || '/api/v1'),
         paramsSerializer: serializeQueryParams,
         prepareHeaders: (headers, { getState }) => {
-          // Tự động thêm Token vào Header nếu đã đăng nhập
-          const token = getState().auth?.access_token;
+          // Tự động thêm Token vào Header nếu đã đăng nhập.
+          // Ưu tiên lấy từ redux state, fallback sang localStorage helper.
+          let token = getState?.().auth?.access_token;
+          if (!token) {
+            token = getAccessToken();
+          }
+
           if (token) {
             headers.set('authorization', `Bearer ${token}`);
           }

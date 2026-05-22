@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Header from '../../shared/components/Header';
 import Footer from '../../shared/components/Footer';
 import RoomHero from './components/RoomHero';
 import RoomRecommended from './components/RoomRecommended';
 import RoomSearch from './components/RoomSearch';
 import RoomList from './components/RoomList';
-import { fetchRooms } from './api/roomApi';
+import { useGetPostsQuery } from '../homepage/api/postsApi';
+import { useGetDistrictsByProvinceNameQuery, useGetProvincesQuery } from '../../shared/api/provincesApi';
 import {
-  cityOptions,
-  districtOptions,
+  cityOptions as fallbackCityOptions,
+  districtOptions as fallbackDistrictOptions,
   typeOptions,
   sortOptions,
   roomStats,
@@ -17,90 +18,77 @@ import {
 import '../homepage/Homepage.css';
 import './RoomPage.css';
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 10;
+
+const formatRelativeTime = (createdAt) => {
+  if (!createdAt) return 'Vừa đăng';
+
+  const createdDate = new Date(createdAt);
+  if (Number.isNaN(createdDate.getTime())) return 'Vừa đăng';
+
+  const diffInSeconds = Math.floor((Date.now() - createdDate.getTime()) / 1000);
+  if (diffInSeconds < 60) return 'Vừa đăng';
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} giờ trước`;
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays} ngày trước`;
+};
+
+const mapPostToRoom = (post) => ({
+  id: post.post_id || post.room_id,
+  title: post.title,
+  price: Number(post.price) || 0,
+  area: Number(post.area) || 0,
+  bedrooms: Number(post.bedroom_count) || 0,
+  type: post.room_type || 'Phòng trọ',
+  city: post.city || '',
+  district: post.district || '',
+  ward: post.ward || '',
+  verified: Boolean(post.is_vip),
+  timeAgo: formatRelativeTime(post.created_at),
+  image: post.thumbnail || post.image || post.cover_image,
+  status: post.status,
+});
 
 const RoomPage = () => {
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
-  const [rooms, setRooms] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   const [appliedFilters, setAppliedFilters] = useState(searchParams);
   const [currentPage, setCurrentPage] = useState(1);
+  const { data: provinceOptions = [] } = useGetProvincesQuery();
+  const { data: districtOptions = [] } = useGetDistrictsByProvinceNameQuery(searchParams.city, {
+    skip: !searchParams.city,
+  });
 
-  useEffect(() => {
-    let isMounted = true;
-    setIsLoading(true);
-    fetchRooms()
-      .then((data) => {
-        if (isMounted) {
-          setRooms(data.items || []);
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
+  const queryParams = useMemo(() => ({
+    page: currentPage,
+    page_size: PAGE_SIZE,
+    sort_by: appliedFilters.sort || 'newest',
+    ...(appliedFilters.city ? { city: appliedFilters.city } : {}),
+    ...(appliedFilters.district ? { district: appliedFilters.district } : {}),
+    room_type: appliedFilters.type || undefined,
+    keyword: appliedFilters.keyword || undefined,
+  }), [appliedFilters.city, appliedFilters.district, appliedFilters.keyword, appliedFilters.sort, appliedFilters.type, currentPage]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { data, isLoading } = useGetPostsQuery(queryParams);
 
-  const filteredRooms = useMemo(() => {
-    let result = [...rooms];
-
-    if (appliedFilters.keyword) {
-      const keyword = appliedFilters.keyword.toLowerCase();
-      result = result.filter((room) =>
-        [room.title, room.city, room.district, room.ward].some((field) =>
-          (field || '').toLowerCase().includes(keyword)
-        )
-      );
-    }
-
-    if (appliedFilters.city) {
-      result = result.filter((room) =>
-        (room.city || '').toLowerCase().includes(appliedFilters.city.toLowerCase())
-      );
-    }
-
-    if (appliedFilters.district) {
-      result = result.filter((room) =>
-        [room.district, room.ward].some((field) =>
-          (field || '').toLowerCase().includes(appliedFilters.district.toLowerCase())
-        )
-      );
-    }
-
-    if (appliedFilters.type) {
-      result = result.filter((room) =>
-        (room.type || '').toLowerCase().includes(appliedFilters.type.toLowerCase())
-      );
-    }
-
-    if (appliedFilters.sort === 'price_asc') {
-      result.sort((a, b) => a.price - b.price);
-    }
-
-    if (appliedFilters.sort === 'price_desc') {
-      result.sort((a, b) => b.price - a.price);
-    }
-
-    return result;
-  }, [appliedFilters, rooms]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredRooms.length / PAGE_SIZE));
-  const pagedRooms = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredRooms.slice(start, start + PAGE_SIZE);
-  }, [filteredRooms, currentPage]);
-
+  const rooms = useMemo(() => (data?.items || []).map(mapPostToRoom), [data]);
+  const totalRooms = data?.total ?? 0;
+  const totalPages = data?.total_pages ?? 0;
   const recommendedRooms = useMemo(() => rooms.slice(0, 3), [rooms]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setSearchParams((prev) => ({ ...prev, [name]: value }));
+    setSearchParams((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'city' ? { district: '' } : {}),
+    }));
   };
 
   const handleSearch = () => {
@@ -139,8 +127,8 @@ const RoomPage = () => {
 
       <RoomSearch
         searchParams={searchParams}
-        cityOptions={cityOptions}
-        districtOptions={districtOptions}
+        cityOptions={provinceOptions.length > 0 ? provinceOptions : fallbackCityOptions}
+        districtOptions={districtOptions.length > 0 ? districtOptions : fallbackDistrictOptions}
         typeOptions={typeOptions}
         sortOptions={sortOptions}
         onChange={handleInputChange}
@@ -149,8 +137,8 @@ const RoomPage = () => {
       />
 
       <RoomList
-        rooms={pagedRooms}
-        totalRooms={filteredRooms.length}
+        rooms={rooms}
+        totalRooms={totalRooms}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={goToPage}

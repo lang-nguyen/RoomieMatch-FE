@@ -6,21 +6,9 @@ import Sidebar from './components/Sidebar';
 import CustomDropdown from './components/CustomDropdown';
 import { citiesData, faqData } from './mockData';
 import { useGetPostsQuery } from './api/postsApi';
+import { useGetDistrictsByProvinceNameQuery, useGetProvincesQuery } from '../../shared/api/provincesApi';
 import { getApiErrorMessage } from '../../shared/utils/getApiErrorMessage';
 import './Homepage.css';
-
-const cityOptions = [
-  { value: 'Hồ Chí Minh', label: 'TP. Hồ Chí Minh' },
-  { value: 'Hà Nội', label: 'Hà Nội' },
-  { value: 'Đà Nẵng', label: 'Đà Nẵng' },
-  { value: 'Bình Dương', label: 'Bình Dương' }
-];
-
-const districtOptions = [
-  { value: 'Thảo Điền', label: 'Thảo Điền' },
-  { value: 'Cầu Giấy', label: 'Cầu Giấy' },
-  { value: 'Hải Châu', label: 'Hải Châu' }
-];
 
 const typeOptions = [
   { value: 'Phòng trọ', label: 'Phòng trọ' },
@@ -37,6 +25,21 @@ const amenityOptions = [
   { value: 'wifi', label: 'Có Wifi' },
   { value: 'air_con', label: 'Điều hoà' },
   { value: 'parking', label: 'Chỗ để xe' }
+];
+
+const fallbackCityOptions = [
+  { value: '', label: 'Tất cả' },
+  { value: 'TP. Hồ Chí Minh', label: 'TP. Hồ Chí Minh' },
+  { value: 'Hà Nội', label: 'Hà Nội' },
+  { value: 'Đà Nẵng', label: 'Đà Nẵng' },
+  { value: 'Bình Dương', label: 'Bình Dương' }
+];
+
+const fallbackDistrictOptions = [
+  { value: '', label: 'Tất cả' },
+  { value: 'Thảo Điền', label: 'Thảo Điền' },
+  { value: 'Cầu Giấy', label: 'Cầu Giấy' },
+  { value: 'Hải Châu', label: 'Hải Châu' }
 ];
 
 const HOME_POST_PREVIEW_LIMIT = 3;
@@ -87,6 +90,10 @@ const Homepage = () => {
   });
 
   const [appliedFilters, setAppliedFilters] = useState(searchParams);
+  const { data: provinceOptions = [] } = useGetProvincesQuery();
+  const { data: districtOptions = [] } = useGetDistrictsByProvinceNameQuery(searchParams.city, {
+    skip: !searchParams.city,
+  });
   const { data, isLoading, isFetching, isError, error, refetch } = useGetPostsQuery({
     page: 1,
     page_size: 3,
@@ -142,12 +149,18 @@ const Homepage = () => {
   };
 
   const handleSearch = () => {
-    setAppliedFilters(searchParams);
+    // Strip empty-string selections (the 'Tất cả' option has value '')
+    const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([_, v]) => v !== ''));
+    setAppliedFilters(cleaned);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setSearchParams(prev => ({ ...prev, [name]: value }));
+    setSearchParams(prev => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'city' ? { district: '' } : {}),
+    }));
   };
 
   const errorMessage = isError ? getApiErrorMessage(error, 'Không tải được danh sách bài đăng') : '';
@@ -171,7 +184,7 @@ const Homepage = () => {
                   name="city"
                   value={searchParams.city}
                   onChange={handleInputChange}
-                  options={cityOptions}
+                  options={provinceOptions.length > 0 ? provinceOptions : fallbackCityOptions}
                   placeholder="Tỉnh/Thành phố"
                   icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}
                 />
@@ -180,7 +193,7 @@ const Homepage = () => {
                   name="district"
                   value={searchParams.district}
                   onChange={handleInputChange}
-                  options={districtOptions}
+                  options={districtOptions.length > 0 ? districtOptions : fallbackDistrictOptions}
                   placeholder="Quận/Huyện"
                 />
 

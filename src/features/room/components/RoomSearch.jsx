@@ -34,7 +34,7 @@ const RoomSearch = ({
               value={searchParams.city}
               onChange={onChange}
               options={cityOptions}
-              placeholder="TP. Hồ Chí Minh"
+                placeholder="Tỉnh / Thành phố"
             />
           </div>
 
@@ -45,7 +45,7 @@ const RoomSearch = ({
               value={searchParams.district}
               onChange={onChange}
               options={districtOptions}
-              placeholder="TP. Thủ Đức"
+                placeholder="Quận / Huyện"
             />
           </div>
 

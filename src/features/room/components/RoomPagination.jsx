@@ -1,4 +1,8 @@
 const RoomPagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (totalPages < 1) {
+    return null;
+  }
+
   return (
     <div className="room-pagination">
       <button

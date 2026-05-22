@@ -181,6 +181,24 @@
   /* Override parent center alignment */
 }
 
+/* Limit dropdown height to ~5 items and enable scroll to avoid overflowing the viewport */
+.dropdown-menu {
+  max-height: 240px; /* ~5 items */
+  overflow-y: auto;
+}
+
+/* Optional: nicer thin scrollbar on modern browsers */
+.dropdown-menu::-webkit-scrollbar {
+  width: 8px;
+}
+.dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.12);
+  border-radius: 4px;
+}
+
 .dropdown-option {
   padding: 12px 16px;
   font-size: 14px;

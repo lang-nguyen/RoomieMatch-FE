@@ -92,6 +92,7 @@ export const roomStats = [
 ];
 
 export const cityOptions = [
+  { value: '', label: 'Tất cả' },
   { value: 'TP. Hồ Chí Minh', label: 'TP. Hồ Chí Minh' },
   { value: 'Hà Nội', label: 'Hà Nội' },
   { value: 'Đà Nẵng', label: 'Đà Nẵng' },
@@ -99,10 +100,11 @@ export const cityOptions = [
 ];
 
 export const districtOptions = [
+  { value: '', label: 'Tất cả' },
   { value: 'Thảo Điền', label: 'Phường Thảo Điền' },
   { value: 'Cầu Giấy', label: 'Quận Cầu Giấy' },
   { value: 'Hải Châu', label: 'Quận Hải Châu' },
-  { value: 'Thủ Đức', label: 'TP. Thủ Đức' }
+  { value: 'Thủ Đức', label: 'Thủ Đức' }
 ];
 
 export const typeOptions = [

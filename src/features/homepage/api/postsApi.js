@@ -31,6 +31,7 @@ const buildMockPostsResponse = (params = {}) => {
 
     let items = [...homePostsMockData];
 
+    const keyword = normalizeText(params.keyword);
     const city = normalizeText(params.city);
     const district = normalizeText(params.district);
     const ward = normalizeText(params.ward);
@@ -38,6 +39,14 @@ const buildMockPostsResponse = (params = {}) => {
     const minPrice = parseNumber(params.min_price);
     const maxPrice = parseNumber(params.max_price);
     const sortBy = normalizeText(params.sort_by) || 'newest';
+
+    if (keyword) {
+        items = items.filter((post) =>
+            [post.title, post.city, post.district, post.ward].some((field) =>
+                normalizeText(field).includes(keyword)
+            )
+        );
+    }
 
     if (city) {
         items = items.filter((post) => normalizeText(post.city).includes(city));

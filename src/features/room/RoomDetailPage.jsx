@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
-import Header from '../homepage/components/Header';
-import Footer from '../homepage/components/Footer';
+import Header from '../../shared/components/Header';
+import Footer from '../../shared/components/Footer';
 import { mockRooms } from './mockData/roomMockData';
 import { getRoomDetailMock } from './mockData/roomDetailMockData';
 import RoomDetailHeader from './components/RoomDetailHeader';

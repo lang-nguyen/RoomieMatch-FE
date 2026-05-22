@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import Header from '../homepage/components/Header';
-import Footer from '../homepage/components/Footer';
+import Header from '../../shared/components/Header';
+import Footer from '../../shared/components/Footer';
 import RoomHero from './components/RoomHero';
 import RoomRecommended from './components/RoomRecommended';
 import RoomSearch from './components/RoomSearch';
@@ -125,7 +125,7 @@ const RoomPage = () => {
 
   return (
     <div className="room-page">
-      <Header initialActiveId="find-mate" />
+      <Header initialActiveId="find-room" />
 
       <RoomHero
         location=""

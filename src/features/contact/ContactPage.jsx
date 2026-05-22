@@ -1,5 +1,5 @@
-import Header from '../homepage/components/Header';
-import Footer from '../homepage/components/Footer';
+import Header from '../../shared/components/Header';
+import Footer from '../../shared/components/Footer';
 import ContactHero from './components/ContactHero';
 import ContactForm from './components/ContactForm';
 import ContactSidePanel from './components/ContactSidePanel';

@@ -9,7 +9,7 @@
 .header-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 0;
+  padding: 0 24px; /* ensure horizontal spacing on all pages */
   display: flex;
   justify-content: space-between;
   align-items: center;

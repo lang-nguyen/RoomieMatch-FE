@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import Header from './components/Header';
-import Footer from './components/Footer';
+import Header from '../../shared/components/Header';
+import Footer from '../../shared/components/Footer';
 import RoomCard from './components/RoomCard';
 import Sidebar from './components/Sidebar';
 import CustomDropdown from './components/CustomDropdown';

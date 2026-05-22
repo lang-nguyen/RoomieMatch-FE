@@ -1,0 +1,150 @@
+.header {
+  background-color: #B53F10;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-links {
+  --item-width: 112px;
+
+  display: flex;
+  height: 100%;
+  position: relative;
+  align-items: stretch;
+}
+
+.nav-indicator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--item-width);
+  height: 48px;
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  z-index: 1;
+  pointer-events: none;
+
+  transform: translateX(calc(var(--selected-index) * var(--item-width)));
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.indicator-curve-left,
+.indicator-curve-right {
+  position: absolute;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+.indicator-curve-left {
+  left: -20px;
+  background: radial-gradient(circle at 0 0, transparent 19.5px, white 20px);
+}
+
+.indicator-curve-right {
+  right: -20px;
+  background: radial-gradient(circle at 100% 0, transparent 19.5px, white 20px);
+}
+
+.nav-link {
+  position: relative;
+  width: var(--item-width);
+  height: 100%;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+  text-decoration: none;
+  white-space: nowrap;
+
+  z-index: 2;
+  transition: color 0.08s linear;
+}
+
+.nav-link:visited {
+  color: white;
+}
+
+.nav-link.selected,
+.nav-link.selected:visited {
+  color: #B53F10;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.login-link {
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+  text-decoration: none;
+}
+
+.login-link:visited {
+  color: white;
+}
+
+.icon-btn {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.user-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+}

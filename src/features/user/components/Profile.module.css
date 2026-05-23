@@ -214,3 +214,58 @@
   height: 20px;
   cursor: pointer;
 }
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+}
+
+.cancelBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background-color: transparent;
+  color: #4b5563;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+  background-color: #f3f4f6;
+}
+
+.updateBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #ea580c;
+  border-radius: 8px;
+  background-color: #ea580c;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.updateBtn:hover {
+  background-color: #c2410c;
+  border-color: #c2410c;
+}
+
+.updateBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.input:not(:read-only) {
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #111827;
+}

@@ -1,39 +1,7 @@
 import { Search, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useGetPackageHistoryQuery } from '../api/userApi';
 import styles from './PackageHistory.module.css';
-
-const MOCK_PACKAGES = [
-  {
-    id: 1,
-    name: 'Cơ bản',
-    letter: 'B',
-    color: '#4F46E5', // Indigo
-    price: '39.000 đ/tháng',
-    startDate: '20/03/2026',
-    endDate: '20/03/2026',
-    status: 'Đang kích hoạt',
-  },
-  {
-    id: 2,
-    name: 'Miễn phí',
-    letter: 'F',
-    color: '#111827', // Black
-    price: '0 đ/tháng',
-    startDate: '20/03/2026',
-    endDate: '20/03/2026',
-    status: 'Đang chờ xử lý',
-  },
-  {
-    id: 3,
-    name: 'Pro',
-    letter: 'P',
-    color: '#8B5CF6', // Purple
-    price: '99.000 đ/tháng',
-    startDate: '20/03/2026',
-    endDate: '20/03/2026',
-    status: 'Đã hết hạn',
-  }
-];
 
 const getStatusClass = (status) => {
   switch (status) {
@@ -46,6 +14,7 @@ const getStatusClass = (status) => {
 
 const PackageHistory = () => {
   const navigate = useNavigate();
+  const { data: packages = [], isLoading, isError } = useGetPackageHistoryQuery();
 
   return (
     <div className={styles.container}>
@@ -69,49 +38,64 @@ const PackageHistory = () => {
         </select>
       </div>
 
-      <div className={styles.packagesList}>
-        {MOCK_PACKAGES.map(pkg => (
-          <div key={pkg.id} className={styles.card}>
-            <div className={styles.packageInfo}>
-              <div 
-                className={styles.iconBox} 
-                style={{ backgroundColor: pkg.color }}
-              >
-                {pkg.letter}
+      {isLoading ? (
+        <div>Đang tải lịch sử gói...</div>
+      ) : isError ? (
+        <div>Đã có lỗi xảy ra khi tải dữ liệu.</div>
+      ) : (
+        <div className={styles.packagesList}>
+          {packages.map(pkg => (
+            <div key={pkg.id} className={styles.card}>
+              <div className={styles.packageInfo}>
+                <div 
+                  className={styles.iconBox} 
+                  style={{ backgroundColor: pkg.color || '#e0e0e0', overflow: 'hidden' }}
+                >
+                  <img 
+                    src={pkg.image || 'https://placehold.co/100x100?text=No+Image'} 
+                    alt={pkg.name || 'Package'}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://placehold.co/100x100?text=No+Image';
+                    }}
+                  />
+                </div>
+                
+                <div className={styles.namePrice}>
+                  <h3 className={styles.name}>{pkg.name}</h3>
+                  <div className={styles.price}>{pkg.amount_cents}</div>
+                </div>
               </div>
-              
-              <div className={styles.namePrice}>
-                <h3 className={styles.name}>{pkg.name}</h3>
-                <div className={styles.price}>{pkg.price}</div>
-              </div>
-            </div>
 
-            <div className={styles.dates}>
-              <div className={styles.dateRow}>
-                <span className={styles.dateLabel}>Ngày đăng ký:</span>
-                <span className={styles.dateValue}>{pkg.startDate}</span>
+              <div className={styles.dates}>
+                <div className={styles.dateRow}>
+                  <span className={styles.dateLabel}>Ngày đăng ký:</span>
+                  <span className={styles.dateValue}>{pkg.created_at}</span>
+                </div>
+                <div className={styles.dateRow}>
+                  <span className={styles.dateLabel}>Ngày hết hạn:</span>
+                  <span className={styles.dateValue}>{pkg.endDate}</span>
+                </div>
               </div>
-              <div className={styles.dateRow}>
-                <span className={styles.dateLabel}>Ngày hết hạn:</span>
-                <span className={styles.dateValue}>{pkg.endDate}</span>
-              </div>
-            </div>
 
-            <div className={styles.actions}>
-              <div className={`${styles.statusTag} ${getStatusClass(pkg.status)}`}>
-                {pkg.status}
+              <div className={styles.actions}>
+                <div className={`${styles.statusTag} ${getStatusClass(pkg.status)}`}>
+                  {pkg.status}
+                </div>
+                <button 
+                  className={`${styles.btn} ${styles.btnSecondary}`}
+                  onClick={() => navigate('/user/package-management')}
+                >
+                  <Eye className={styles.btnIcon} />
+                  Xem chi tiết
+                </button>
               </div>
-              <button 
-                className={`${styles.btn} ${styles.btnSecondary}`}
-                onClick={() => navigate('/user/package-management')}
-              >
-                <Eye className={styles.btnIcon} />
-                Xem chi tiết
-              </button>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+          {packages.length === 0 && <div>Chưa có lịch sử mua gói.</div>}
+        </div>
+      )}
     </div>
   );
 };

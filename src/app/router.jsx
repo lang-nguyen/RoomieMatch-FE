@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import RootLayout from '../layouts/RootLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
@@ -13,8 +14,39 @@ import PackageManagementPage from '../pages/PackageManagementPage';
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <Homepage />,
+    element: <RootLayout />,
+    children: [
+      {
+        path: '/',
+        element: <Homepage />,
+      },
+      {
+        path: '/user',
+        element: <UserLayout />,
+        children: [
+          {
+            path: 'profile',
+            element: <ProfilePage />,
+          },
+          {
+            path: 'saved-rooms',
+            element: <SavedRoomsPage />,
+          },
+          {
+            path: 'rental-history',
+            element: <RentalHistoryPage />,
+          },
+          {
+            path: 'package-history',
+            element: <PackageHistoryPage />,
+          },
+          {
+            path: 'package-management',
+            element: <PackageManagementPage />,
+          },
+        ],
+      },
+    ],
   },
   {
     element: <AuthLayout />,
@@ -30,32 +62,6 @@ export const router = createBrowserRouter([
       {
         path: '/forgot-password',
         element: <ForgotPasswordPage />,
-      },
-    ],
-  },
-  {
-    path: '/user',
-    element: <UserLayout />,
-    children: [
-      {
-        path: 'profile',
-        element: <ProfilePage />,
-      },
-      {
-        path: 'saved-rooms',
-        element: <SavedRoomsPage />,
-      },
-      {
-        path: 'rental-history',
-        element: <RentalHistoryPage />,
-      },
-      {
-        path: 'package-history',
-        element: <PackageHistoryPage />,
-      },
-      {
-        path: 'package-management',
-        element: <PackageManagementPage />,
       },
     ],
   },

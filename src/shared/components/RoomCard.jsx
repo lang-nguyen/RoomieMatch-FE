@@ -9,7 +9,15 @@ const RoomCard = ({ room }) => {
   return (
     <div className={styles.card}>
       <div className={styles.imageWrapper}>
-        <img src={image} alt={title} className={styles.image} />
+        <img 
+          src={image || 'https://placehold.co/600x400?text=No+Image'} 
+          alt={title} 
+          className={styles.image} 
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://placehold.co/600x400?text=No+Image';
+          }}
+        />
       </div>
 
       <div className={styles.content}>

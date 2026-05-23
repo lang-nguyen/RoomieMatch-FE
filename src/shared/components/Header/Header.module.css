@@ -1,0 +1,139 @@
+/* Header */
+.header {
+  background-color: #B53F10;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  box-sizing: border-box;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+:where(.header *, .header *::before, .header *::after) {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+.header a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.header button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-links {
+  display: flex;
+  height: 100%;
+  position: relative;
+  align-items: stretch;
+}
+
+.nav-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 48px;
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.indicator-curve-left,
+.indicator-curve-right {
+  position: absolute;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.indicator-curve-left {
+  left: -20px;
+  background: radial-gradient(circle at 0 0, transparent 19.5px, white 20px);
+}
+
+.indicator-curve-right {
+  right: -20px;
+  background: radial-gradient(circle at 100% 0, transparent 19.5px, white 20px);
+}
+
+.nav-link {
+  position: relative;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  color: white;
+  z-index: 2;
+  transition: color 0.3s;
+}
+
+.active {
+  color: #B53F10;
+}
+
+.nav-link.active {
+  color: #B53F10;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.login-link {
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+}
+
+.icon-btn {
+  background: transparent;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}

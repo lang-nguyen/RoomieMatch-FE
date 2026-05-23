@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import Header from './components/Header';
 import Footer from './components/Footer';
 import RoomCard from './components/RoomCard';
 import Sidebar from './components/Sidebar';
@@ -153,8 +152,6 @@ const Homepage = () => {
 
   return (
     <div className="homepage">
-      <Header />
-
       <section className="hero-section">
         <div className="hero-overlay"></div>
         <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Hero background" className="hero-bg" />

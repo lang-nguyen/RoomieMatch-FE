@@ -55,23 +55,29 @@ const mockBaseQuery = async (args) => {
 // Khởi tạo baseApi sử dụng RTK Query
 export const baseApi = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({
-    // Trong môi trường dev luôn gọi relative path để đi qua Vite proxy,
-    // tránh browser gọi thẳng BE dẫn tới CORS preflight (OPTIONS).
-    baseUrl:
-    "http://127.0.0.1:8000/api/v1",
-    //  import.meta.env.DEV
-    //   ? '/api/v1'
-    //   : (import.meta.env.VITE_API_URL || '/api/v1'),
-    prepareHeaders: (headers, { getState }) => {
-      // Tự động thêm Token vào Header nếu đã đăng nhập
-      const token = getState().auth?.access_token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: USE_MOCK
+    ? mockBaseQuery
+    : fetchBaseQuery({
+        // Trong môi trường dev luôn gọi relative path để đi qua Vite proxy,
+        // tránh browser gọi thẳng BE dẫn tới CORS preflight (OPTIONS).
+        baseUrl: import.meta.env.DEV
+          ? '/api/v1'
+          : (import.meta.env.VITE_API_URL || '/api/v1'),
+        paramsSerializer: serializeQueryParams,
+        prepareHeaders: (headers, { getState }) => {
+          // Tự động thêm Token vào Header nếu đã đăng nhập.
+          // Ưu tiên lấy từ redux state, fallback sang localStorage helper.
+          let token = getState?.().auth?.access_token;
+          if (!token) {
+            token = getAccessToken();
+          }
+
+          if (token) {
+            headers.set('authorization', `Bearer ${token}`);
+          }
+          return headers;
+        },
+      }),
   // Các tag dùng để quản lý cache và tự động refetch dữ liệu
   tagTypes: ['User', 'Room'],
   endpoints: () => ({}),

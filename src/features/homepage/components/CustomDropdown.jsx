@@ -32,9 +32,12 @@ const CustomDropdown = ({ icon, placeholder, options, value, onChange, name }) =
 
       {isOpen && (
         <div className={`dropdown-menu ${icon ? 'with-icon' : ''}`}>
-          <div className="dropdown-option placeholder" onClick={() => handleSelect('')}>
-            {placeholder}
-          </div>
+          {/* If options already include a neutral option (value === ''), don't render the placeholder row to avoid duplicate 'Tất cả' */}
+          {!options.some(opt => opt.value === '') && (
+            <div className="dropdown-option placeholder" onClick={() => handleSelect('')}>
+              {placeholder}
+            </div>
+          )}
           {options.map((option) => (
             <div
               key={option.value}

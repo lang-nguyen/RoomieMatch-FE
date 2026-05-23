@@ -1,11 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { setAccessToken, getAccessToken, removeAccessToken } from '../../shared/utils/authToken';
 
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user: null,
-    access_token: localStorage.getItem('access_token') || null,
-    isAuthenticated: !!localStorage.getItem('access_token'),
+    access_token: getAccessToken() || null,
+    isAuthenticated: !!getAccessToken(),
     loading: false,
     error: null,
   },
@@ -16,7 +17,7 @@ const authSlice = createSlice({
       state.access_token = payload.access_token;
       state.isAuthenticated = true;
       state.error = null;
-      localStorage.setItem('access_token', payload.access_token);
+      setAccessToken(payload.access_token);
     },
     // Đăng xuất và xóa thông tin khỏi store + localStorage
     logout: (state) => {
@@ -24,7 +25,7 @@ const authSlice = createSlice({
       state.access_token = null;
       state.isAuthenticated = false;
       state.error = null;
-      localStorage.removeItem('access_token');
+      removeAccessToken();
     },
     setError: (state, { payload }) => {
       state.error = payload;

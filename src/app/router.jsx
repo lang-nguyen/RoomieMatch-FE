@@ -11,6 +11,11 @@ import SavedRoomsPage from '../pages/SavedRoomsPage';
 import RentalHistoryPage from '../pages/RentalHistoryPage';
 import PackageHistoryPage from '../pages/PackageHistoryPage';
 import PackageManagementPage from '../pages/PackageManagementPage';
+import Homepage from '../features/homepage/Homepage';
+import RoomPage from '../features/room/RoomPage';
+import RoomDetailPage from '../features/room/RoomDetailPage';
+import FindMatePage from '../pages/FindMatePage';
+import ContactPage from '../pages/ContactPage';
 
 export const router = createBrowserRouter([
   {
@@ -47,6 +52,22 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: '/find-room',
+    element: <RoomPage />,
+  },
+  {
+    path: '/rooms/:roomId',
+    element: <RoomDetailPage />,
+  },
+  {
+    path: '/find-mate',
+    element: <FindMatePage />,
+  },
+  {
+    path: '/contact',
+    element: <ContactPage />,
   },
   {
     element: <AuthLayout />,

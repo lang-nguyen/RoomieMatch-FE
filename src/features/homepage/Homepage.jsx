@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import Footer from './components/Footer';
+import Footer from '../../shared/components/Footer';
 import RoomCard from './components/RoomCard';
 import Sidebar from './components/Sidebar';
 import CustomDropdown from './components/CustomDropdown';
@@ -325,11 +325,9 @@ const Homepage = () => {
             </div>
           </div>
         </main>
-      </div>
-
       <Footer />
     </div>
-  );
+   );
 };
 
 export default Homepage;

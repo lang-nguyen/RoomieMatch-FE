@@ -1,10 +1,9 @@
-import Header from '../shared/components/Header';
+
 import Footer from '../shared/components/Footer';
 
 const FindMatePage = () => {
   return (
     <div className="homepage">
-      <Header initialActiveId="find-mate" />
       <main className="main-content">
         <div className="content-container" style={{ paddingTop: '40px' }}>
           <div className="left-column">

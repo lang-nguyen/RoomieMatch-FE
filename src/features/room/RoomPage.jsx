@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import Header from '../../shared/components/Header';
 import Footer from '../../shared/components/Footer';
 import RoomHero from './components/RoomHero';
 import RoomRecommended from './components/RoomRecommended';
@@ -113,7 +112,6 @@ const RoomPage = () => {
 
   return (
     <div className="room-page">
-      <Header initialActiveId="find-room" />
 
       <RoomHero
         location=""

@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { selectCurrentUser, selectIsAuthenticated } from '../../../features/auth/slice';
 import styles from './Header.module.css';
 
 const navItems = [
-  { id: 'home', label: 'Trang chủ' },
-  { id: 'find-room', label: 'Tìm trọ' },
-  { id: 'find-mate', label: 'Tìm bạn' },
-  { id: 'contact', label: 'Liên hệ' },
+  { id: 'home', label: 'Trang chủ', path: '/' },
+  { id: 'find-room', label: 'Tìm trọ', path: '/find-room' },
+  { id: 'find-mate', label: 'Tìm bạn', path: '/find-mate' },
+  { id: 'contact', label: 'Liên hệ', path: '/contact' },
 ];
 
 const Header = () => {
@@ -19,6 +19,18 @@ const Header = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const currentUser = useSelector(selectCurrentUser);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const currentIndex = navItems.findIndex(item => 
+      item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
+    );
+    if (currentIndex !== -1) {
+      setActiveIndex(currentIndex);
+    } else {
+      setActiveIndex(0);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     // Determine which item to highlight
@@ -60,25 +72,17 @@ const Header = () => {
           </div>
 
           {navItems.map((item, index) => (
-            <a
+            <NavLink
               key={item.id}
-              href={`/#${item.id}`}
-              className={`${styles['nav-link']} ${(hoverIndex !== null ? hoverIndex === index : activeIndex === index) ? styles.active : ''}`}
+              to={item.path}
+              className={({ isActive }) => 
+                `${styles['nav-link']} ${isActive || (hoverIndex === index) ? styles.active : ''}`
+              }
               onMouseEnter={() => setHoverIndex(index)}
               onMouseLeave={() => setHoverIndex(null)}
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveIndex(index);
-                if (window.location.pathname === '/') {
-                  const el = document.getElementById(item.id);
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  navigate(`/#${item.id}`);
-                }
-              }}
             >
               {item.label}
-            </a>
+            </NavLink>
           ))}
         </nav>
 

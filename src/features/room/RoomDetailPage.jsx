@@ -1,5 +1,4 @@
 import { Link, useParams } from 'react-router-dom';
-import Header from '../../shared/components/Header';
 import Footer from '../../shared/components/Footer';
 import { mockRooms } from './mockData/roomMockData';
 import { getRoomDetailMock } from './mockData/roomDetailMockData';
@@ -25,7 +24,6 @@ const RoomDetailPage = () => {
   if (!room) {
     return (
       <div className="room-detail-page">
-        <Header initialActiveId="find-room" />
         <main className="room-detail-content">
           <RoomDetailNotFound />
         </main>
@@ -36,7 +34,6 @@ const RoomDetailPage = () => {
 
   return (
     <div className="room-detail-page">
-      <Header initialActiveId="find-room" />
       <main className="room-detail-content">
         <div className="room-detail-container">
           <RoomDetailHeader

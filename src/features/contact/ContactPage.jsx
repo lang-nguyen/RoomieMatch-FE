@@ -1,4 +1,4 @@
-import Header from '../../shared/components/Header';
+
 import Footer from '../../shared/components/Footer';
 import ContactHero from './components/ContactHero';
 import ContactForm from './components/ContactForm';
@@ -14,8 +14,6 @@ import './ContactPage.css';
 const ContactPage = () => {
   return (
     <div className="contact-page">
-      <Header initialActiveId="contact" />
-
       <ContactHero stats={contactHeroStats} />
 
       <main className="contact-main">

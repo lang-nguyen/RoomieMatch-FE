@@ -88,6 +88,7 @@ const MatchingPage = () => {
 
             {editingSection === 'profile' && (
               <MatchingProfileForm
+                initialData={matching.currentProfile}
                 onSubmit={async (profile) => {
                   await matching.completeProfile(profile);
                   closeEditSection();
@@ -173,7 +174,7 @@ const MatchingPage = () => {
                       }}
                       onShowContact={() => {
                         setSelectedHistoryContact(null);
-                        matching.setShowContactCard(true);
+                        matching.showActiveUserContact();
                       }}
                     />
                   )
@@ -229,7 +230,9 @@ const MatchingPage = () => {
       </section>
 
       <section className="matching-form-area">
-        {matching.showProfileForm && <MatchingProfileForm onSubmit={matching.completeProfile} />}
+        {matching.showProfileForm && (
+          <MatchingProfileForm initialData={matching.currentProfile} onSubmit={matching.completeProfile} />
+        )}
         {matching.showContactForm && (
           <ContactInfoForm currentUser={matching.currentUserContact} onSubmit={matching.completeContactInfo} />
         )}

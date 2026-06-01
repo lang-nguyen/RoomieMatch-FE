@@ -45,7 +45,7 @@ export const useMatchingFlow = () => {
 
   const activeUser = useMemo(() => {
     if (!matchingUsers.length) return null;
-    return matchingUsers[activeIndex % matchingUsers.length];
+    return matchingUsers[activeIndex] || null;
   }, [activeIndex, matchingUsers]);
 
   const completeProfile = async (profile) => {

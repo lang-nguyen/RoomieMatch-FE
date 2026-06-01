@@ -82,13 +82,33 @@ export const matchHistory = [
     id: 'm-01',
     name: 'Lan Huong',
     area: 'Thủ Đức',
+    joinedAt: '08/02/2024',
     avatar: fallbackAvatar,
+    contact: {
+      email: 'lanhuong@roomie.local',
+      phone: '0912345678',
+      socials: {
+        facebook: 'https://facebook.com/lanhuong',
+        instagram: 'https://instagram.com/lanhuong',
+        twitter: '',
+      },
+    },
   },
   {
     id: 'm-02',
     name: 'Quoc Bao',
     area: 'Quận 10',
+    joinedAt: '19/02/2024',
     avatar: fallbackAvatar,
+    contact: {
+      email: 'quocbao@roomie.local',
+      phone: '0987654321',
+      socials: {
+        facebook: 'https://facebook.com/quocbao',
+        instagram: '',
+        twitter: 'https://x.com/quocbao',
+      },
+    },
   },
 ];
 

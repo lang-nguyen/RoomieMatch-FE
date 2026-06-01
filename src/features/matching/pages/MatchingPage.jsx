@@ -7,6 +7,7 @@ import MatchHistoryPanel from '../components/MatchHistoryPanel';
 import MatchingCard from '../components/MatchingCard';
 import MatchingProfileForm from '../components/MatchingProfileForm';
 import MatchingSuccessCard from '../components/MatchingSuccessCard';
+import NoMatchingCard from '../components/NoMatchingCard';
 import { useMatchingFlow } from '../hooks/useMatchingFlow';
 import { MATCHING_STEPS } from '../models/matchingModels';
 import './MatchingPage.css';
@@ -15,11 +16,13 @@ const MatchingPage = () => {
   const matching = useMatchingFlow();
   const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
   const [editingSection, setEditingSection] = useState('');
+  const [selectedHistoryContact, setSelectedHistoryContact] = useState(null);
 
   const openEditSection = (section) => {
     setEditingSection(section);
     setIsEditMenuOpen(false);
     matching.setShowContactCard(false);
+    setSelectedHistoryContact(null);
   };
 
   const closeEditSection = () => {
@@ -51,9 +54,11 @@ const MatchingPage = () => {
             type="button"
             onClick={() => setIsEditMenuOpen((isOpen) => !isOpen)}
           >
-            <Pencil size={18} />
-            Chỉnh sửa
-            <ChevronDown size={17} />
+            <span className="matching-edit-icon-wrap">
+              <Pencil size={16} />
+            </span>
+            <span className="matching-edit-label">Chỉnh sửa</span>
+            <ChevronDown className="matching-edit-chevron" size={15} />
           </button>
 
           {isEditMenuOpen && (
@@ -102,23 +107,43 @@ const MatchingPage = () => {
           </section>
         )}
 
-        <MatchHistoryPanel matchHistory={matching.matchHistory} skippedUsers={matching.skippedUsers} />
+        <MatchHistoryPanel
+          matchHistory={matching.matchHistory}
+          skippedUsers={matching.skippedUsers}
+          onSelectMatch={(user) => {
+            setSelectedHistoryContact(user);
+            matching.setShowContactCard(false);
+            setEditingSection('');
+          }}
+        />
 
         <section className="matching-card-stage">
-          {matching.isRevealed ? (
+          {matching.isRevealed && matching.activeUser ? (
             <MatchingCard
               user={matching.activeUser}
               isSkipping={matching.isSkipping}
-              onSkip={matching.skipActiveUser}
-              onShowContact={() => matching.setShowContactCard((isOpen) => !isOpen)}
+              onSkip={() => {
+                setSelectedHistoryContact(null);
+                matching.skipActiveUser();
+              }}
+              onShowContact={() => {
+                setSelectedHistoryContact(null);
+                matching.setShowContactCard((isOpen) => !isOpen);
+              }}
             />
+          ) : matching.isRevealed ? (
+            <NoMatchingCard />
           ) : (
             <EmptyMatchingCard isFlipping={matching.isFlipping} onReveal={matching.revealCard} />
           )}
         </section>
 
         <div className="matching-contact-stage">
-          {matching.showContactCard && <ContactInfoCard user={matching.activeUser} />}
+          {selectedHistoryContact ? (
+            <ContactInfoCard user={selectedHistoryContact} />
+          ) : (
+            matching.showContactCard && <ContactInfoCard user={matching.activeUser} />
+          )}
         </div>
       </main>
     );

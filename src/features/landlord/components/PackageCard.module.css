@@ -1,0 +1,163 @@
+/* ── PackageCard ─────────────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #f0f0f0;
+  position: relative;
+  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.card:hover {
+  box-shadow: 0 10px 32px rgba(0,0,0,0.1);
+  transform: translateY(-3px);
+}
+
+/* Featured card — orange gradient bg */
+.cardFeatured {
+  background: linear-gradient(160deg, #fff8f3, #fff);
+  border-color: #c1440e;
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.15);
+}
+
+/* VIP card */
+.card--vip .price .priceAmount {
+  color: #16a34a !important;
+}
+
+/* Badge */
+.badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 4px 14px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.badgeFeatured {
+  background: linear-gradient(90deg, #c1440e, #ff8c42);
+  color: #fff;
+}
+
+.badgePro {
+  background: linear-gradient(90deg, #4ade80, #22d3ee);
+  color: #065f46;
+}
+
+/* Header */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.startLabel {
+  font-size: 11px;
+  color: #aaa;
+}
+
+.price {
+  margin-top: 6px;
+}
+
+.priceAmount {
+  font-size: 28px;
+  font-weight: 800;
+  color: #c1440e;
+  letter-spacing: -0.02em;
+}
+
+.cardFeatured .priceAmount {
+  color: #c1440e;
+}
+
+.priceUnit {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+/* Features */
+.features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12.5px;
+  color: #444;
+  line-height: 1.4;
+}
+
+.featureExcluded {
+  color: #bbb;
+  text-decoration: line-through;
+}
+
+.iconCheck {
+  color: #16a34a;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.iconX {
+  color: #d1d5db;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* CTA */
+.cta {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: auto;
+}
+
+.ctaDefault {
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+}
+
+.ctaDefault:hover {
+  background: #333;
+}
+
+.ctaFeatured {
+  background: transparent;
+  color: #c1440e;
+  border: 2px solid #c1440e;
+}
+
+.ctaFeatured:hover {
+  background: #c1440e;
+  color: #fff;
+}

@@ -1,0 +1,309 @@
+/* ── UserInfoPanel ───────────────────────────────────────────────── */
+.panel {
+  width: 260px;
+  min-width: 260px;
+  height: 100vh;
+  background: #fff;
+  border-left: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+  gap: 16px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+}
+
+.moreBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.moreBtn:hover { color: #555; }
+
+/* Profile Block */
+.profileBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.avatarRing {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: conic-gradient(#c1440e 0% 75%, #f0f0f0 75% 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+}
+
+.avatarInner {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #fff;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatarLetter {
+  font-size: 24px;
+  font-weight: 700;
+  color: #c1440e;
+}
+
+.displayName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+  margin-top: 4px;
+}
+
+.roleLabel {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Icon tabs */
+.iconTabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.iconTab {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid #e8e8e8;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #999;
+  transition: all 0.15s;
+}
+
+.iconTab:hover {
+  border-color: #c1440e;
+  color: #c1440e;
+}
+
+.iconTabActive {
+  background: #c1440e;
+  border-color: #c1440e;
+  color: #fff !important;
+}
+
+/* Mini Bar Chart */
+.chartBlock {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.chartBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 70px;
+}
+
+.barWrapper {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.4s ease;
+  background: linear-gradient(to top, #c1440e, #ffb347);
+}
+
+.bar[data-index="1"],
+.bar[data-index="3"],
+.bar[data-index="5"] {
+  background: linear-gradient(to top, #e55a2b, #c1440e);
+}
+
+/* Owned Rooms */
+.ownedBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.ownedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ownedTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #333;
+}
+
+.addBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #888;
+  transition: all 0.15s;
+}
+
+.addBtn:hover {
+  border-color: #c1440e;
+  color: #c1440e;
+}
+
+.ownedList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.emptyOwned {
+  font-size: 12px;
+  color: #bbb;
+  text-align: center;
+  padding: 12px;
+}
+
+.ownedItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: background 0.15s;
+}
+
+.ownedItem:hover {
+  background: #fff5f0;
+}
+
+.ownedAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c1440e, #ffb347);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.ownedInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.ownedName {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ownedCode {
+  font-size: 10px;
+  color: #aaa;
+}
+
+.detailBtn {
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: #c1440e;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.detailBtn:hover {
+  background: #e55a2b;
+}
+
+.viewAllBtn {
+  width: 100%;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c1440e;
+  background: #fff5f0;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+.viewAllBtn:hover {
+  background: #ffe8d6;
+}
+
+/* Notification Wrapper */
+.notificationWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}

@@ -15,6 +15,13 @@ import RoomPage from '../features/room/RoomPage';
 import RoomDetailPage from '../features/room/RoomDetailPage';
 import FindMatePage from '../pages/FindMatePage';
 import ContactPage from '../pages/ContactPage';
+import LandlordLayout from '../layouts/LandlordLayout';
+import LandlordHomePage from '../pages/landlord/LandlordHomePage';
+import LandlordRoomsPage from '../pages/landlord/LandlordRoomsPage';
+import LandlordAddRoomPage from '../pages/landlord/LandlordAddRoomPage';
+import LandlordPackagesPage from '../pages/landlord/LandlordPackagesPage';
+import RequireAuth from '../shared/components/RequireAuth';
+import { ACCOUNT_TYPES } from '../shared/constants/roles';
 
 export const router = createBrowserRouter([
   {
@@ -85,4 +92,23 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: '/landlord',
+    element: <RequireAuth allowedRoles={[ACCOUNT_TYPES.LANDLORD]} />,
+    children: [
+      {
+        element: <LandlordLayout />,
+        children: [
+          { index: true, element: <LandlordHomePage /> },
+          { path: 'rooms', element: <LandlordRoomsPage /> },
+          { path: 'rooms/add', element: <LandlordAddRoomPage /> },
+          { path: 'packages', element: <LandlordPackagesPage /> },
+        ]
+      }
+    ]
+  },
+  {
+    path: '/unauthorized',
+    element: <div>Bạn không có quyền truy cập trang này.</div>,
+  }
 ]);

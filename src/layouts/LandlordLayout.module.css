@@ -1,0 +1,28 @@
+/* ── LandlordLayout ──────────────────────────────────────────────── */
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #f7f8fc;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 24px;
+  overflow-y: auto;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+/* Responsive: ẩn right panel khi màn nhỏ */
+@media (max-width: 1200px) {
+  /* UserInfoPanel sẽ ẩn qua CSS Module của chính nó */
+}
+
+@media (max-width: 900px) {
+  .wrapper {
+    flex-direction: column;
+  }
+}

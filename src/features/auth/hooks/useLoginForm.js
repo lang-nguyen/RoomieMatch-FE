@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLoginMutation } from '../api/authApiMock';
 import { clearError, selectAuthError, setCredentials, setError } from '../slice';
 import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
+import { ROLE_DEFAULT_ROUTES } from '../../../shared/constants/roles';
 
 export const useLoginForm = () => {
   const [email, setEmail] = useState('');
@@ -30,7 +31,11 @@ export const useLoginForm = () => {
       const response = await login({ email, password }).unwrap();
       dispatch(setCredentials(response));
       setSuccessMessage('Đăng nhập thành công. Đang chuyển trang...');
-      timeoutRef.current = setTimeout(() => navigate('/'), 700);
+
+      // Điều hướng theo role
+      const accountType = response.user?.account_type;
+      const redirectTo = ROLE_DEFAULT_ROUTES[accountType] || '/';
+      timeoutRef.current = setTimeout(() => navigate(redirectTo), 700);
     } catch (err) {
       dispatch(setError(getApiErrorMessage(err, 'Đăng nhập thất bại')));
     }

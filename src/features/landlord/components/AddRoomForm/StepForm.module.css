@@ -1,0 +1,177 @@
+/* ── StepForm ────────────────────────────────────────────────────── */
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #c1440e;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionTitle::before {
+  content: '';
+  width: 4px;
+  height: 14px;
+  background: #c1440e;
+  border-radius: 4px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+.row > * {
+  flex: 1;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.required {
+  color: #ff4444;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #333;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  background: #fff;
+  border-color: #c1440e;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+/* Footer buttons */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.backBtn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  color: #555;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.backBtn:hover {
+  background: #f9f9f9;
+}
+
+.nextBtn,
+.submitBtn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #c1440e;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.nextBtn:hover,
+.submitBtn:hover {
+  background: #e55a2b;
+}
+
+/* Checkboxes & Image upload */
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  accent-color: #c1440e;
+  width: 16px;
+  height: 16px;
+}
+
+.uploadBox {
+  border: 2px dashed #e0e0e0;
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.uploadBox:hover {
+  border-color: #c1440e;
+  background: #fff5f0;
+}
+
+.uploadIcon {
+  color: #c1440e;
+}
+
+.uploadText {
+  font-size: 13px;
+  color: #555;
+  text-align: center;
+}
+
+.uploadText span {
+  color: #c1440e;
+  font-weight: 600;
+}

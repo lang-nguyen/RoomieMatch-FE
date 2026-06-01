@@ -3,6 +3,7 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import { baseApi } from '../shared/api/baseApi';
 import { provincesApi } from '../shared/api/provincesApi';
 import authReducer from '../features/auth/slice';
+import landlordReducer from '../features/landlord/slice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,8 @@ export const store = configureStore({
     [provincesApi.reducerPath]: provincesApi.reducer,
     // Slice quản lý auth
     auth: authReducer,
+    // Slice quản lý landlord dashboard
+    landlord: landlordReducer,
   },
   // Thêm middleware của api để hỗ trợ caching, invalidation, polling... của rtk-query
   middleware: (getDefaultMiddleware) =>

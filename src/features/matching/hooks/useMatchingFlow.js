@@ -1,47 +1,94 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MATCHING_STEPS } from '../models/matchingModels';
-import { matchingRepositoryMock } from '../repositories/matchingRepositoryMock';
+import {
+  useGetMatchingProfileQuery,
+  useGetRoommateSuggestionsQuery,
+  useGetMatchingHistoryQuery,
+  useGetRejectedRoommatesQuery,
+  useCreateMatchingProfileMutation,
+  useRejectRoommateMutation,
+  useAcceptRoommateMutation,
+} from '../api/matchingApi';
 
 export const useMatchingFlow = () => {
-  const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState(MATCHING_STEPS.ONBOARDING);
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
   const [hasContactInfo, setHasContactInfo] = useState(false);
   const [currentUserContact, setCurrentUserContact] = useState(null);
-  const [matchingUsers, setMatchingUsers] = useState([]);
-  const [matchHistory, setMatchHistory] = useState([]);
-  const [skippedUsers, setSkippedUsers] = useState([]);
+  const [currentProfile, setCurrentProfile] = useState(null);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
   const [showContactCard, setShowContactCard] = useState(false);
 
+  // RTK Query Hooks
+  const { data: userProfileData, isLoading: isLoadingProfile, isError: isProfileError } = useGetMatchingProfileQuery();
+  const { data: suggestionsData, isLoading: isLoadingSuggestions } = useGetRoommateSuggestionsQuery();
+  const { data: matchHistoryData } = useGetMatchingHistoryQuery();
+  const { data: skippedUsersData } = useGetRejectedRoommatesQuery();
+
+  const [createProfileMutation] = useCreateMatchingProfileMutation();
+  const [rejectRoommateMutation] = useRejectRoommateMutation();
+  const [acceptRoommateMutation] = useAcceptRoommateMutation();
+
+  const matchingUsers = suggestionsData?.matches || [];
+  
+  const [matchHistory, setMatchHistory] = useState([]);
+  const [skippedUsers, setSkippedUsers] = useState([]);
+
   useEffect(() => {
-    let isMounted = true;
+    if (matchHistoryData) {
+      setMatchHistory(matchHistoryData.data || matchHistoryData || []);
+    }
+  }, [matchHistoryData]);
 
-    matchingRepositoryMock.getBootstrap().then((data) => {
-      if (!isMounted) return;
+  useEffect(() => {
+    if (skippedUsersData) {
+      setSkippedUsers(skippedUsersData.data || skippedUsersData || []);
+    }
+  }, [skippedUsersData]);
 
-      setHasProfile(data.hasProfile);
-      setHasContactInfo(data.hasContactInfo);
-      setCurrentUserContact(data.currentUserContact);
-      setMatchingUsers(data.matchingUsers);
-      setMatchHistory(data.matchHistory);
-      setSkippedUsers(data.skippedUsers);
-      setIsLoading(false);
+  const isLoading = isLoadingSuggestions || isLoadingProfile;
 
-      if (data.hasProfile && data.hasContactInfo) {
+  useEffect(() => {
+    if (userProfileData) {
+      const profile = userProfileData.data || userProfileData;
+      
+      // Kiểm tra xem profile có dữ liệu hợp lệ không (ví dụ có introduce hoặc location)
+      if (profile && Object.keys(profile).length > 0 && (profile.introduce || profile.location || profile.account_id)) {
+        setHasProfile(true);
+        setHasContactInfo(true);
+        setCurrentUserContact({
+          email: profile.email || '',
+          phone: profile.phone || '',
+          socials: {
+            facebook: profile.facebook || '',
+            instagram: profile.instagram || '',
+            twitter: profile.twitter || '',
+          },
+        });
+        
+        setCurrentProfile({
+          avatar: profile.image || '',
+          intro: profile.introduce || '',
+          habits: Array.isArray(profile.habit) ? profile.habit.join(', ') : '',
+          area: profile.location || '',
+          budget: profile.budget || '',
+        });
+
         setStep(MATCHING_STEPS.MATCHING);
+      } else {
+        setShowProfileForm(true);
       }
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    } else if (isProfileError) {
+      // Nếu API trả về lỗi (ví dụ 404 chưa có profile), mở form cập nhật
+      setShowProfileForm(true);
+    }
+  }, [userProfileData, isProfileError]);
 
   const activeUser = useMemo(() => {
     if (!matchingUsers.length) return null;
@@ -51,23 +98,27 @@ export const useMatchingFlow = () => {
   const availableUsers = useMemo(() => matchingUsers.slice(activeIndex), [activeIndex, matchingUsers]);
 
   const completeProfile = async (profile) => {
-    await matchingRepositoryMock.saveProfile(profile);
-    setHasProfile(true);
-    setShowProfileForm(false);
+    try {
+      await createProfileMutation(profile).unwrap();
+      setHasProfile(true);
+      setShowProfileForm(false);
 
-    if (hasContactInfo && step === MATCHING_STEPS.ONBOARDING) {
-      setStep(MATCHING_STEPS.SUCCESS);
+      if (hasContactInfo && step === MATCHING_STEPS.ONBOARDING) {
+        setStep(MATCHING_STEPS.SUCCESS);
+      }
+    } catch (error) {
+      console.error('Failed to create matching profile:', error);
     }
   };
 
   const completeContactInfo = async (contactInfo) => {
-    const saved = await matchingRepositoryMock.saveContactInfo(contactInfo);
+    // Currently no specific API for saving contact info in matchingApi
     setHasContactInfo(true);
     setCurrentUserContact((previous) => ({
       ...(previous || {}),
-      email: saved.contactInfo.email,
-      phone: saved.contactInfo.phone,
-      socials: saved.contactInfo.socials,
+      email: contactInfo.email,
+      phone: contactInfo.phone,
+      socials: contactInfo.socials,
     }));
     setShowContactForm(false);
 
@@ -93,27 +144,47 @@ export const useMatchingFlow = () => {
     }, 520);
   };
 
-  const skipActiveUser = () => {
+  const showActiveUserContact = async () => {
+    if (!activeUser) return;
+    
+    setShowContactCard(true);
+    
+    const targetId = activeUser.account_id || activeUser.accountId || String(activeUser.id).replace('m-', '');
+    
+    try {
+      await acceptRoommateMutation(targetId).unwrap();
+      
+      setMatchHistory(prev => {
+        if (prev.some(u => (u.account_id || u.id) === (activeUser.account_id || activeUser.id))) return prev;
+        return [activeUser, ...prev];
+      });
+    } catch (error) {
+      console.error('Failed to accept roommate:', error);
+    }
+  };
+
+  const skipActiveUser = async () => {
     if (!activeUser || isSkipping) return;
 
     const skippedUser = activeUser;
     setIsSkipping(true);
     setShowContactCard(false);
-    matchingRepositoryMock.skipUser(skippedUser);
+
+    const targetId = skippedUser.account_id || skippedUser.accountId || String(skippedUser.id).replace('m-', '');
+
+    try {
+      console.log('Rejecting roommate with ID:', targetId);
+      await rejectRoommateMutation(targetId).unwrap();
+      
+      setSkippedUsers(prev => {
+        if (prev.some(u => (u.account_id || u.id) === (skippedUser.account_id || skippedUser.id))) return prev;
+        return [skippedUser, ...prev];
+      });
+    } catch (error) {
+      console.error('Failed to reject roommate:', error);
+    }
 
     window.setTimeout(() => {
-      setSkippedUsers((previous) => {
-        if (previous.some((user) => user.id === skippedUser.id)) return previous;
-        return [
-          {
-            id: skippedUser.id,
-            name: skippedUser.name,
-            area: skippedUser.area,
-            avatar: skippedUser.avatar,
-          },
-          ...previous,
-        ];
-      });
       setActiveIndex((index) => index + 1);
       setIsSkipping(false);
       setIsRevealed(false);
@@ -134,6 +205,7 @@ export const useMatchingFlow = () => {
     hasProfile,
     hasContactInfo,
     currentUserContact,
+    currentProfile,
     activeUser,
     availableUsers,
     matchHistory,
@@ -149,6 +221,7 @@ export const useMatchingFlow = () => {
     completeContactInfo,
     startMatching,
     revealCard,
+    showActiveUserContact,
     skipActiveUser,
     hideFocusedCard,
   };

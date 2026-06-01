@@ -6,7 +6,6 @@ const MatchingCard = ({ user, isSkipping, onSkip, onShowContact }) => {
   return (
     <article className={`matching-user-card ${isSkipping ? 'is-skipping' : ''}`}>
       <div className="matching-card-deck">
-        <div className="matching-card-stack" aria-hidden="true" />
         <div className="matching-user-card-inner">
           <img className="matching-user-image" src={user.avatar} alt={user.name} />
 

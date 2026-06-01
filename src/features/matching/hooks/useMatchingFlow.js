@@ -48,6 +48,8 @@ export const useMatchingFlow = () => {
     return matchingUsers[activeIndex] || null;
   }, [activeIndex, matchingUsers]);
 
+  const availableUsers = useMemo(() => matchingUsers.slice(activeIndex), [activeIndex, matchingUsers]);
+
   const completeProfile = async (profile) => {
     await matchingRepositoryMock.saveProfile(profile);
     setHasProfile(true);
@@ -80,10 +82,11 @@ export const useMatchingFlow = () => {
     setShowContactCard(false);
   };
 
-  const revealCard = () => {
+  const revealCard = (selectedOffset = 0) => {
     if (isRevealed || isFlipping) return;
 
     setIsFlipping(true);
+    setActiveIndex((index) => index + selectedOffset);
     window.setTimeout(() => {
       setIsRevealed(true);
       setIsFlipping(false);
@@ -113,8 +116,14 @@ export const useMatchingFlow = () => {
       });
       setActiveIndex((index) => index + 1);
       setIsSkipping(false);
-      setIsRevealed(true);
-    }, 420);
+      setIsRevealed(false);
+    }, 520);
+  };
+
+  const hideFocusedCard = () => {
+    setIsRevealed(false);
+    setShowContactCard(false);
+    setIsSkipping(false);
   };
 
   return {
@@ -126,6 +135,7 @@ export const useMatchingFlow = () => {
     hasContactInfo,
     currentUserContact,
     activeUser,
+    availableUsers,
     matchHistory,
     skippedUsers,
     isRevealed,
@@ -140,5 +150,6 @@ export const useMatchingFlow = () => {
     startMatching,
     revealCard,
     skipActiveUser,
+    hideFocusedCard,
   };
 };

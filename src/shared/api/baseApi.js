@@ -2,83 +2,30 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { serializeQueryParams } from './serializeQueryParams';
 import { getAccessToken } from '../utils/authToken';
 
-// Use mock only when explicitly enabled via VITE_USE_MOCK.
-// Previously DEV always enabled mock which prevented calling real APIs in development.
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
-
-const mockUser = {
-  id: 1,
-  display_name: 'Demo User',
-  email: 'demo@roomie.local',
-  account_type: 'tenant',
-};
-
-const mockBaseQuery = async (args) => {
-  const normalizedArgs = typeof args === 'string' ? { url: args } : args;
-  const { url, method = 'GET', body } = normalizedArgs || {};
-
-  if (url === '/auth/login' && method === 'POST') {
-    return {
-      data: {
-        user: mockUser,
-        access_token: 'mock-access-token',
-      },
-    };
-  }
-
-  if (url === '/auth/register' && method === 'POST') {
-    return {
-      data: {
-        user: {
-          ...mockUser,
-          display_name: body?.display_name || mockUser.display_name,
-          email: body?.email || mockUser.email,
-          account_type: body?.account_type || mockUser.account_type,
-        },
-        access_token: 'mock-access-token',
-      },
-    };
-  }
-
-  if (url === '/auth/logout' && method === 'POST') {
-    return { data: { success: true } };
-  }
-
-  return {
-    error: {
-      status: 404,
-      data: { message: 'Mock endpoint not found' },
-    },
-  };
-};
-
-// Khởi tạo baseApi sử dụng RTK Query
-export const baseApi = createApi({
+// Shared RTK Query base layer for real API calls.
+export const baseApi = createApi({ 
   reducerPath: 'api',
-  baseQuery: USE_MOCK
-    ? mockBaseQuery
-    : fetchBaseQuery({
-        // Trong môi trường dev luôn gọi relative path để đi qua Vite proxy,
-        // tránh browser gọi thẳng BE dẫn tới CORS preflight (OPTIONS).
-        baseUrl: import.meta.env.DEV
-          ? '/api/v1'
-          : (import.meta.env.VITE_API_URL || '/api/v1'),
-        paramsSerializer: serializeQueryParams,
-        prepareHeaders: (headers, { getState }) => {
-          // Tự động thêm Token vào Header nếu đã đăng nhập.
-          // Ưu tiên lấy từ redux state, fallback sang localStorage helper.
-          let token = getState?.().auth?.access_token;
-          if (!token) {
-            token = getAccessToken();
-          }
+  baseQuery: fetchBaseQuery({
+    // Trong môi trường dev luôn gọi relative path để đi qua Vite proxy,
+    // tránh browser gọi thẳng BE dẫn tới CORS preflight (OPTIONS).
+    baseUrl: import.meta.env.DEV
+      ? '/api/v1'
+      : (import.meta.env.VITE_API_URL || '/api/v1'),
+    paramsSerializer: serializeQueryParams,
+    prepareHeaders: (headers, { getState }) => {
+      // Tự động thêm Token vào Header nếu đã đăng nhập.
+      // Ưu tiên lấy từ redux state, fallback sang localStorage helper.
+      let token = getState?.().auth?.access_token;
+      if (!token) {
+        token = getAccessToken();
+      }
 
-          if (token) {
-            headers.set('authorization', `Bearer ${token}`);
-          }
-          return headers;
-        },
-      }),
-  // Các tag dùng để quản lý cache và tự động refetch dữ liệu
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
   tagTypes: ['User', 'Room'],
   endpoints: () => ({}),
 });

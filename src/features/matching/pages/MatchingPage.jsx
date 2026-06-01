@@ -2,12 +2,12 @@ import { ChevronDown, Pencil, Send, X } from 'lucide-react';
 import { useState } from 'react';
 import ContactInfoCard from '../components/ContactInfoCard';
 import ContactInfoForm from '../components/ContactInfoForm';
-import EmptyMatchingCard from '../components/EmptyMatchingCard';
 import MatchHistoryPanel from '../components/MatchHistoryPanel';
 import MatchingCard from '../components/MatchingCard';
 import MatchingProfileForm from '../components/MatchingProfileForm';
 import MatchingSuccessCard from '../components/MatchingSuccessCard';
 import NoMatchingCard from '../components/NoMatchingCard';
+import RotatingMatchingDeck from '../components/RotatingMatchingDeck';
 import { useMatchingFlow } from '../hooks/useMatchingFlow';
 import { MATCHING_STEPS } from '../models/matchingModels';
 import './MatchingPage.css';
@@ -114,37 +114,78 @@ const MatchingPage = () => {
             setSelectedHistoryContact(user);
             matching.setShowContactCard(false);
             setEditingSection('');
+            matching.hideFocusedCard();
           }}
         />
 
         <section className="matching-card-stage">
-          {matching.isRevealed && matching.activeUser ? (
-            <MatchingCard
-              user={matching.activeUser}
-              isSkipping={matching.isSkipping}
-              onSkip={() => {
-                setSelectedHistoryContact(null);
-                matching.skipActiveUser();
+          <RotatingMatchingDeck
+            users={matching.availableUsers}
+            isSelecting={matching.isFlipping}
+            onSelect={(selectedOffset) => {
+              setSelectedHistoryContact(null);
+              matching.setShowContactCard(false);
+              matching.revealCard(selectedOffset);
+            }}
+          />
+
+          {(matching.isRevealed || selectedHistoryContact) && (
+            <div
+              className="matching-focus-overlay"
+              onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                  setSelectedHistoryContact(null);
+                  matching.hideFocusedCard();
+                }
               }}
-              onShowContact={() => {
-                setSelectedHistoryContact(null);
-                matching.setShowContactCard((isOpen) => !isOpen);
-              }}
-            />
-          ) : matching.isRevealed ? (
-            <NoMatchingCard />
-          ) : (
-            <EmptyMatchingCard isFlipping={matching.isFlipping} onReveal={matching.revealCard} />
+            >
+              <div
+                className={`matching-focus-card ${
+                  matching.showContactCard || selectedHistoryContact ? 'is-contact-side' : ''
+                }`}
+              >
+                {selectedHistoryContact ? (
+                  <button
+                    className="matching-focus-contact-face"
+                    type="button"
+                    onClick={() => setSelectedHistoryContact(null)}
+                    aria-label="Đóng thông tin liên hệ"
+                  >
+                    <ContactInfoCard user={selectedHistoryContact} />
+                  </button>
+                ) : matching.activeUser ? (
+                  matching.showContactCard ? (
+                    <button
+                      className="matching-focus-contact-face"
+                      type="button"
+                      onClick={() => matching.setShowContactCard(false)}
+                      aria-label="Quay lại card matching"
+                    >
+                      <ContactInfoCard user={matching.activeUser} />
+                    </button>
+                  ) : (
+                    <MatchingCard
+                      user={matching.activeUser}
+                      isSkipping={matching.isSkipping}
+                      onSkip={() => {
+                        setSelectedHistoryContact(null);
+                        matching.skipActiveUser();
+                      }}
+                      onShowContact={() => {
+                        setSelectedHistoryContact(null);
+                        matching.setShowContactCard(true);
+                      }}
+                    />
+                  )
+                ) : (
+                  <NoMatchingCard />
+                )}
+              </div>
+            </div>
           )}
         </section>
 
-        <div className="matching-contact-stage">
-          {selectedHistoryContact ? (
-            <ContactInfoCard user={selectedHistoryContact} />
-          ) : (
-            matching.showContactCard && <ContactInfoCard user={matching.activeUser} />
-          )}
-        </div>
+        <div className="matching-contact-stage" />
       </main>
     );
   }

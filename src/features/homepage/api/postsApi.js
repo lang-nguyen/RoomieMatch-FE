@@ -117,7 +117,30 @@ export const postsApi = baseApi.injectEndpoints({
                 return { data: result.data };
             },
         }),
+        getPostById: builder.query({
+            async queryFn(postId, _queryApi, _extraOptions) {
+                // Return fallback/mock if needed, but the user requested API integration:
+                if (USE_MOCK) {
+                    const result = homePostsMockData.find(item => String(item.id) === String(postId));
+                    return { data: result || null };
+                }
+
+                const result = await realBaseQuery(
+                    {
+                        url: `/posts/${postId}`,
+                    },
+                    _queryApi,
+                    _extraOptions
+                );
+
+                if (result.error) {
+                    return { error: result.error };
+                }
+
+                return { data: result.data };
+            },
+        }),
     }),
 });
 
-export const { useGetPostsQuery } = postsApi;
+export const { useGetPostsQuery, useGetPostByIdQuery } = postsApi;

@@ -1,10 +1,41 @@
-import { Heart, Eye, Trash2, MapPin, Calendar, Maximize } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, Eye, Trash2 } from 'lucide-react';
+import { useUnsavePostMutation } from '../../features/user';
 import styles from './RoomCard.module.css';
 
 const RoomCard = ({ room }) => {
-  const { title, image, address, area, dateSaved, status } = room;
+  const navigate = useNavigate();
+  const [unsavePost, { isLoading: isUnsaving }] = useUnsavePostMutation();
 
-  const isAvailable = status === 'Còn trống';
+  const { title, image, area, status } = room;
+  const postId = room.post_id || room.id;
+  
+  const address = room.address || room.full_address || 'Đang cập nhật';
+  const isAvailable = status === 'Còn trống' || status === 'active';
+
+  let dateSaved = room.dateSaved;
+  if (!dateSaved && room.saved_at) {
+    const d = new Date(room.saved_at);
+    if (!Number.isNaN(d.getTime())) {
+      dateSaved = d.toLocaleDateString('vi-VN');
+    }
+  }
+  if (!dateSaved) dateSaved = 'Đang cập nhật';
+
+  const handleViewDetails = () => {
+    navigate(`/rooms/${postId}`);
+  };
+
+  const handleUnsave = async () => {
+    if (window.confirm('Bạn có chắc chắn muốn bỏ lưu phòng trọ này không?')) {
+      try {
+        await unsavePost(postId).unwrap();
+      } catch (err) {
+        console.error('Error unsaving post:', err);
+        alert('Đã xảy ra lỗi khi bỏ lưu bài viết.');
+      }
+    }
+  };
 
   return (
     <div className={styles.card}>
@@ -31,25 +62,25 @@ const RoomCard = ({ room }) => {
             Ngày lưu: {dateSaved}
           </div>
           <div className={styles.detailItem}>
-            {area} m²
+            {area || 0} m²
           </div>
         </div>
 
         <div className={`${styles.statusTag} ${isAvailable ? styles.statusAvailable : styles.statusRented}`}>
-          {status}
+          {isAvailable ? 'Còn trống' : 'Đã thuê'}
         </div>
       </div>
 
       <div className={styles.actions}>
-        <button className={`${styles.btn} ${styles.btnPrimary}`}>
+        <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleViewDetails}>
           <Heart className={styles.btnIcon} />
           Quan tâm
         </button>
-        <button className={`${styles.btn} ${styles.btnSecondary}`}>
+        <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={handleViewDetails}>
           <Eye className={styles.btnIcon} />
           Xem chi tiết
         </button>
-        <button className={`${styles.btn} ${styles.btnDanger}`}>
+        <button className={`${styles.btn} ${styles.btnDanger}`} onClick={handleUnsave} disabled={isUnsaving}>
           <Trash2 className={styles.btnIcon} />
           Bỏ lưu
         </button>

@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectIsAuthenticated, logout } from '../../features/auth/slice';
+import { useGetUserProfileQuery } from '../../features/user/api/userApi';
 import './Header.css';
 
 const navItems = [
@@ -11,7 +14,42 @@ const navItems = [
 
 const Header = ({ initialActiveId = 'home' }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const linkRefs = useRef([]);
+
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const { data: userProfileData } = useGetUserProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const profile = userProfileData?.profile;
+  const account = userProfileData?.account;
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+  const closeDropdown = () => setIsDropdownOpen(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLogoutClick = () => {
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
+      dispatch(logout());
+      closeDropdown();
+      navigate('/login');
+    }
+  };
 
   const initialIndex = navItems.findIndex((item) => item.id === initialActiveId);
 
@@ -78,7 +116,7 @@ const Header = ({ initialActiveId = 'home' }) => {
   return (
     <header className="header">
       <div className="header-container">
-        <div className="logo-container">
+        <div className="logo-container" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <div className="logo-icon">
             <svg
               width="24"
@@ -135,11 +173,56 @@ const Header = ({ initialActiveId = 'home' }) => {
         </nav>
 
         <div className="header-actions">
-          <NavLink to="/login" className="login-link">
-            Đăng nhập
-          </NavLink>
+          {isAuthenticated ? (
+            <div className="user-menu-container" ref={dropdownRef}>
+              <div className="user-profile-trigger" onClick={toggleDropdown}>
+                <img
+                  src={profile?.avatar_url || profile?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+                  alt="Avatar"
+                  className="user-avatar-img"
+                />
+                <span className="user-name-text">{profile?.full_name || account?.username || 'Người dùng'}</span>
+                <svg className={`dropdown-arrow-icon ${isDropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
 
-          <button className="icon-btn wishlist-btn" type="button">
+              {isDropdownOpen && (
+                <div className="user-dropdown-menu">
+                  <div className="dropdown-user-info">
+                    <p className="dropdown-user-name">{profile?.full_name || 'Người dùng'}</p>
+                    <p className="dropdown-user-email">{account?.email || ''}</p>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  <NavLink to="/user/profile" className="dropdown-item" onClick={closeDropdown}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Hồ sơ cá nhân
+                  </NavLink>
+                  <NavLink to="/user/saved-rooms" className="dropdown-item" onClick={closeDropdown}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    Phòng đã lưu
+                  </NavLink>
+                  <NavLink to="/user/rental-history" className="dropdown-item" onClick={closeDropdown}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Lịch sử thuê
+                  </NavLink>
+                  <NavLink to="/user/package-management" className="dropdown-item" onClick={closeDropdown}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    Quản lý gói
+                  </NavLink>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item logout-btn" onClick={handleLogoutClick} type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <NavLink to="/login" className="login-link">
+              Đăng nhập
+            </NavLink>
+          )}
+
+          <NavLink to="/user/saved-rooms" className="icon-btn wishlist-btn" title="Phòng đã lưu">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="22"
@@ -153,24 +236,7 @@ const Header = ({ initialActiveId = 'home' }) => {
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
-          </button>
-
-          <div className="user-icon-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </div>
+          </NavLink>
         </div>
       </div>
     </header>

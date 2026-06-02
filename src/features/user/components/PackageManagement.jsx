@@ -1,10 +1,30 @@
 import { ArrowLeft, Check, CreditCard, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import styles from './PackageManagement.module.css';
+import { useGetAllPackagesQuery, useGetPackageEntitlementsQuery, usePurchasePackageMutation } from '../api/userApi';
 
 const PackageManagement = () => {
   const navigate = useNavigate();
+  const { data: packages, isLoading: isLoadingPackages } = useGetAllPackagesQuery();
+  const { data: entitlements, isLoading: isLoadingEntitlements } = useGetPackageEntitlementsQuery();
+  const [purchasePackage, { isLoading: isPurchasing }] = usePurchasePackageMutation();
 
+  const handlePurchase = async (pkgId) => {
+    try {
+      const res = await purchasePackage({ package_id: pkgId }).unwrap();
+      alert('Đăng ký thành công!');
+    } catch(err) {
+      alert('Đăng ký thất bại. Xin vui lòng thử lại.');
+    }
+  };
+
+  if (isLoadingPackages || isLoadingEntitlements) {
+    return <div className={styles.container}>Đang tải...</div>;
+  }
+
+  // Find active entitlements
+  const hasEntitlements = entitlements && entitlements.length > 0;
+  
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -17,100 +37,54 @@ const PackageManagement = () => {
         <div>
           <h1 className={styles.pageTitle}>Quản lý gói dịch vụ</h1>
           <p className={styles.pageSubtitle}>
-            Xem thông tin chi tiết và mức sử dụng gói dịch vụ hiện tại của bạn.
+            Xem thông tin chi tiết và quyền lợi các gói dịch vụ của bạn.
           </p>
         </div>
       </div>
 
-      <div className={styles.mainCard}>
-        <div className={styles.mainCardHeader}>
-          <div>
-            <div className={styles.activeTag}>
-              <Check className={styles.checkIcon} />
-              Đang kích hoạt
+      {!hasEntitlements && (
+        <div className={styles.mainCard} style={{marginBottom: '20px'}}>
+          Bạn hiện chưa có quyền lợi gói dịch vụ nào đang kích hoạt.
+        </div>
+      )}
+
+      {hasEntitlements && entitlements.map(entitlement => (
+        <div key={entitlement.id} className={styles.mainCard} style={{marginBottom: '20px'}}>
+          <div className={styles.mainCardHeader}>
+            <div>
+              <div className={styles.activeTag}>
+                <Check className={styles.checkIcon} />
+                Đang kích hoạt
+              </div>
+              <h2 className={styles.packageName}>Quyền lợi: {entitlement.feature_key}</h2>
+              <div className={styles.packagePrice}>Số lượng: {entitlement.quantity}</div>
             </div>
-            <h2 className={styles.packageName}>Gói VIP</h2>
-            <div className={styles.packagePrice}>299.000đ/tháng</div>
-          </div>
-          <div className={styles.nextRenewal}>
-            <div className={styles.renewalLabel}>Ngày gia hạn tiếp theo</div>
-            <div className={styles.renewalDate}>29/04/2026</div>
+            <div className={styles.nextRenewal}>
+              <div className={styles.renewalLabel}>Ngày hết hạn</div>
+              <div className={styles.renewalDate}>{new Date(entitlement.expires_at).toLocaleDateString('vi-VN')}</div>
+            </div>
           </div>
         </div>
-
-        <div className={styles.mainCardBody}>
-          <div className={styles.detailsSection}>
-            <h3 className={styles.sectionTitle}>CHI TIẾT CHU KỲ</h3>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Ngày kích hoạt:</span>
-              <span className={styles.detailValue}>29/03/2026</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Ngày hết hạn:</span>
-              <span className={styles.detailValue}>29/04/2026</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Tự động gia hạn:</span>
-              <span className={styles.statusActiveText}>Đang bật</span>
-            </div>
-          </div>
-
-          <div className={styles.paymentSection}>
-            <h3 className={styles.sectionTitle}>THANH TOÁN</h3>
-            <div className={styles.paymentCard}>
-              <div className={styles.visaIconWrapper}>
-                <CreditCard className={styles.visaIcon} />
-              </div>
-              <div className={styles.cardInfo}>
-                <div className={styles.cardNumber}>Visa ending in 4242</div>
-                <div className={styles.cardDefault}>Thẻ mặc định</div>
-              </div>
-            </div>
-            <button className={styles.updatePaymentBtn}>
-              Cập nhật phương thức thanh toán
-            </button>
-          </div>
-        </div>
-      </div>
+      ))}
 
       <div className={styles.bottomSection}>
-        <div className={styles.actionCard}>
-          <h3 className={styles.cardTitle}>Hành động</h3>
-          <button className={styles.upgradeBtn}>
-            Nâng cấp gói dịch vụ
-            <ArrowRight className={styles.arrowIcon} />
-          </button>
-          <div className={styles.actionLinks}>
-            <button className={styles.textBtn}>Quản lý thẻ tín dụng</button>
-            <button className={`${styles.textBtn} ${styles.dangerText}`}>Hủy gia hạn gói</button>
-          </div>
-        </div>
-
-        <div className={styles.transactionCard}>
-          <div className={styles.transactionHeader}>
-            <h3 className={styles.cardTitle}>Giao dịch gần đây</h3>
-            <button className={styles.viewAllBtn}>Xem tất cả</button>
-          </div>
-          
-          <div className={styles.transactionList}>
-            <div className={styles.transactionItem}>
-              <div>
-                <div className={styles.transName}>Gói VIP - 1 Tháng</div>
-                <div className={styles.transDate}>29/03/2026</div>
+        <div className={styles.actionCard} style={{ width: '100%' }}>
+          <h3 className={styles.cardTitle}>Mua gói dịch vụ mới</h3>
+          {packages && packages.map(pkg => (
+              <div key={pkg.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #ccc' }}>
+                <div>
+                  <strong>{pkg.name}</strong> - {pkg.price_cents.toLocaleString()} VND
+                  <p>{pkg.description}</p>
+                </div>
+                <button 
+                  className={styles.upgradeBtn} 
+                  onClick={() => handlePurchase(pkg.id)}
+                  disabled={isPurchasing}
+                >
+                  Mua ngay
+                </button>
               </div>
-              <div className={styles.transAmount}>299.000đ</div>
-            </div>
-            
-            <div className={styles.divider}></div>
-            
-            <div className={styles.transactionItem}>
-              <div>
-                <div className={styles.transName}>Gói Free</div>
-                <div className={styles.transDate}>10/01/2025</div>
-              </div>
-              <div className={styles.transAmount}>0đ</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

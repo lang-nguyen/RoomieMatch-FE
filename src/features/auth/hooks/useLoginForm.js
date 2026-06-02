@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLoginMutation } from '../api/authApiMock';
+import { useLoginMutation } from '../api/authApi';
 import { clearError, selectAuthError, setCredentials, setError } from '../slice';
 import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
 

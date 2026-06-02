@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { 
   User, 
   Bookmark, 
@@ -7,9 +8,20 @@ import {
   Settings, 
   LogOut 
 } from 'lucide-react';
+import { logout } from '../../auth/slice';
 import styles from './UserSidebar.module.css';
 
 const UserSidebar = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
+      dispatch(logout());
+      navigate('/login');
+    }
+  };
+
   return (
     <aside className={styles.sidebar}>
       <h2 className={styles.title}>Quản lý cá nhân</h2>
@@ -30,7 +42,7 @@ const UserSidebar = () => {
           <Bookmark className={styles.icon} />
           Phòng đã lưu
         </NavLink>
-
+        
         <NavLink 
           to="/user/rental-history" 
           className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ''}`}
@@ -38,7 +50,7 @@ const UserSidebar = () => {
           <History className={styles.icon} />
           Lịch sử thuê
         </NavLink>
-
+        
         <NavLink 
           to="/user/package-history" 
           className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ''}`}
@@ -47,7 +59,7 @@ const UserSidebar = () => {
           Lịch sử mua gói
         </NavLink>
       </nav>
-
+      
       <div className={styles.footerMenu}>
         <NavLink 
           to="/user/settings" 
@@ -56,8 +68,8 @@ const UserSidebar = () => {
           <Settings className={styles.icon} />
           Cài đặt
         </NavLink>
-
-        <button className={styles.logoutBtn}>
+        
+        <button className={styles.logoutBtn} onClick={handleLogout} type="button">
           <LogOut className={styles.logoutIcon} />
           Đăng xuất
         </button>

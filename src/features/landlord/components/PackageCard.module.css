@@ -1,27 +1,27 @@
 /* ── PackageCard ─────────────────────────────────────────────────── */
 .card {
   background: #fff;
-  border-radius: 20px;
+  border-radius: 12px;
   padding: 24px 20px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #eee8e4;
   position: relative;
   transition: box-shadow 0.2s, transform 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 8px 24px rgba(32, 27, 24, 0.04);
 }
 
 .card:hover {
-  box-shadow: 0 10px 32px rgba(0,0,0,0.1);
-  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(32, 27, 24, 0.08);
+  transform: translateY(-2px);
 }
 
 /* Featured card — orange gradient bg */
 .cardFeatured {
   background: linear-gradient(160deg, #fff8f3, #fff);
   border-color: #c1440e;
-  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.15);
+  box-shadow: 0 10px 28px rgba(193, 68, 14, 0.12);
 }
 
 /* VIP card */
@@ -44,7 +44,7 @@
 }
 
 .badgeFeatured {
-  background: linear-gradient(90deg, #c1440e, #ff8c42);
+  background: #c1440e;
   color: #fff;
 }
 
@@ -133,7 +133,7 @@
 .cta {
   width: 100%;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 9px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;

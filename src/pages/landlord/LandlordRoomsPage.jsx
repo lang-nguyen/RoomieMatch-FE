@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search } from 'lucide-react';
+import { Home, Plus, Search } from 'lucide-react';
 import { useLandlordRooms } from '../../features/landlord/hooks/useLandlordRooms';
 import LandlordRoomCard from '../../features/landlord/components/LandlordRoomCard';
+import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import styles from './LandlordRoomsPage.module.css';
 import sharedStyles from './LandlordPageShared.module.css';
 
@@ -49,26 +50,20 @@ const LandlordRoomsPage = () => {
 
   return (
     <div className={sharedStyles.page}>
-      {/* Page header */}
-      <div className={styles.topBar}>
-        <div className={sharedStyles.pageHeader}>
-          <div className={styles.breadcrumb}>
-            <span>Danh sách trọ</span>
-          </div>
-          <h1 className={sharedStyles.pageTitle}>Danh Sách Trọ</h1>
-          <p className={sharedStyles.pageSubtitle}>
-            Quản lý tất cả các phòng trọ · {total} phòng
-          </p>
-        </div>
-
-        <button
-          className={styles.addBtn}
-          onClick={() => navigate('/landlord/rooms/add')}
-        >
-          <Plus size={15} />
-          Thêm trọ mới
-        </button>
-      </div>
+      <LandlordPageHeader
+        icon={Home}
+        title="Danh sách trọ"
+        subtitle={`Quản lý phòng trọ, trạng thái thuê và thông tin hiển thị · ${total} phòng`}
+        actions={(
+          <button
+            className={styles.addBtn}
+            onClick={() => navigate('/landlord/rooms/add')}
+          >
+            <Plus size={15} />
+            Thêm trọ mới
+          </button>
+        )}
+      />
 
       {/* Filter bar */}
       <div className={styles.filterBar}>

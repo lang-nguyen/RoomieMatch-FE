@@ -5,7 +5,7 @@ const formatPrice = (price) =>
   price.toLocaleString('vi-VN') + 'đ';
 
 const PackageCard = ({ pkg, onSelect }) => {
-  const { name, tier, price, unit, isFeatured, badge, features = [], ctaLabel } = pkg;
+  const { name, tier, price, unit, description, isFeatured, badge, features = [], ctaLabel } = pkg;
 
   return (
     <div
@@ -21,7 +21,7 @@ const PackageCard = ({ pkg, onSelect }) => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.name}>{name}</div>
-        <div className={styles.startLabel}>Bắt đầu miễn phí</div>
+        <div className={styles.startLabel}>{description || 'Gói dịch vụ dành cho chủ trọ'}</div>
         <div className={styles.price}>
           <span className={styles.priceAmount}>{formatPrice(price)}</span>
           <span className={styles.priceUnit}>/{unit}</span>

@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import LandlordSidebar from '../shared/components/LandlordSidebar';
 import UserInfoPanel from '../shared/components/UserInfoPanel';
 import styles from './LandlordLayout.module.css';
@@ -19,8 +19,13 @@ const OWNED_ROOMS_PREVIEW = [
 ];
 
 const LandlordLayout = () => {
+  const location = useLocation();
+  const hideRightPanel =
+    location.pathname.startsWith('/landlord/posts') ||
+    location.pathname.startsWith('/landlord/stats');
+
   return (
-    <div className={styles.wrapper}>
+    <div className={`${styles.wrapper} ${hideRightPanel ? styles.wrapperWide : ''}`}>
       {/* Left sidebar */}
       <LandlordSidebar promotedUsers={PROMOTED_USERS} />
 
@@ -30,7 +35,7 @@ const LandlordLayout = () => {
       </main>
 
       {/* Right panel */}
-      <UserInfoPanel ownedRooms={OWNED_ROOMS_PREVIEW} />
+      {!hideRightPanel && <UserInfoPanel ownedRooms={OWNED_ROOMS_PREVIEW} />}
     </div>
   );
 };

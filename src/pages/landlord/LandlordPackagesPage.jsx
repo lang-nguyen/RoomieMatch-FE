@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Search } from 'lucide-react';
-import { useGetPackagesQuery, usePurchasePackageMutation } from '../../features/landlord/api/landlordApiMock';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, ShoppingBag } from 'lucide-react';
+import { useGetPackagesQuery } from '../../features/landlord/api/landlordApiMock';
 import PackageCard from '../../features/landlord/components/PackageCard';
+import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import styles from './LandlordPackagesPage.module.css';
 import sharedStyles from './LandlordPageShared.module.css';
 
@@ -13,32 +15,32 @@ const TIER_TABS = [
 ];
 
 const LandlordPackagesPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTier, setActiveTier] = useState('');
   const [search, setSearch] = useState('');
 
   const { data, isLoading } = useGetPackagesQuery({ tier: activeTier, search });
-  const [purchasePackage] = usePurchasePackageMutation();
 
   const packages = data?.items ?? [];
 
-  const handleSelect = async (pkg) => {
-    try {
-      await purchasePackage({ packageId: pkg.id }).unwrap();
-      alert(`Đăng ký gói ${pkg.name} thành công!`);
-    } catch {
-      alert('Có lỗi xảy ra. Vui lòng thử lại.');
-    }
+  const handleSelect = (pkg) => {
+    navigate(`/landlord/packages/${pkg.id}/payment`);
   };
 
   return (
     <div className={sharedStyles.page}>
-      {/* Page header */}
-      <div className={sharedStyles.pageHeader}>
-        <div className={styles.breadcrumb}>
-          <span>Danh sách gói</span>
-          <span className={styles.breadSub}> · Mua tiện ích cho bạn</span>
+      <LandlordPageHeader
+        icon={ShoppingBag}
+        title="Mua gói"
+        subtitle="Chọn gói phù hợp để tăng lượt hiển thị và quản lý bài đăng hiệu quả hơn"
+      />
+
+      {location.state?.paymentSuccess ? (
+        <div className={styles.successNotice}>
+          Thanh toán gói {location.state.packageName} thành công. Gói đã được ghi nhận vào lịch sử mua.
         </div>
-      </div>
+      ) : null}
 
       {/* Search bar */}
       <div className={styles.searchBar}>
@@ -53,9 +55,7 @@ const LandlordPackagesPage = () => {
       </div>
 
       {/* Featured title */}
-      <div className={styles.featuredTitle}>
-        Các gói nổi bật 🔥
-      </div>
+      <div className={styles.featuredTitle}>Các gói nổi bật</div>
 
       {/* Tier tabs */}
       <div className={styles.tierTabs}>

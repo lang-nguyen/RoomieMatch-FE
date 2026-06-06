@@ -26,15 +26,28 @@ const Header = ({ initialActiveId = 'home' }) => {
   const account = userProfileData?.account;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
-  const closeDropdown = () => setIsDropdownOpen(false);
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => {
+      if (prev) {
+        setIsLogoutConfirmOpen(false);
+      }
+      return !prev;
+    });
+  };
+
+  const closeDropdown = () => {
+    setIsDropdownOpen(false);
+    setIsLogoutConfirmOpen(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
+        setIsLogoutConfirmOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -44,11 +57,17 @@ const Header = ({ initialActiveId = 'home' }) => {
   }, []);
 
   const handleLogoutClick = () => {
-    if (window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
-      dispatch(logout());
-      closeDropdown();
-      navigate('/login');
-    }
+    setIsLogoutConfirmOpen(true);
+  };
+
+  const handleCancelLogout = () => {
+    setIsLogoutConfirmOpen(false);
+  };
+
+  const handleConfirmLogout = () => {
+    dispatch(logout());
+    closeDropdown();
+    navigate('/login');
   };
 
   const initialIndex = navItems.findIndex((item) => item.id === initialActiveId);
@@ -209,10 +228,27 @@ const Header = ({ initialActiveId = 'home' }) => {
                     Quản lý gói
                   </NavLink>
                   <div className="dropdown-divider"></div>
-                  <button className="dropdown-item logout-btn" onClick={handleLogoutClick} type="button">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    Đăng xuất
-                  </button>
+                  <div className="logout-confirm-anchor">
+                    <button className="dropdown-item logout-btn" onClick={handleLogoutClick} type="button">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                      Đăng xuất
+                    </button>
+
+                    {isLogoutConfirmOpen && (
+                      <div className="logout-confirm-popover" role="dialog" aria-modal="false">
+                        <p className="logout-confirm-title">Đăng xuất?</p>
+                        <p className="logout-confirm-text">Bạn sẽ cần đăng nhập lại để tiếp tục.</p>
+                        <div className="logout-confirm-actions">
+                          <button type="button" className="logout-confirm-cancel" onClick={handleCancelLogout}>
+                            Hủy
+                          </button>
+                          <button type="button" className="logout-confirm-submit" onClick={handleConfirmLogout}>
+                            Đăng xuất
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

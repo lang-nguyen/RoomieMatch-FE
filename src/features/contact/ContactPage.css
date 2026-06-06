@@ -333,6 +333,16 @@
   color: #3b6d11;
 }
 
+.contact-error {
+  margin-top: 14px;
+  background: #fff1f0;
+  border: 1px solid #e24b4a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #a32625;
+}
+
 .contact-side {
   display: flex;
   flex-direction: column;

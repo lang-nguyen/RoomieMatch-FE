@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { 
   User, 
@@ -14,12 +15,19 @@ import styles from './UserSidebar.module.css';
 const UserSidebar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const handleLogout = () => {
-    if (window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
-      dispatch(logout());
-      navigate('/login');
-    }
+    setIsLogoutConfirmOpen(true);
+  };
+
+  const handleCancelLogout = () => {
+    setIsLogoutConfirmOpen(false);
+  };
+
+  const handleConfirmLogout = () => {
+    dispatch(logout());
+    navigate('/login');
   };
 
   return (
@@ -69,10 +77,27 @@ const UserSidebar = () => {
           Cài đặt
         </NavLink>
         
-        <button className={styles.logoutBtn} onClick={handleLogout} type="button">
-          <LogOut className={styles.logoutIcon} />
-          Đăng xuất
-        </button>
+        <div className={styles.logoutConfirmAnchor}>
+          <button className={styles.logoutBtn} onClick={handleLogout} type="button">
+            <LogOut className={styles.logoutIcon} />
+            Đăng xuất
+          </button>
+
+          {isLogoutConfirmOpen && (
+            <div className={styles.logoutConfirmPopover} role="dialog" aria-modal="false">
+              <p className={styles.logoutConfirmTitle}>Đăng xuất?</p>
+              <p className={styles.logoutConfirmText}>Bạn sẽ cần đăng nhập lại để tiếp tục.</p>
+              <div className={styles.logoutConfirmActions}>
+                <button type="button" className={styles.logoutConfirmCancel} onClick={handleCancelLogout}>
+                  Hủy
+                </button>
+                <button type="button" className={styles.logoutConfirmSubmit} onClick={handleConfirmLogout}>
+                  Đăng xuất
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );

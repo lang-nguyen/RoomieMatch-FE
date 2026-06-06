@@ -1,19 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Eraser, Bot } from 'lucide-react';
+import { X, Send, Eraser, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
 import './ChatbotWidget.css';
 import { getAccessToken } from '../../../shared/utils/authToken';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; // Đảm bảo khớp với baseUrl của backend
+const BASE_URL = import.meta.env.DEV
+    ? '/api/v1'
+    : (import.meta.env.VITE_API_URL || '/api/v1');
 
 const ChatbotWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
     const [sessionId, setSessionId] = useState(null);
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
+    const closeTimerRef = useRef(null);
     const navigate = useNavigate();
 
     const scrollToBottom = () => {
@@ -62,6 +66,33 @@ const ChatbotWidget = () => {
             initSession();
         }
     }, []);
+
+    useEffect(() => {
+        return () => {
+            if (closeTimerRef.current) {
+                clearTimeout(closeTimerRef.current);
+            }
+        };
+    }, []);
+
+    const handleOpen = () => {
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+            closeTimerRef.current = null;
+        }
+        setIsClosing(false);
+        setIsOpen(true);
+    };
+
+    const handleClose = () => {
+        if (isClosing) return;
+        setIsClosing(true);
+        closeTimerRef.current = setTimeout(() => {
+            setIsOpen(false);
+            setIsClosing(false);
+            closeTimerRef.current = null;
+        }, 180);
+    };
 
     const handleClear = () => {
         setSessionId(null);
@@ -127,15 +158,20 @@ const ChatbotWidget = () => {
     return (
         <div className="chatbot-wrapper">
             {/* Nút Toggle */}
-            {!isOpen && (
-                <button className="chatbot-toggle-btn" onClick={() => setIsOpen(true)}>
-                    <MessageSquare size={28} />
+            {!isOpen && !isClosing && (
+                <button
+                    className="chatbot-toggle-btn"
+                    onClick={handleOpen}
+                    aria-label="Mở Roomie AI"
+                    title="Roomie AI"
+                >
+                    <Bot size={28} />
                 </button>
             )}
 
             {/* Cửa sổ Chat */}
-            {isOpen && (
-                <div className="chatbot-window">
+            {(isOpen || isClosing) && (
+                <div className={`chatbot-window ${isClosing ? 'is-closing' : ''}`}>
                     {/* Header */}
                     <div className="chatbot-header">
                         <h3>
@@ -151,7 +187,7 @@ const ChatbotWidget = () => {
                             </button>
                             <button
                                 className="chatbot-action-btn"
-                                onClick={() => setIsOpen(false)}
+                                onClick={handleClose}
                             >
                                 <X size={20} />
                             </button>
@@ -172,7 +208,7 @@ const ChatbotWidget = () => {
                                                         key={room.id} 
                                                         className="chatbot-room-thumbnail"
                                                         onClick={() => {
-                                                            setIsOpen(false);
+                                                            handleClose();
                                                             navigate(`/rooms/${room.id}`);
                                                         }}
                                                     >

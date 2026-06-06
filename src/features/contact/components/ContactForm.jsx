@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react';
+import { getAccessToken } from '../../../shared/utils/authToken';
+
+const BASE_URL = import.meta.env.DEV
+  ? '/api/v1'
+  : (import.meta.env.VITE_API_URL || '/api/v1');
+
+const CONTACT_MESSAGES_ENDPOINT = `${BASE_URL}/contact/messages`;
 
 const ContactForm = ({ topics }) => {
   const [activeTopic, setActiveTopic] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [fileName, setFileName] = useState('');
   const [fields, setFields] = useState({
     lastName: '',
@@ -29,15 +37,44 @@ const ContactForm = ({ topics }) => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
     setSuccess(false);
+    setSubmitError('');
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const token = getAccessToken();
+      const response = await fetch(CONTACT_MESSAGES_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          first_name: fields.firstName.trim(),
+          last_name: fields.lastName.trim(),
+          email: fields.email.trim(),
+          phone: fields.phone.trim() || null,
+          topic: topics[activeTopic],
+          message: fields.message.trim(),
+          attachment_name: fileName || null,
+        }),
+      });
+
+      if (!response.ok) {
+        let message = 'Không gửi được tin nhắn. Vui lòng thử lại sau.';
+        try {
+          const payload = await response.json();
+          message = payload?.detail || payload?.message || message;
+        } catch {
+          // Keep the fallback message when the server does not return JSON.
+        }
+        throw new Error(message);
+      }
+
       setSuccess(true);
       setFields({
         lastName: '',
@@ -47,7 +84,11 @@ const ContactForm = ({ topics }) => {
         message: ''
       });
       setFileName('');
-    }, 1200);
+    } catch (error) {
+      setSubmitError(error.message || 'Không gửi được tin nhắn. Vui lòng thử lại sau.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFile = (event) => {
@@ -161,6 +202,7 @@ const ContactForm = ({ topics }) => {
           ✓ Tin nhắn đã được gửi thành công! Chúng tôi sẽ liên hệ lại trong vòng 24 giờ.
         </div>
       )}
+      {submitError && <div className="contact-error">{submitError}</div>}
     </form>
   );
 };

@@ -10,7 +10,7 @@ export const baseApi = createApi({
     // tránh browser gọi thẳng BE dẫn tới CORS preflight (OPTIONS).
     baseUrl: import.meta.env.DEV
       ? '/api/v1'
-      : (import.meta.env.VITE_API_URL || '/api/v1'),
+      : (import.meta.env.VITE_BASE_API || '/api/v1'),
     paramsSerializer: serializeQueryParams,
     prepareHeaders: (headers, { getState }) => {
       // Tự động thêm Token vào Header nếu đã đăng nhập.

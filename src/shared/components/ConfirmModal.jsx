@@ -8,10 +8,12 @@ const ConfirmModal = ({
   message, 
   onConfirm, 
   onCancel, 
+  onClose,
   confirmText = 'Xác nhận', 
   cancelText = 'Hủy',
   type = 'confirm' // 'confirm' or 'alert'
 }) => {
+  const handleClose = onClose || onCancel;
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -28,9 +30,9 @@ const ConfirmModal = ({
   const isAlert = type === 'alert';
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-btn" onClick={onCancel}>
+        <button className="modal-close-btn" onClick={handleClose}>
           <X size={20} />
         </button>
         

@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsAuthenticated, logout } from '../../features/auth/slice';
 import { useGetUserProfileQuery } from '../../features/user/api/userApi';
+import { baseApi } from '../api/baseApi';
 import ConfirmModal from './ConfirmModal';
 import './Header.css';
 
@@ -52,6 +53,7 @@ const Header = ({ initialActiveId = 'home' }) => {
 
   const confirmLogout = () => {
     dispatch(logout());
+    dispatch(baseApi.util.resetApiState());
     setIsLogoutModalOpen(false);
     navigate('/login');
   };

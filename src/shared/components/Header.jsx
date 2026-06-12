@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsAuthenticated, logout } from '../../features/auth/slice';
 import { useGetUserProfileQuery } from '../../features/user/api/userApi';
+import ConfirmModal from './ConfirmModal';
 import './Header.css';
 
 const navItems = [
@@ -26,6 +27,7 @@ const Header = ({ initialActiveId = 'home' }) => {
   const account = userProfileData?.account;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
@@ -44,11 +46,14 @@ const Header = ({ initialActiveId = 'home' }) => {
   }, []);
 
   const handleLogoutClick = () => {
-    if (window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
-      dispatch(logout());
-      closeDropdown();
-      navigate('/login');
-    }
+    setIsLogoutModalOpen(true);
+    closeDropdown();
+  };
+
+  const confirmLogout = () => {
+    dispatch(logout());
+    setIsLogoutModalOpen(false);
+    navigate('/login');
   };
 
   const initialIndex = navItems.findIndex((item) => item.id === initialActiveId);
@@ -239,6 +244,17 @@ const Header = ({ initialActiveId = 'home' }) => {
           </NavLink>
         </div>
       </div>
+      
+      <ConfirmModal 
+        isOpen={isLogoutModalOpen}
+        title="Đăng xuất"
+        message="Bạn có chắc chắn muốn đăng xuất không?"
+        confirmText="Đăng xuất"
+        cancelText="Hủy"
+        onConfirm={confirmLogout}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        type="confirm"
+      />
     </header>
   );
 };

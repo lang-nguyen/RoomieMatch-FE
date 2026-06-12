@@ -11,7 +11,11 @@ export function setAccessToken(token) {
 
 export function getAccessToken() {
   try {
-    return localStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token || token === 'undefined' || token === 'null') {
+      return null;
+    }
+    return token;
   } catch (e) {
     return null;
   }

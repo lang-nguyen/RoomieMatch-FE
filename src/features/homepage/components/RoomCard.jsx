@@ -1,17 +1,60 @@
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../../auth/slice';
+import { useGetSavedRoomsQuery, useSavePostMutation, useUnsavePostMutation } from '../../user/api/userApi';
 import '../Homepage.css';
 
 const DEFAULT_ROOM_IMAGE =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22 viewBox=%220 0 800 600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%23f3f4f6%22/%3E%3Cpath d=%22M160 410l120-120 90 90 120-120 170 170v70H160z%22 fill=%23d1d5db%22/%3E%3Ccircle cx=%22585%22 cy=%22210%22 r=%2240%22 fill=%23e5e7eb%22/%3E%3Ctext x=%22400%22 y=%22330%22 text-anchor=%22middle%22 font-family=%22Arial,%20sans-serif%22 font-size=%2230%22 fill=%239ca3af%22%3EKhông có ảnh%3C/text%3E%3C/svg%3E';
 
 const RoomCard = ({ room }) => {
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const { data: savedRoomsData } = useGetSavedRoomsQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const [savePost, { isLoading: isSaving }] = useSavePostMutation();
+  const [unsavePost, { isLoading: isUnsaving }] = useUnsavePostMutation();
+
+  const isSaved = savedRoomsData?.items?.some((item) => String(item.post_id) === String(room.id)) || false;
+
   const handleImageError = (event) => {
     if (event.currentTarget.src !== DEFAULT_ROOM_IMAGE) {
       event.currentTarget.src = DEFAULT_ROOM_IMAGE;
     }
   };
 
+  const handleCardClick = (e) => {
+    if (e.target.closest('.wishlist-icon')) {
+      return;
+    }
+    navigate(`/rooms/${room.id}`);
+  };
+
+  const handleWishlistClick = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (!isAuthenticated) {
+      alert('Vui lòng đăng nhập để lưu bài viết!');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      if (isSaved) {
+        await unsavePost(room.id).unwrap();
+      } else {
+        await savePost(room.id).unwrap();
+      }
+    } catch (err) {
+      console.error('Error toggling wishlist:', err);
+      alert('Đã xảy ra lỗi khi lưu bài viết. Vui lòng thử lại.');
+    }
+  };
+
   return (
-    <div className="room-card">
+    <div className="room-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className="room-image-container">
         <img src={room.image || DEFAULT_ROOM_IMAGE} alt={room.title} className="room-image" onError={handleImageError} />
         <div className="image-gradient"></div>
@@ -23,8 +66,25 @@ const RoomCard = ({ room }) => {
           </div>
         )}
 
-        <button className="wishlist-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        <button 
+          className={`wishlist-icon ${isSaved ? 'saved' : ''}`}
+          onClick={handleWishlistClick}
+          disabled={isSaving || isUnsaving}
+          type="button"
+          title={isSaved ? "Bỏ lưu bài đăng" : "Lưu bài đăng"}
+        >
+          <svg 
+            width="18" 
+            height="18" 
+            viewBox="0 0 24 24" 
+            fill={isSaved ? "#D45B13" : "none"} 
+            stroke={isSaved ? "#D45B13" : "currentColor"} 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
         </button>
 
         <div className="price-overlay">

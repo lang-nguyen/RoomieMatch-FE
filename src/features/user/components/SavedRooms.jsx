@@ -36,10 +36,10 @@ const SavedRooms = () => {
       ) : (
         <div className={styles.roomsList}>
           {rooms.map(room => {
-            const FALLBACK_IMAGE = 'https://www.pinterest.com/pin/2744449770027901/';
+            const FALLBACK_IMAGE = room.thumbnail || room.image || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80';
             return (
               <RoomCard
-                key={room.id}
+                key={room.post_id || room.id}
                 room={{
                   ...room,
                   image: FALLBACK_IMAGE

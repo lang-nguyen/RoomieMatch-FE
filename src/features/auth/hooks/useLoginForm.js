@@ -4,6 +4,22 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLoginMutation } from '../api/authApi';
 import { clearError, selectAuthError, setCredentials, setError } from '../slice';
 import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
+import { ROLE_DEFAULT_ROUTES } from '../../../shared/constants/roles';
+
+const normalizeAuthResponse = (payload = {}) => {
+  const data = payload.data || payload;
+  const user = data.user || {};
+  const accountType = user.account_type || user.accountType || data.account_type || data.accountType;
+
+  return {
+    ...data,
+    access_token: data.access_token || data.accessToken || data.token,
+    user: {
+      ...user,
+      account_type: accountType,
+    },
+  };
+};
 
 export const useLoginForm = () => {
   const [email, setEmail] = useState('');
@@ -27,10 +43,14 @@ export const useLoginForm = () => {
     setSuccessMessage('');
 
     try {
-      const response = await login({ email, password }).unwrap();
+      const response = normalizeAuthResponse(await login({ email, password }).unwrap());
       dispatch(setCredentials(response));
       setSuccessMessage('Đăng nhập thành công. Đang chuyển trang...');
-      timeoutRef.current = setTimeout(() => navigate('/'), 700);
+
+      // Điều hướng theo role
+      const accountType = response.user?.account_type;
+      const redirectTo = ROLE_DEFAULT_ROUTES[accountType] || '/';
+      timeoutRef.current = setTimeout(() => navigate(redirectTo), 700);
     } catch (err) {
       dispatch(setError(getApiErrorMessage(err, 'Đăng nhập thất bại')));
     }

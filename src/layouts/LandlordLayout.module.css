@@ -1,0 +1,38 @@
+/* ── LandlordLayout ──────────────────────────────────────────────── */
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #f7f8fc;
+  font-family: 'Be Vietnam Pro', 'Be Vietnam', 'Segoe UI', sans-serif;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 32px 36px;
+  overflow-y: auto;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.wrapperWide .main {
+  padding: 32px 36px;
+  background: #f7f8fc;
+}
+
+/* Responsive: ẩn right panel khi màn nhỏ */
+@media (max-width: 1200px) {
+  /* UserInfoPanel sẽ ẩn qua CSS Module của chính nó */
+}
+
+@media (max-width: 900px) {
+  .wrapper {
+    flex-direction: column;
+  }
+
+  .main,
+  .wrapperWide .main {
+    padding: 24px 18px;
+  }
+}

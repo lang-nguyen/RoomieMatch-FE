@@ -1,0 +1,183 @@
+/* ── LandlordRoomCard ────────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #eee8e4;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(32, 27, 24, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Thumbnail */
+.thumbnail {
+  position: relative;
+  height: 140px;
+  overflow: hidden;
+}
+
+.thumbnailImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnailPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.codeBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0,0,0,0.35);
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(2px);
+}
+
+.statusBadgeWrapper {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* Status badges — global classes (used by StatusBadge component) */
+:global(.status-badge) {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+:global(.status-badge--available) {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+:global(.status-badge--rented) {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+:global(.status-badge--negotiating) {
+  background: #fef9c3;
+  color: #713f12;
+}
+
+/* Info */
+.info {
+  padding: 12px 14px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.address {
+  font-size: 11px;
+  color: #999;
+  margin: 0;
+}
+
+/* Chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: #666;
+  background: #f5f5f5;
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+
+/* Price */
+.price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #c1440e;
+  margin-top: 4px;
+}
+
+.priceUnit {
+  font-size: 11px;
+  font-weight: 400;
+  color: #aaa;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 14px;
+  margin-top: 4px;
+}
+
+.actionLink {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.actionLink:hover {
+  color: #c1440e;
+}
+
+.postBtn {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: #c1440e;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.postBtn:hover {
+  opacity: 0.88;
+}

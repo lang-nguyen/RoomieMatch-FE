@@ -15,6 +15,7 @@ import RoomPage from '../features/room/RoomPage';
 import RoomDetailPage from '../features/room/RoomDetailPage';
 import FindMatePage from '../pages/FindMatePage';
 import ContactPage from '../pages/ContactPage';
+import ProtectedRoute from '../shared/components/ProtectedRoute';
 
 export const router = createBrowserRouter([
   {
@@ -42,7 +43,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/user',
-        element: <UserLayout />,
+        element: (
+          <ProtectedRoute>
+            <UserLayout />
+          </ProtectedRoute>
+        ),
         children: [
           {
             path: 'profile',

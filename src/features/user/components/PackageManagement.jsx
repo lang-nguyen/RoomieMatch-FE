@@ -1,6 +1,8 @@
 import { ArrowLeft, Check, CreditCard, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import styles from './PackageManagement.module.css';
+import { useState } from 'react';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import { useGetAllPackagesQuery, useGetPackageEntitlementsQuery, usePurchasePackageMutation } from '../api/userApi';
 
 const PackageManagement = () => {
@@ -9,13 +11,26 @@ const PackageManagement = () => {
   const { data: entitlements, isLoading: isLoadingEntitlements } = useGetPackageEntitlementsQuery();
   const [purchasePackage, { isLoading: isPurchasing }] = usePurchasePackageMutation();
 
-  const handlePurchase = async (pkgId) => {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedPkgId, setSelectedPkgId] = useState(null);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, type: 'alert', message: '', title: 'Thông báo' });
+
+  const handlePurchaseClick = (pkgId) => {
+    setSelectedPkgId(pkgId);
+    setShowConfirmModal(true);
+  };
+
+  const handlePurchase = async () => {
+    setShowConfirmModal(false);
+    if (!selectedPkgId) return;
+
     try {
-      const res = await purchasePackage({ package_id: pkgId }).unwrap();
-      alert('Đăng ký thành công!');
+      await purchasePackage({ package_id: selectedPkgId }).unwrap();
+      setAlertModal({ isOpen: true, type: 'confirm', message: 'Đăng ký thành công!', title: 'Thành công' });
     } catch(err) {
-      alert('Đăng ký thất bại. Xin vui lòng thử lại.');
+      setAlertModal({ isOpen: true, type: 'alert', message: 'Đăng ký thất bại. Xin vui lòng thử lại.', title: 'Lỗi' });
     }
+    setSelectedPkgId(null);
   };
 
   if (isLoadingPackages || isLoadingEntitlements) {
@@ -78,7 +93,7 @@ const PackageManagement = () => {
                 </div>
                 <button 
                   className={styles.upgradeBtn} 
-                  onClick={() => handlePurchase(pkg.id)}
+                  onClick={() => handlePurchaseClick(pkg.id)}
                   disabled={isPurchasing}
                 >
                   Mua ngay
@@ -87,6 +102,29 @@ const PackageManagement = () => {
           ))}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Xác nhận mua gói"
+        message="Bạn có chắc chắn muốn mua gói dịch vụ này không?"
+        confirmText="Mua ngay"
+        cancelText="Hủy"
+        onConfirm={handlePurchase}
+        onCancel={() => {
+          setShowConfirmModal(false);
+          setSelectedPkgId(null);
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={alertModal.isOpen}
+        title={alertModal.title}
+        message={alertModal.message}
+        confirmText="Đóng"
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, isOpen: false })}
+        onCancel={() => setAlertModal({ ...alertModal, isOpen: false })}
+      />
     </div>
   );
 };

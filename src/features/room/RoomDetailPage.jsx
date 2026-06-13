@@ -126,6 +126,7 @@ const RoomDetailPage = () => {
               owner={detail.owner}
               contact={detail.owner.contact}
               reference={detail.reference}
+              roomId={room.room_id || roomId}
             />
           </div>
 

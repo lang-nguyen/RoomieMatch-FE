@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertCircle, AlertTriangle, X } from 'lucide-react';
 import './ConfirmModal.css';
 
@@ -29,7 +30,7 @@ const ConfirmModal = ({
 
   const isAlert = type === 'alert';
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close-btn" onClick={handleClose}>
@@ -61,7 +62,8 @@ const ConfirmModal = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,11 +1,20 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../../features/auth/slice';
 import { Heart, Eye, Trash2 } from 'lucide-react';
 import { useUnsavePostMutation } from '../../features/user';
+import ConfirmModal from './ConfirmModal';
 import styles from './RoomCard.module.css';
 
 const RoomCard = ({ room }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const [unsavePost, { isLoading: isUnsaving }] = useUnsavePostMutation();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [errorModal, setErrorModal] = useState({ isOpen: false, message: '' });
 
   const { title, image, area, status } = room;
   const postId = room.post_id || room.id;
@@ -27,13 +36,20 @@ const RoomCard = ({ room }) => {
   };
 
   const handleUnsave = async () => {
-    if (window.confirm('Bạn có chắc chắn muốn bỏ lưu phòng trọ này không?')) {
-      try {
-        await unsavePost(postId).unwrap();
-      } catch (err) {
-        console.error('Error unsaving post:', err);
-        alert('Đã xảy ra lỗi khi bỏ lưu bài viết.');
-      }
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    setShowConfirmModal(true);
+  };
+
+  const confirmUnsave = async () => {
+    setShowConfirmModal(false);
+    try {
+      await unsavePost(postId).unwrap();
+    } catch (err) {
+      console.error('Error unsaving post:', err);
+      setErrorModal({ isOpen: true, message: 'Đã xảy ra lỗi khi bỏ lưu bài viết.' });
     }
   };
 
@@ -85,6 +101,36 @@ const RoomCard = ({ room }) => {
           Bỏ lưu
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={showLoginModal}
+        title="Yêu cầu đăng nhập"
+        message="Vui lòng đăng nhập để thực hiện chức năng này!"
+        confirmText="Đăng nhập ngay"
+        cancelText="Đóng"
+        onConfirm={() => navigate('/login', { state: { from: location } })}
+        onCancel={() => setShowLoginModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Bỏ lưu phòng trọ"
+        message="Bạn có chắc chắn muốn bỏ lưu phòng trọ này không?"
+        confirmText="Đồng ý"
+        cancelText="Hủy"
+        onConfirm={confirmUnsave}
+        onCancel={() => setShowConfirmModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={errorModal.isOpen}
+        title="Thông báo"
+        message={errorModal.message}
+        confirmText="Đóng"
+        type="alert"
+        onConfirm={() => setErrorModal({ isOpen: false, message: '' })}
+        onCancel={() => setErrorModal({ isOpen: false, message: '' })}
+      />
     </div>
   );
 };

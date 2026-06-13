@@ -6,6 +6,21 @@ import { clearError, selectAuthError, setCredentials, setError } from '../slice'
 import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
 import { ROLE_DEFAULT_ROUTES } from '../../../shared/constants/roles';
 
+const normalizeAuthResponse = (payload = {}) => {
+  const data = payload.data || payload;
+  const user = data.user || {};
+  const accountType = user.account_type || user.accountType || data.account_type || data.accountType;
+
+  return {
+    ...data,
+    access_token: data.access_token || data.accessToken || data.token,
+    user: {
+      ...user,
+      account_type: accountType,
+    },
+  };
+};
+
 export const useLoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +43,7 @@ export const useLoginForm = () => {
     setSuccessMessage('');
 
     try {
-      const response = await login({ email, password }).unwrap();
+      const response = normalizeAuthResponse(await login({ email, password }).unwrap());
       dispatch(setCredentials(response));
       setSuccessMessage('Đăng nhập thành công. Đang chuyển trang...');
 

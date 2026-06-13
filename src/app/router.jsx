@@ -15,6 +15,7 @@ import RoomPage from '../features/room/RoomPage';
 import RoomDetailPage from '../features/room/RoomDetailPage';
 import FindMatePage from '../pages/FindMatePage';
 import ContactPage from '../pages/ContactPage';
+import AdminPage from '../pages/AdminPage';
 import LandlordLayout from '../layouts/LandlordLayout';
 import LandlordHomePage from '../pages/landlord/LandlordHomePage';
 import LandlordRoomsPage from '../pages/landlord/LandlordRoomsPage';
@@ -118,7 +119,17 @@ export const router = createBrowserRouter([
     ]
   },
   {
+    path: '/admin',
+    element: <RequireAuth allowedRoles={[ACCOUNT_TYPES.ADMIN]} />,
+    children: [
+      {
+        index: true,
+        element: <AdminPage />,
+      },
+    ],
+  },
+  {
     path: '/unauthorized',
     element: <div>Bạn không có quyền truy cập trang này.</div>,
-  }
+  },
 ]);

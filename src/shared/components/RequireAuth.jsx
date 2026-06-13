@@ -2,6 +2,24 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticated, selectCurrentUser } from '../../features/auth/slice';
 
+const normalizeRole = (role) => {
+  const normalized = String(role || '').trim().toLowerCase().replace(/^role[_-]?/, '');
+
+  if (normalized.includes('admin') || normalized.includes('quản trị') || normalized.includes('quan tri')) {
+    return 'admin';
+  }
+
+  if (normalized.includes('landlord') || normalized.includes('chủ trọ') || normalized.includes('chu tro')) {
+    return 'landlord';
+  }
+
+  if (normalized.includes('tenant') || normalized.includes('khách thuê') || normalized.includes('khach thue')) {
+    return 'tenant';
+  }
+
+  return normalized;
+};
+
 /**
  * Route guard component.
  * - Chưa đăng nhập → redirect về /login (lưu lại URL gốc trong state)
@@ -21,7 +39,14 @@ const RequireAuth = ({ allowedRoles = [] }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.account_type)) {
+  const userRole = normalizeRole(user?.account_type || user?.accountType || user?.role);
+  const normalizedAllowedRoles = allowedRoles.map(normalizeRole);
+
+  if (allowedRoles.length > 0 && !userRole) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (allowedRoles.length > 0 && !normalizedAllowedRoles.includes(userRole)) {
     // Đã đăng nhập nhưng không đúng role
     return <Navigate to="/unauthorized" replace />;
   }

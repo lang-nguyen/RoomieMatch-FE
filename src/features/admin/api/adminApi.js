@@ -15,25 +15,41 @@ export const adminApi = baseApi.injectEndpoints({
     }),
 
     // ─── USERS ───
-    getUsers: builder.query({
+    getUserMeta: builder.query({
+      query: () => ({ url: '/admin/users/meta', method: 'GET' }),
+      providesTags: ['AdminUserMeta'],
+    }),
+    getAdminUserStats: builder.query({
+      query: () => ({ url: '/admin/users/stats', method: 'GET' }),
+      providesTags: ['AdminUserStats'],
+    }),
+    getAdminUsers: builder.query({
       query: (params) => ({
         url: '/admin/users',
         method: 'GET',
         params,
       }),
-      providesTags: ['Users'],
+      providesTags: ['AdminUsers'],
     }),
-    createUser: builder.mutation({
+    getAdminUserById: builder.query({
+      query: (id) => ({ url: `/admin/users/${id}`, method: 'GET' }),
+      providesTags: (_result, _error, id) => [{ type: 'AdminUsers', id }],
+    }),
+    createAdminUser: builder.mutation({
       query: (body) => ({ url: '/admin/users', method: 'POST', body }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ['AdminUsers', 'AdminUserStats'],
     }),
-    updateUser: builder.mutation({
+    updateAdminUser: builder.mutation({
       query: ({ id, ...body }) => ({ url: `/admin/users/${id}`, method: 'PUT', body }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: (_result, _error, { id }) => ['AdminUsers', 'AdminUserStats', { type: 'AdminUsers', id }],
     }),
-    deleteUser: builder.mutation({
+    updateAdminUserStatus: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/admin/users/${id}/status`, method: 'PATCH', body }),
+      invalidatesTags: (_result, _error, { id }) => ['AdminUsers', 'AdminUserStats', { type: 'AdminUsers', id }],
+    }),
+    deleteAdminUser: builder.mutation({
       query: (id) => ({ url: `/admin/users/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ['AdminUsers', 'AdminUserStats'],
     }),
 
     // ─── POSTS ───
@@ -121,10 +137,14 @@ export const adminApi = baseApi.injectEndpoints({
 export const {
   useGetAdminDashboardQuery,
   useGetAnalyticsQuery,
-  useGetUsersQuery,
-  useCreateUserMutation,
-  useUpdateUserMutation,
-  useDeleteUserMutation,
+  useGetUserMetaQuery,
+  useGetAdminUserStatsQuery,
+  useGetAdminUsersQuery,
+  useLazyGetAdminUserByIdQuery,
+  useCreateAdminUserMutation,
+  useUpdateAdminUserMutation,
+  useUpdateAdminUserStatusMutation,
+  useDeleteAdminUserMutation,
   useGetPostsQuery,
   useUpdatePostStatusMutation,
   useDeletePostMutation,

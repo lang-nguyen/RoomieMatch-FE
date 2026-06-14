@@ -1,7 +1,7 @@
 import { AdminIcon } from './adminIconMap';
 import styles from './AdminDashboard.module.css';
 
-export const AdminSidebar = ({ navSections, activeNavId, onNavChange, isOpen, onClose }) => (
+export const AdminSidebar = ({ navSections, activeNavId, onNavChange, isOpen, onClose, onLogout }) => (
   <>
     {isOpen && <button className={styles.mobileOverlay} type="button" aria-label="Đóng menu" onClick={onClose} />}
     <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
@@ -45,7 +45,7 @@ export const AdminSidebar = ({ navSections, activeNavId, onNavChange, isOpen, on
       </nav>
 
       <div className={styles.sidebarFooter}>
-        <button type="button" className={`${styles.navItem} ${styles.logoutItem}`}>
+        <button type="button" className={`${styles.navItem} ${styles.logoutItem}`} onClick={onLogout}>
           <span className={styles.navIcon}>
             <AdminIcon name="logout" size={16} />
           </span>

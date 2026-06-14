@@ -1,4 +1,8 @@
 ﻿import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { baseApi } from '../../../shared/api/baseApi';
+import { logout } from '../../auth/slice';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { AdminTopbar } from '../components/AdminTopbar';
 import { AdminPageHeader } from '../components/AdminPageHeader';
@@ -72,7 +76,10 @@ const pageHeaders = {
 };
 
 const AdminDashboardPage = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const {
     navSections,
     activeNavId,
@@ -94,6 +101,20 @@ const AdminDashboardPage = () => {
   const handleNavChange = (itemId) => {
     setActiveNavId(itemId);
     setIsSidebarOpen(false);
+  };
+
+  const handleLogout = () => {
+    setIsLogoutConfirmOpen(true);
+  };
+
+  const handleCancelLogout = () => {
+    setIsLogoutConfirmOpen(false);
+  };
+
+  const handleConfirmLogout = () => {
+    dispatch(logout());
+    dispatch(baseApi.util.resetApiState());
+    navigate('/login', { replace: true });
   };
 
   const renderDashboardHome = () => (
@@ -162,6 +183,7 @@ const AdminDashboardPage = () => {
         onNavChange={handleNavChange}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
       <main className={styles.main}>
@@ -169,6 +191,7 @@ const AdminDashboardPage = () => {
           currentUser={dashboard.currentUser}
           hasUnreadNotifications={unreadCount > 0}
           onOpenMenu={() => setIsSidebarOpen(true)}
+          onLogout={handleLogout}
         />
 
         <div className={styles.content}>
@@ -186,10 +209,31 @@ const AdminDashboardPage = () => {
           {isLoading ? <div className={styles.loadingState}>Đang tải dữ liệu quản trị...</div> : renderActiveView()}
         </div>
       </main>
+
+      {isLogoutConfirmOpen && (
+        <div className={styles.modalOverlay} role="presentation" onMouseDown={handleCancelLogout}>
+          <section className={styles.logoutConfirmCard} onMouseDown={(event) => event.stopPropagation()}>
+            <button type="button" className={styles.logoutConfirmClose} aria-label="Đóng hộp thoại" onClick={handleCancelLogout}>
+              <span>×</span>
+            </button>
+            <h2>Đăng xuất?</h2>
+            <p>Bạn sẽ cần đăng nhập lại để tiếp tục quản trị hệ thống.</p>
+            <div className={styles.logoutConfirmActions}>
+              <button type="button" className={styles.buttonSmall} onClick={handleCancelLogout}>
+                Huỷ
+              </button>
+              <button type="button" className={`${styles.buttonSmall} ${styles.buttonPrimary}`} onClick={handleConfirmLogout}>
+                Xác nhận
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AdminDashboardPage;
+
 
 

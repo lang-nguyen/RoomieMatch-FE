@@ -1,14 +1,35 @@
 import { useMemo, useState } from 'react';
 import { ADMIN_NAV_SECTIONS } from '../models/adminModels';
-import { adminDashboardMockData } from '../api/adminMockData';
-import { useGetAdminDashboardQuery } from '../api/adminApiMock';
+import { useGetAdminDashboardQuery } from '../api/adminApi';
+
+const emptyDashboard = {
+  currentUser: {
+    name: 'Quản trị viên',
+    initials: 'AD',
+  },
+  pageHeader: {
+    title: 'Tổng quan',
+    highlight: 'quan',
+    subtitle: 'Theo dõi dữ liệu quản trị từ hệ thống RoomieMatch',
+  },
+  stats: [],
+  performance: {
+    title: 'Hiệu suất',
+    years: ['2026'],
+    labels: [],
+    seriesByYear: { 2026: [] },
+  },
+  staff: [],
+  regions: [],
+  notifications: [],
+};
 
 export const useAdminDashboard = () => {
   const [activeNavId, setActiveNavId] = useState('dashboard');
-  const [selectedYear, setSelectedYear] = useState(adminDashboardMockData.performance.years[0]);
+  const [selectedYear, setSelectedYear] = useState(emptyDashboard.performance.years[0]);
   const [regionSearch, setRegionSearch] = useState('');
   const [readNotificationIds, setReadNotificationIds] = useState([]);
-  const { data = adminDashboardMockData, isLoading, isError, refetch } = useGetAdminDashboardQuery();
+  const { data = emptyDashboard, isLoading, isError, refetch } = useGetAdminDashboardQuery();
 
   const regions = useMemo(() => {
     const keyword = regionSearch.trim().toLowerCase();

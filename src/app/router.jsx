@@ -15,6 +15,7 @@ import RoomPage from '../features/room/RoomPage';
 import RoomDetailPage from '../features/room/RoomDetailPage';
 import FindMatePage from '../pages/FindMatePage';
 import ContactPage from '../pages/ContactPage';
+import VnpayReturnPage from '../pages/VnpayReturnPage';
 import ProtectedRoute from '../shared/components/ProtectedRoute';
 
 export const router = createBrowserRouter([
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
       {
         path: '/contact',
         element: <ContactPage />,
+      },
+      {
+        path: '/user/payment/vnpay-return',
+        element: <VnpayReturnPage />,
       },
       {
         path: '/user',

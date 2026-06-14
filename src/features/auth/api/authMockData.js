@@ -22,6 +22,14 @@ const MOCK_USERS = [
     password: MOCK_PASSWORD,
     account_type: 'landlord',
   },
+  {
+    id: 3,
+    username: 'admin',
+    display_name: 'Demo Admin',
+    email: 'admin@roomie.local',
+    password: MOCK_PASSWORD,
+    account_type: 'admin',
+  },
 ];
 
 const buildUser = (user) => ({
@@ -64,6 +72,10 @@ const findUserByLogin = ({ username, email, password, account_type }) => {
 
   if (account_type === 'tenant' || loginValue.includes('tenant')) {
     return normalizedPassword === MOCK_PASSWORD ? MOCK_USERS[0] : null;
+  }
+
+  if (account_type === 'admin' || loginValue.includes('admin')) {
+    return normalizedPassword === MOCK_PASSWORD ? MOCK_USERS[2] : null;
   }
 
   return normalizedPassword === MOCK_PASSWORD ? MOCK_USERS[0] : null;

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Search, Eye } from 'lucide-react';
+import { Search, ArrowLeft, Zap, Star, Package as PackageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useGetPackageHistoryQuery } from '../api/userApi';
+import { useGetPackageHistoryQuery, useGetAllPackagesQuery } from '../api/userApi';
 import styles from './PackageHistory.module.css';
 
 const formatCurrency = (cents) => {
@@ -16,18 +16,18 @@ const formatDate = (dateString) => {
 
 const translateStatus = (status) => {
   const lower = String(status).toLowerCase();
-  if (lower === 'active' || lower === 'đang kích hoạt') return 'Đang kích hoạt';
-  if (lower === 'pending' || lower === 'đang chờ xử lý') return 'Đang chờ xử lý';
-  if (lower === 'expired' || lower === 'đã hết hạn') return 'Đã hết hạn';
+  if (lower === 'paid') return 'Đã thanh toán';
+  if (lower === 'pending') return 'Đang chờ thanh toán';
+  if (lower === 'failed') return 'Thanh toán thất bại';
   return status;
 };
 
 const getStatusClass = (status) => {
   const translated = translateStatus(status);
   switch (translated) {
-    case 'Đang kích hoạt': return styles.statusActive;
-    case 'Đang chờ xử lý': return styles.statusPending;
-    case 'Đã hết hạn': return styles.statusExpired;
+    case 'Đã thanh toán': return styles.statusActive;
+    case 'Đang chờ thanh toán': return styles.statusPending;
+    case 'Thanh toán thất bại': return styles.statusExpired;
     default: return '';
   }
 };
@@ -35,11 +35,24 @@ const getStatusClass = (status) => {
 const PackageHistory = () => {
   const navigate = useNavigate();
   const { data: packages = [], isLoading, isError } = useGetPackageHistoryQuery();
+  const { data: allPackages = [] } = useGetAllPackagesQuery();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
 
+  const mappedPackages = useMemo(() => {
+    return packages.map(pkg => {
+      const packageInfo = allPackages.find(p => p.id === pkg.package_id) || {};
+      return {
+        ...pkg,
+        name: packageInfo.name || `Gói dịch vụ #${pkg.package_id}`,
+        slug: packageInfo.slug || 'free-tier'
+      };
+    });
+  }, [packages, allPackages]);
+
   const filteredAndSortedPackages = useMemo(() => {
-    let result = [...packages];
+    let result = [...mappedPackages];
 
     // Filter by name
     if (searchTerm) {
@@ -55,12 +68,20 @@ const PackageHistory = () => {
     });
 
     return result;
-  }, [packages, searchTerm, sortOrder]);
+  }, [mappedPackages, searchTerm, sortOrder]);
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.pageTitle}>Lịch sử mua gói</h1>
+        <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+          <button 
+            className={styles.backBtn}
+            onClick={() => navigate('/user/package-management')}
+          >
+            <ArrowLeft className={styles.backIcon} />
+          </button>
+          <h1 className={styles.pageTitle}>Lịch sử mua gói</h1>
+        </div>
       </div>
 
       <div className={styles.searchBar}>
@@ -95,18 +116,9 @@ const PackageHistory = () => {
             <div key={pkg.id} className={styles.card}>
               <div className={styles.packageInfo}>
                 <div
-                  className={styles.iconBox}
-                  style={{ backgroundColor: pkg.color || '#e0e0e0', overflow: 'hidden' }}
+                  className={`${styles.iconBox} ${pkg.slug === 'pro-vip-tier' ? styles.iconVip : pkg.slug === 'basic-tier' ? styles.iconBasic : styles.iconFree}`}
                 >
-                  <img
-                    src={pkg.image || 'https://placehold.co/100x100?text=No+Image'}
-                    alt={pkg.name || 'Package'}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://placehold.co/100x100?text=No+Image';
-                    }}
-                  />
+                  {pkg.slug === 'pro-vip-tier' ? <Zap size={32} /> : pkg.slug === 'basic-tier' ? <Star size={32} /> : <PackageIcon size={32} />}
                 </div>
 
                 <div className={styles.namePrice}>
@@ -117,12 +129,8 @@ const PackageHistory = () => {
 
               <div className={styles.dates}>
                 <div className={styles.dateRow}>
-                  <span className={styles.dateLabel}>Ngày đăng ký:</span>
+                  <span className={styles.dateLabel}>Ngày mua:</span>
                   <span className={styles.dateValue}>{formatDate(pkg.created_at)}</span>
-                </div>
-                <div className={styles.dateRow}>
-                  <span className={styles.dateLabel}>Ngày hết hạn:</span>
-                  <span className={styles.dateValue}>{formatDate(pkg.expires_at || pkg.endDate)}</span>
                 </div>
               </div>
 
@@ -130,13 +138,6 @@ const PackageHistory = () => {
                 <div className={`${styles.statusTag} ${getStatusClass(pkg.status)}`}>
                   {translateStatus(pkg.status)}
                 </div>
-                <button
-                  className={`${styles.btn} ${styles.btnSecondary}`}
-                  onClick={() => navigate('/user/package-management')}
-                >
-                  <Eye className={styles.btnIcon} />
-                  Xem chi tiết
-                </button>
               </div>
             </div>
           ))}

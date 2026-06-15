@@ -52,11 +52,11 @@ const UserSidebar = () => {
         </NavLink>
         
         <NavLink 
-          to="/user/package-history" 
+          to="/user/package-management" 
           className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ''}`}
         >
           <CreditCard className={styles.icon} />
-          Lịch sử mua gói
+          Quản lý gói
         </NavLink>
       </nav>
       

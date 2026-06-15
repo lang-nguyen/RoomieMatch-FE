@@ -12,6 +12,13 @@ const VnpayReturnPage = () => {
     const vnp_ResponseCode = searchParams.get('vnp_ResponseCode');
     if (vnp_ResponseCode === '00') {
       setStatus('success');
+      // Fallback/Hack cho môi trường Dev (khi BE không có IP Public để VNPAY gọi Webhook):
+      // Gửi thẳng request IPN từ FE xuống BE cùng các tham số từ VNPAY để xác nhận thanh toán.
+      // (Trong production, BE đã xác thực IPN bằng SecureHash nên gọi thế này cũng an toàn vì request idempotent)
+      fetch(`/api/v1/payments/vnpay/ipn?${searchParams.toString()}`)
+        .then(res => res.json())
+        .then(data => console.log('IPN local fallback result:', data))
+        .catch(err => console.error('IPN local fallback error:', err));
     } else {
       setStatus('fail');
     }

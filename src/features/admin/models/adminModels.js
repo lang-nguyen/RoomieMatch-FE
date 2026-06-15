@@ -9,7 +9,7 @@ export const ADMIN_NAV_SECTIONS = [
   {
     title: 'Quản lý',
     items: [
-      { id: 'users', label: 'Người dùng', icon: 'users', badge: '24' },
+      { id: 'users', label: 'Người dùng', icon: 'users' },
       { id: 'posts', label: 'Bài đăng', icon: 'file-text', badge: '8', badgeTone: 'danger' },
       { id: 'rooms', label: 'Phòng trọ', icon: 'building' },
       { id: 'packages', label: 'Gói dịch vụ', icon: 'package' },

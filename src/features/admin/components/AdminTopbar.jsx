@@ -1,7 +1,7 @@
 import { AdminIcon } from './adminIconMap';
 import styles from './AdminDashboard.module.css';
 
-export const AdminTopbar = ({ currentUser, hasUnreadNotifications, onOpenMenu }) => (
+export const AdminTopbar = ({ currentUser, hasUnreadNotifications, onOpenMenu, onLogout }) => (
   <header className={styles.topbar}>
     <button
       className={`${styles.iconButton} ${styles.mobileMenuButton}`}
@@ -26,8 +26,12 @@ export const AdminTopbar = ({ currentUser, hasUnreadNotifications, onOpenMenu })
       </button>
 
       <button className={styles.userChip} type="button">
-        <span className={styles.userAvatar}>{currentUser.initials}</span>
-        <span className={styles.userName}>{currentUser.name}</span>
+        <span className={styles.userAvatar}>{currentUser?.initials || 'AD'}</span>
+        <span className={styles.userName}>{currentUser?.name || 'Quản trị viên'}</span>
+      </button>
+
+      <button className={`${styles.iconButton} ${styles.topbarLogoutButton}`} type="button" aria-label="Đăng xuất" title="Đăng xuất" onClick={onLogout}>
+        <AdminIcon name="logout" size={17} />
       </button>
     </div>
   </header>

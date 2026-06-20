@@ -15,6 +15,8 @@ import RoomPage from '../features/room/RoomPage';
 import RoomDetailPage from '../features/room/RoomDetailPage';
 import FindMatePage from '../pages/FindMatePage';
 import ContactPage from '../pages/ContactPage';
+import VnpayReturnPage from '../pages/VnpayReturnPage';
+import ProtectedRoute from '../shared/components/ProtectedRoute';
 import AdminPage from '../pages/AdminPage';
 import LandlordLayout from '../layouts/LandlordLayout';
 import LandlordHomePage from '../pages/landlord/LandlordHomePage';
@@ -54,8 +56,16 @@ export const router = createBrowserRouter([
         element: <ContactPage />,
       },
       {
+        path: '/user/payment/vnpay-return',
+        element: <VnpayReturnPage />,
+      },
+      {
         path: '/user',
-        element: <UserLayout />,
+        element: (
+          <ProtectedRoute>
+            <UserLayout />
+          </ProtectedRoute>
+        ),
         children: [
           {
             path: 'profile',

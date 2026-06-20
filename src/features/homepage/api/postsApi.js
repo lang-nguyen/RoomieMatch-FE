@@ -140,7 +140,36 @@ export const postsApi = baseApi.injectEndpoints({
                 return { data: result.data };
             },
         }),
+        getRoomReviews: builder.query({
+            query: ({ roomId, page = 1, page_size = 20 }) => ({
+                url: `/rooms/${roomId}/reviews`,
+                params: { page, page_size }
+            }),
+            providesTags: (result, error, { roomId }) => [{ type: 'Review', id: roomId }],
+        }),
+        addRoomReview: builder.mutation({
+            query: ({ roomId, rating, comment }) => ({
+                url: `/rooms/${roomId}/reviews`,
+                method: 'POST',
+                body: { rating, comment }
+            }),
+            invalidatesTags: (result, error, { roomId }) => [{ type: 'Review', id: roomId }],
+        }),
+        editRoomReview: builder.mutation({
+            query: ({ roomId, reviewId, rating, comment }) => ({
+                url: `/rooms/${roomId}/reviews/${reviewId}`,
+                method: 'PUT',
+                body: { rating, comment }
+            }),
+            invalidatesTags: (result, error, { roomId }) => [{ type: 'Review', id: roomId }],
+        }),
     }),
 });
 
-export const { useGetPostsQuery, useGetPostByIdQuery } = postsApi;
+export const { 
+    useGetPostsQuery, 
+    useGetPostByIdQuery,
+    useGetRoomReviewsQuery,
+    useAddRoomReviewMutation,
+    useEditRoomReviewMutation
+} = postsApi;

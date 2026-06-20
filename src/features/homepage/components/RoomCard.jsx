@@ -1,5 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import { selectIsAuthenticated } from '../../auth/slice';
 import { useGetSavedRoomsQuery, useSavePostMutation, useUnsavePostMutation } from '../../user/api/userApi';
 import '../Homepage.css';
@@ -15,6 +17,9 @@ const RoomCard = ({ room }) => {
   });
   const [savePost, { isLoading: isSaving }] = useSavePostMutation();
   const [unsavePost, { isLoading: isUnsaving }] = useUnsavePostMutation();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, type: 'alert', message: '', title: 'Thông báo' });
+  const location = useLocation();
 
   const isSaved = savedRoomsData?.items?.some((item) => String(item.post_id) === String(room.id)) || false;
 
@@ -36,8 +41,7 @@ const RoomCard = ({ room }) => {
     e.preventDefault();
 
     if (!isAuthenticated) {
-      alert('Vui lòng đăng nhập để lưu bài viết!');
-      navigate('/login');
+      setShowLoginModal(true);
       return;
     }
 
@@ -49,7 +53,7 @@ const RoomCard = ({ room }) => {
       }
     } catch (err) {
       console.error('Error toggling wishlist:', err);
-      alert('Đã xảy ra lỗi khi lưu bài viết. Vui lòng thử lại.');
+      setAlertModal({ isOpen: true, type: 'alert', message: 'Đã xảy ra lỗi khi lưu bài viết. Vui lòng thử lại.', title: 'Lỗi' });
     }
   };
 
@@ -123,6 +127,26 @@ const RoomCard = ({ room }) => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showLoginModal}
+        title="Yêu cầu đăng nhập"
+        message="Vui lòng đăng nhập để lưu bài viết và xem lại sau!"
+        confirmText="Đăng nhập ngay"
+        cancelText="Đóng"
+        onConfirm={() => navigate('/login', { state: { from: location } })}
+        onCancel={() => setShowLoginModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={alertModal.isOpen}
+        title={alertModal.title}
+        message={alertModal.message}
+        confirmText="Đóng"
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, isOpen: false })}
+        onCancel={() => setAlertModal({ ...alertModal, isOpen: false })}
+      />
     </div>
   );
 };

@@ -76,6 +76,13 @@ export const userApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
     }),
+    createVnpayPayment: builder.mutation({
+      query: (body) => ({
+        url: '/payments/vnpay/create_url',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
 
@@ -91,4 +98,5 @@ export const {
   useGetAllPackagesQuery,
   usePurchasePackageMutation,
   useGetPackageEntitlementsQuery,
+  useCreateVnpayPaymentMutation,
 } = userApi;

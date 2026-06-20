@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useGetUserProfileQuery, useUpdateUserProfileMutation } from '../api/userApi';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import styles from './Profile.module.css';
 
 const Profile = () => {
@@ -23,6 +24,9 @@ const Profile = () => {
   const account = data?.account;
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, type: 'alert', message: '', title: 'Thông báo' });
+
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -50,16 +54,19 @@ const Profile = () => {
     });
   };
 
-  const handleUpdate = async () => {
-    if (window.confirm('Bạn có chắc chắn muốn cập nhật thông tin không?')) {
-      try {
-        await updateUserProfile(formData).unwrap();
-        setIsEditing(false);
-        alert('Cập nhật thành công!');
-      } catch (error) {
-        console.error('Lỗi khi cập nhật:', error);
-        alert('Cập nhật thất bại. Vui lòng thử lại.');
-      }
+  const handleUpdate = () => {
+    setShowConfirmModal(true);
+  };
+
+  const confirmUpdate = async () => {
+    setShowConfirmModal(false);
+    try {
+      await updateUserProfile(formData).unwrap();
+      setIsEditing(false);
+      setAlertModal({ isOpen: true, type: 'confirm', message: 'Cập nhật thành công!', title: 'Thành công' });
+    } catch (error) {
+      console.error('Lỗi khi cập nhật:', error);
+      setAlertModal({ isOpen: true, type: 'alert', message: 'Cập nhật thất bại. Vui lòng thử lại.', title: 'Lỗi' });
     }
   };
 
@@ -84,22 +91,20 @@ const Profile = () => {
         <div className={styles.leftSidebar}>
           <div className={styles.avatarWrapper}>
             <img
-              src={profile.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80"}
+              src={profile.avatar_url || profile.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"}
               alt="Avatar"
               className={styles.avatar}
             />
           </div>
 
-          <h3 className={styles.username}>{profile.full_name || 'N/A'}</h3>
+          <h3 className={styles.username}>{profile.full_name || account.username || 'N/A'}</h3>
 
-          {profile.isVerified && (
+          {account.email_verified && (
             <div className={styles.verificationBadge}>
               Đã xác minh tài khoản
               <CheckCircle2 className={styles.checkIcon} />
             </div>
           )}
-
-          <p className={styles.joinDate}>Tham gia ngày: {profile.joinDate || 'N/A'}</p>
 
           <button className={styles.changeAvatarBtn}>
             <Camera className={styles.btnIcon} />
@@ -197,7 +202,7 @@ const Profile = () => {
                 <ShieldCheck className={styles.labelIcon} />
                 Vai trò
               </div>
-              <div className={styles.roleTag}>{profile.role || 'Khách thuê'}</div>
+              <div className={styles.roleTag}>{account.account_type === 'landlord' ? 'Chủ nhà' : 'Người thuê'}</div>
             </div>
 
             <div className={styles.formGroup}>
@@ -241,6 +246,26 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Xác nhận cập nhật"
+        message="Bạn có chắc chắn muốn cập nhật thông tin không?"
+        confirmText="Cập nhật"
+        cancelText="Hủy"
+        onConfirm={confirmUpdate}
+        onCancel={() => setShowConfirmModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={alertModal.isOpen}
+        title={alertModal.title}
+        message={alertModal.message}
+        confirmText="Đóng"
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, isOpen: false })}
+        onCancel={() => setAlertModal({ ...alertModal, isOpen: false })}
+      />
     </div>
   );
 };

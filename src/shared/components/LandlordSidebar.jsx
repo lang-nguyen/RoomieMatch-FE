@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   Home,
   ShoppingBag,
@@ -10,7 +10,7 @@ import {
   Package,
   FileText,
 } from 'lucide-react';
-import { logout, selectCurrentUser } from '../../features/auth/slice';
+import { logout } from '../../features/auth/slice';
 import styles from './LandlordSidebar.module.css';
 
 const OVERVIEW_ITEMS = [
@@ -29,7 +29,6 @@ const SETTINGS_ITEMS = [
 const LandlordSidebar = ({ promotedUsers = [] }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const user = useSelector(selectCurrentUser);
 
   const handleLogout = () => {
     dispatch(logout());

@@ -171,7 +171,7 @@ const LandlordPostsPage = () => {
 
   const handleBoost = async (id) => {
     try {
-      await boostPost({ id, days: 7 }).unwrap();
+      await boostPost({ id }).unwrap();
       refetch();
     } catch (error) {
       const message = error?.data?.detail || 'Không thể đẩy nổi bật bài đăng. Vui lòng kiểm tra gói đang sử dụng.';

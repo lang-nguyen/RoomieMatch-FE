@@ -44,7 +44,7 @@ export const useAddRoomForm = () => {
       await addRoom({
         payload: buildRoomPayload(draft),
         images: getAddRoomImageFiles(),
-        publish: true,
+        publish: false,
       }).unwrap();
       setSuccessMessage('Thêm phòng trọ thành công!');
       clearAddRoomImageFiles();

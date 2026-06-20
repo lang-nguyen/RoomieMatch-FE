@@ -71,10 +71,10 @@ const RoomCard = ({ room }) => {
         <img src={room.image || DEFAULT_ROOM_IMAGE} alt={room.title} className="room-image" onError={handleImageError} />
         <div className="image-gradient"></div>
 
-        {room.verified && (
+        {room.featured && (
           <div className="badge-verified">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Đã xác minh
+            Tin nổi bật{room.boostDaysLeft > 0 ? ` · còn ${room.boostDaysLeft} ngày` : ''}
           </div>
         )}
 

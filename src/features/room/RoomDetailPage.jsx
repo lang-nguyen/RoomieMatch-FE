@@ -45,7 +45,7 @@ const RoomDetailPage = () => {
   const detail = {
     breadcrumbs: ['Trang chủ', room.city || 'TP. Hồ Chí Minh', room.district || 'N/A', room.ward || 'N/A'],
     address: room.full_address || `${room.street || ''}, ${room.ward || ''}, ${room.district || ''}, ${room.city || ''}`,
-    badges: [apiData.is_vip ? 'Phòng VIP' : '', apiData.status === 'active' ? 'Còn phòng' : ''].filter(Boolean),
+    badges: [apiData.is_vip ? 'Tin nổi bật' : '', apiData.status === 'active' ? 'Còn phòng' : ''].filter(Boolean),
     views: deterministicViews,
     updatedAt: createdAtLabel,
     gallery: apiData.images && apiData.images.length > 0

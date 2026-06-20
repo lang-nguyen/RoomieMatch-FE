@@ -22,7 +22,7 @@ export const landlordApi = baseApi.injectEndpoints({
     }),
 
     addRoom: builder.mutation({
-      query: ({ payload, images = [], publish = true }) => {
+      query: ({ payload, images = [], publish = false }) => {
         const body = new FormData();
         body.append('payload', JSON.stringify(payload));
         body.append('publish', String(publish));
@@ -245,7 +245,8 @@ const labelByFeature = {
 const mapPackageFromApi = (pkg) => {
   const tier = tierBySlug[pkg.slug] || tierBySlug[String(pkg.name || '').toLowerCase()] || 'basic';
   const rawFeatures = pkg.features || {};
-  const featureKeys = Array.isArray(rawFeatures) ? rawFeatures : Object.keys(rawFeatures);
+  const featureKeys = (Array.isArray(rawFeatures) ? rawFeatures : Object.keys(rawFeatures))
+    .filter((key) => key !== 'boost_duration_days');
   const features = featureKeys.map((key) => ({
     label: labelByFeature[key] || key,
     included: true,
@@ -260,6 +261,9 @@ const mapPackageFromApi = (pkg) => {
     }
     if (Number.isInteger(rawFeatures.boost_limit)) {
       features.unshift({ label: `${rawFeatures.boost_limit} lượt đẩy tin nổi bật`, included: true });
+    }
+    if (rawFeatures.boost_limit > 0 && Number.isInteger(rawFeatures.boost_duration_days)) {
+      features.unshift({ label: `${rawFeatures.boost_duration_days} ngày nổi bật / lượt`, included: true });
     }
   }
 

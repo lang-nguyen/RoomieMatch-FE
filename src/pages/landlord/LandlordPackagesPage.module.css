@@ -1,0 +1,114 @@
+/* Search bar */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 24px rgba(32, 27, 24, 0.04);
+  margin-bottom: 20px;
+}
+
+.searchIcon {
+  color: #bbb;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #333;
+  background: transparent;
+}
+
+.searchInput::placeholder {
+  color: #bbb;
+}
+
+.priceFilter {
+  font-size: 12px;
+  color: #555;
+  background: none;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Featured title */
+.featuredTitle {
+  text-align: left;
+  font-size: 17px;
+  font-weight: 800;
+  color: #211c19;
+  margin-bottom: 14px;
+}
+
+.successNotice {
+  border: 1px solid #bfe4c6;
+  border-radius: 10px;
+  background: #edf9ef;
+  color: #237b42;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+/* Tier tabs */
+.tierTabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.tierTab {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1.5px solid #e8e8e8;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tierTab:hover {
+  border-color: #c1440e;
+  color: #c1440e;
+}
+
+.tierTabActive {
+  background: #fff5f0;
+  border-color: #c1440e;
+  color: #c1440e;
+  font-weight: 700;
+}
+
+/* Package grid */
+.packageGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding-top: 12px; /* space for floating badge */
+}
+
+.loading {
+  text-align: center;
+  color: #aaa;
+  font-size: 14px;
+  padding: 40px 0;
+}
+
+@media (max-width: 900px) {
+  .packageGrid {
+    grid-template-columns: 1fr;
+  }
+}

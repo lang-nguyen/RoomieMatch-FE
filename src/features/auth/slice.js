@@ -1,12 +1,43 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { setAccessToken, getAccessToken, removeAccessToken } from '../../shared/utils/authToken';
 
+const USER_KEY = 'auth_user';
+
+const getStoredUser = () => {
+  try {
+    const rawUser = localStorage.getItem(USER_KEY);
+    return rawUser ? JSON.parse(rawUser) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const setStoredUser = (user) => {
+  try {
+    if (!user) return;
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  } catch (e) {
+    // ignore
+  }
+};
+
+const removeStoredUser = () => {
+  try {
+    localStorage.removeItem(USER_KEY);
+  } catch (e) {
+    // ignore
+  }
+};
+
+const storedToken = getAccessToken();
+const storedUser = getStoredUser();
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
-    access_token: getAccessToken() || null,
-    isAuthenticated: !!getAccessToken(),
+    user: storedUser,
+    access_token: storedToken || null,
+    isAuthenticated: !!storedToken,
     loading: false,
     error: null,
   },
@@ -18,6 +49,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.error = null;
       setAccessToken(payload.access_token);
+      setStoredUser(payload.user);
     },
     // Đăng xuất và xóa thông tin khỏi store + localStorage
     logout: (state) => {
@@ -26,6 +58,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       removeAccessToken();
+      removeStoredUser();
     },
     setError: (state, { payload }) => {
       state.error = payload;

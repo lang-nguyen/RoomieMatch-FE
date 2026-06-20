@@ -17,6 +17,19 @@ import FindMatePage from '../pages/FindMatePage';
 import ContactPage from '../pages/ContactPage';
 import VnpayReturnPage from '../pages/VnpayReturnPage';
 import ProtectedRoute from '../shared/components/ProtectedRoute';
+import AdminPage from '../pages/AdminPage';
+import LandlordLayout from '../layouts/LandlordLayout';
+import LandlordHomePage from '../pages/landlord/LandlordHomePage';
+import LandlordRoomsPage from '../pages/landlord/LandlordRoomsPage';
+import LandlordAddRoomPage from '../pages/landlord/LandlordAddRoomPage';
+import LandlordPackagesPage from '../pages/landlord/LandlordPackagesPage';
+import LandlordPackageManagementPage from '../pages/landlord/LandlordPackageManagementPage';
+import LandlordPackageDetailPage from '../pages/landlord/LandlordPackageDetailPage';
+import LandlordPackagePaymentPage from '../pages/landlord/LandlordPackagePaymentPage';
+import LandlordPostsPage from '../pages/landlord/LandlordPostsPage';
+import LandlordStatsPage from '../pages/landlord/LandlordStatsPage';
+import RequireAuth from '../shared/components/RequireAuth';
+import { ACCOUNT_TYPES } from '../shared/constants/roles';
 
 export const router = createBrowserRouter([
   {
@@ -94,5 +107,39 @@ export const router = createBrowserRouter([
         element: <ForgotPasswordPage />,
       },
     ],
+  },
+  {
+    path: '/landlord',
+    element: <RequireAuth allowedRoles={[ACCOUNT_TYPES.LANDLORD]} />,
+    children: [
+      {
+        element: <LandlordLayout />,
+        children: [
+          { index: true, element: <LandlordHomePage /> },
+          { path: 'rooms', element: <LandlordRoomsPage /> },
+          { path: 'rooms/add', element: <LandlordAddRoomPage /> },
+          { path: 'packages', element: <LandlordPackagesPage /> },
+          { path: 'packages/:packageId/payment', element: <LandlordPackagePaymentPage /> },
+          { path: 'package-management', element: <LandlordPackageManagementPage /> },
+          { path: 'package-management/:invoiceId', element: <LandlordPackageDetailPage /> },
+          { path: 'posts', element: <LandlordPostsPage /> },
+          { path: 'stats', element: <LandlordStatsPage /> },
+        ]
+      }
+    ]
+  },
+  {
+    path: '/admin',
+    element: <RequireAuth allowedRoles={[ACCOUNT_TYPES.ADMIN]} />,
+    children: [
+      {
+        index: true,
+        element: <AdminPage />,
+      },
+    ],
+  },
+  {
+    path: '/unauthorized',
+    element: <div>Bạn không có quyền truy cập trang này.</div>,
   },
 ]);

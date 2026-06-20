@@ -1,5 +1,4 @@
 export * from './slice';
-export * from './api/authApi';
 export * from './hooks/useLoginForm';
 export * from './hooks/useRegisterForm';
 export { LoginForm } from './components/LoginForm';

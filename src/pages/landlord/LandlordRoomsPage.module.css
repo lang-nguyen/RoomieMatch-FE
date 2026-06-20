@@ -1,0 +1,192 @@
+/* ── LandlordRoomsPage ───────────────────────────────────────────── */
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: #c1440e;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px rgba(193, 68, 14, 0.18);
+  transition: opacity 0.15s;
+}
+
+.addBtn:hover {
+  opacity: 0.9;
+}
+
+/* Filter bar */
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  border: 1px solid #eee8e4;
+  box-shadow: 0 8px 24px rgba(32, 27, 24, 0.04);
+  margin-bottom: 18px;
+}
+
+.searchBox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.searchIcon {
+  color: #bbb;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #333;
+  background: transparent;
+}
+
+.searchInput::placeholder {
+  color: #bbb;
+}
+
+.filterSelect {
+  font-size: 12px;
+  color: #555;
+  border: 1px solid #e8e8e8;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  transition: opacity 0.2s;
+}
+
+.gridFetching {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Add CTA card */
+.addEmptyCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #fff;
+  border: 2px dashed #ffcbb0;
+  border-radius: 12px;
+  cursor: pointer;
+  min-height: 220px;
+  transition: all 0.2s;
+  color: #c1440e;
+}
+
+.addEmptyCard:hover {
+  background: #fff8f5;
+  border-color: #c1440e;
+}
+
+.addEmptyIcon {
+  font-size: 28px;
+  font-weight: 300;
+  color: #c1440e;
+}
+
+.addEmptyLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c1440e;
+}
+
+.addEmptySub {
+  font-size: 11px;
+  color: #ffb899;
+}
+
+/* Skeleton */
+.skeletonCard {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeletonThumb {
+  height: 140px;
+  background: #f0f0f0;
+}
+
+.skeletonBody {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonLine {
+  height: 10px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  width: 100%;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 24px;
+}
+
+.pageBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  background: #fff;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pageBtn:hover:not(:disabled) {
+  border-color: #c1440e;
+  color: #c1440e;
+}
+
+.pageBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pageBtnActive {
+  background: #c1440e !important;
+  color: #fff !important;
+  border-color: #c1440e !important;
+  font-weight: 700;
+}

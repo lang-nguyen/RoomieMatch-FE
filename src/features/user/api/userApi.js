@@ -17,13 +17,6 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
-    changePassword: builder.mutation({
-      query: (passwords) => ({
-        url: '/users/me/password',
-        method: 'PUT',
-        body: passwords,
-      }),
-    }),
     getSavedRooms: builder.query({
       query: () => ({
         url: '/posts/saved',
@@ -77,13 +70,19 @@ export const userApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
     }),
+    createVnpayPayment: builder.mutation({
+      query: (body) => ({
+        url: '/payments/vnpay/create_url',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
 
 export const {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
-  useChangePasswordMutation,
   useGetSavedRoomsQuery,
   useSavePostMutation,
   useUnsavePostMutation,
@@ -92,4 +91,5 @@ export const {
   useGetAllPackagesQuery,
   usePurchasePackageMutation,
   useGetPackageEntitlementsQuery,
+  useCreateVnpayPaymentMutation,
 } = userApi;

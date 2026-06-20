@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, Eraser, Bot } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { MessageSquare, X, Send, Eraser, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
 import './ChatbotWidget.css';
 import { getAccessToken } from '../../../shared/utils/authToken';
+import { selectIsAuthenticated } from '../../auth/slice';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 
 const BASE_URL = import.meta.env.DEV
     ? '/api/v1'
@@ -19,6 +22,8 @@ const ChatbotWidget = () => {
     const messagesEndRef = useRef(null);
     const closeTimerRef = useRef(null);
     const navigate = useNavigate();
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+    const [isLoginAlertOpen, setIsLoginAlertOpen] = useState(false);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -60,12 +65,12 @@ const ChatbotWidget = () => {
         }
     };
 
-    // Khởi tạo 1 lần khi render
+    // Khởi tạo session khi mở chatbot
     useEffect(() => {
-        if (!sessionId) {
+        if (isOpen && !sessionId && isAuthenticated) {
             initSession();
         }
-    }, []);
+    }, [isOpen, sessionId, isAuthenticated]);
 
     useEffect(() => {
         return () => {
@@ -158,14 +163,15 @@ const ChatbotWidget = () => {
     return (
         <div className="chatbot-wrapper">
             {/* Nút Toggle */}
-            {!isOpen && !isClosing && (
-                <button
-                    className="chatbot-toggle-btn"
-                    onClick={handleOpen}
-                    aria-label="Mở Roomie AI"
-                    title="Roomie AI"
-                >
-                    <Bot size={28} />
+            {!isOpen && (
+                <button className="chatbot-toggle-btn" onClick={() => {
+                    if (!isAuthenticated) {
+                        setIsLoginAlertOpen(true);
+                        return;
+                    }
+                    setIsOpen(true);
+                }}>
+                    <MessageSquare size={28} />
                 </button>
             )}
 
@@ -204,8 +210,8 @@ const ChatbotWidget = () => {
                                         {msg.rooms && msg.rooms.length > 0 && (
                                             <div className="chatbot-room-cards">
                                                 {msg.rooms.map(room => (
-                                                    <div 
-                                                        key={room.id} 
+                                                    <div
+                                                        key={room.id}
                                                         className="chatbot-room-thumbnail"
                                                         onClick={() => {
                                                             handleClose();
@@ -260,6 +266,20 @@ const ChatbotWidget = () => {
                     </form>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={isLoginAlertOpen}
+                title="Yêu cầu đăng nhập"
+                message="Vui lòng đăng nhập để sử dụng tính năng Chatbot AI!"
+                confirmText="Đăng nhập ngay"
+                cancelText="Đóng"
+                onConfirm={() => {
+                    setIsLoginAlertOpen(false);
+                    navigate('/login');
+                }}
+                onCancel={() => setIsLoginAlertOpen(false)}
+                type="alert"
+            />
         </div>
     );
 };

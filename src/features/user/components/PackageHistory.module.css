@@ -10,6 +10,28 @@
   align-items: center;
 }
 
+.backBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.backBtn:hover {
+  background-color: #f0f0f0;
+}
+
+.backIcon {
+  width: 24px;
+  height: 24px;
+}
+
 .pageTitle {
   font-size: 24px;
   font-weight: 700;
@@ -83,12 +105,20 @@
 .card {
   display: flex;
   background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 24px;
-  gap: 40px;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 16px;
+  gap: 24px;
   align-items: center;
   justify-content: space-between;
+  transition: background-color 0.2s;
+}
+
+.card:hover {
+  background-color: #fcfcfc;
+}
+
+.card:last-child {
+  border-bottom: none;
 }
 
 .packageInfo {
@@ -99,15 +129,27 @@
 }
 
 .iconBox {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 32px;
-  font-weight: 600;
+}
+
+.iconVip {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  box-shadow: 0 4px 12px rgba(234,88,12,0.3);
+}
+
+.iconBasic {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+}
+
+.iconFree {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
 }
 
 .namePrice {
@@ -161,27 +203,30 @@
 }
 
 .statusTag {
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
   text-align: center;
-  width: 100%;
+  min-width: 130px;
 }
 
 .statusActive {
-  background-color: #d1fae5;
+  background-color: rgba(16, 185, 129, 0.1);
   color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .statusPending {
-  background-color: #fef3c7;
+  background-color: rgba(245, 158, 11, 0.1);
   color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .statusExpired {
-  background-color: #fecaca;
+  background-color: rgba(239, 68, 68, 0.1);
   color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .btn {

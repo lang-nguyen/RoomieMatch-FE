@@ -1,5 +1,9 @@
 import { ChevronDown, Pencil, Send, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { selectIsAuthenticated } from '../../auth/slice';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import ContactInfoCard from '../components/ContactInfoCard';
 import ContactInfoForm from '../components/ContactInfoForm';
 import MatchHistoryPanel from '../components/MatchHistoryPanel';
@@ -17,6 +21,25 @@ const MatchingPage = () => {
   const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
   const [editingSection, setEditingSection] = useState('');
   const [selectedHistoryContact, setSelectedHistoryContact] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+    }
+  }, [isAuthenticated]);
+
+  const handleAction = (actionCallback) => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (actionCallback) actionCallback();
+  };
 
   const openEditSection = (section) => {
     setEditingSection(section);
@@ -206,10 +229,10 @@ const MatchingPage = () => {
           <button
             className={matching.showProfileForm ? 'is-active' : ''}
             type="button"
-            onClick={() => {
+            onClick={() => handleAction(() => {
               matching.setShowProfileForm((isOpen) => !isOpen);
               matching.setShowContactForm(false);
-            }}
+            })}
           >
             <Send size={20} />
             Tạo hồ sơ
@@ -217,10 +240,10 @@ const MatchingPage = () => {
           <button
             className={matching.showContactForm ? 'is-active' : ''}
             type="button"
-            onClick={() => {
+            onClick={() => handleAction(() => {
               matching.setShowContactForm((isOpen) => !isOpen);
               matching.setShowProfileForm(false);
-            }}
+            })}
           >
             <Send size={20} />
             Thông tin liên hệ
@@ -237,6 +260,16 @@ const MatchingPage = () => {
           <ContactInfoForm currentUser={matching.currentUserContact} onSubmit={matching.completeContactInfo} />
         )}
       </section>
+
+      <ConfirmModal
+        isOpen={showLoginModal}
+        title="Yêu cầu đăng nhập"
+        message="Vui lòng đăng nhập để sử dụng các tính năng Tìm người ở ghép!"
+        confirmText="Đăng nhập ngay"
+        cancelText="Đóng"
+        onConfirm={() => navigate('/login', { state: { from: location } })}
+        onCancel={() => setShowLoginModal(false)}
+      />
     </main>
   );
 };

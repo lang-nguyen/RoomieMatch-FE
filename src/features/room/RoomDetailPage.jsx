@@ -122,7 +122,7 @@ const RoomDetailPage = () => {
               <RoomDetailAmenities items={detail.amenities} />
               <RoomDetailCosts items={detail.costs} />
               <RoomDetailLocation address={detail.location.address} coords={detail.location.coords} />
-              <RoomDetailReviews rating={detail.rating} reviews={detail.reviews} />
+              <RoomDetailReviews rating={detail.rating} roomId={room.room_id || roomId} />
               <RoomDetailRelated rooms={detail.relatedRooms} ownerName={detail.owner.name} />
             </div>
 
@@ -132,6 +132,7 @@ const RoomDetailPage = () => {
               owner={detail.owner}
               contact={detail.owner.contact}
               reference={detail.reference}
+              roomId={room.room_id || roomId}
             />
           </div>
 

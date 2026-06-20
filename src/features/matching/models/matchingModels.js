@@ -29,7 +29,8 @@ export const emptyProfileForm = {
   avatar: '',
   intro: '',
   habits: '',
-  area: '',
+  target_city: '',
+  target_district: '',
   budget: '',
 };
 

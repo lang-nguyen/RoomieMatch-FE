@@ -4,9 +4,13 @@ import { emptyContactForm, SOCIAL_PLATFORMS } from '../models/matchingModels';
 
 const ContactInfoForm = ({ currentUser, onSubmit }) => {
   const [formValues, setFormValues] = useState({
-    ...emptyContactForm,
     email: currentUser?.email || '',
     phone: currentUser?.phone || '',
+    socials: {
+      facebook: currentUser?.socials?.facebook || '',
+      instagram: currentUser?.socials?.instagram || '',
+      twitter: currentUser?.socials?.twitter || '',
+    },
   });
   const [activeSocial, setActiveSocial] = useState('');
   const [touched, setTouched] = useState({});

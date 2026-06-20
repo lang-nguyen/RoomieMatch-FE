@@ -8,15 +8,19 @@ import { getAccessToken } from '../../../shared/utils/authToken';
 import { selectIsAuthenticated } from '../../auth/slice';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; // Đảm bảo khớp với baseUrl của backend
+const BASE_URL = import.meta.env.DEV
+    ? '/api/v1'
+    : (import.meta.env.VITE_API_URL || '/api/v1');
 
 const ChatbotWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
     const [sessionId, setSessionId] = useState(null);
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
+    const closeTimerRef = useRef(null);
     const navigate = useNavigate();
     const isAuthenticated = useSelector(selectIsAuthenticated);
     const [isLoginAlertOpen, setIsLoginAlertOpen] = useState(false);
@@ -67,6 +71,33 @@ const ChatbotWidget = () => {
             initSession();
         }
     }, [isOpen, sessionId, isAuthenticated]);
+
+    useEffect(() => {
+        return () => {
+            if (closeTimerRef.current) {
+                clearTimeout(closeTimerRef.current);
+            }
+        };
+    }, []);
+
+    const handleOpen = () => {
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+            closeTimerRef.current = null;
+        }
+        setIsClosing(false);
+        setIsOpen(true);
+    };
+
+    const handleClose = () => {
+        if (isClosing) return;
+        setIsClosing(true);
+        closeTimerRef.current = setTimeout(() => {
+            setIsOpen(false);
+            setIsClosing(false);
+            closeTimerRef.current = null;
+        }, 180);
+    };
 
     const handleClear = () => {
         setSessionId(null);
@@ -145,8 +176,8 @@ const ChatbotWidget = () => {
             )}
 
             {/* Cửa sổ Chat */}
-            {isOpen && (
-                <div className="chatbot-window">
+            {(isOpen || isClosing) && (
+                <div className={`chatbot-window ${isClosing ? 'is-closing' : ''}`}>
                     {/* Header */}
                     <div className="chatbot-header">
                         <h3>
@@ -162,7 +193,7 @@ const ChatbotWidget = () => {
                             </button>
                             <button
                                 className="chatbot-action-btn"
-                                onClick={() => setIsOpen(false)}
+                                onClick={handleClose}
                             >
                                 <X size={20} />
                             </button>
@@ -179,11 +210,11 @@ const ChatbotWidget = () => {
                                         {msg.rooms && msg.rooms.length > 0 && (
                                             <div className="chatbot-room-cards">
                                                 {msg.rooms.map(room => (
-                                                    <div 
-                                                        key={room.id} 
+                                                    <div
+                                                        key={room.id}
                                                         className="chatbot-room-thumbnail"
                                                         onClick={() => {
-                                                            setIsOpen(false);
+                                                            handleClose();
                                                             navigate(`/rooms/${room.id}`);
                                                         }}
                                                     >
@@ -236,7 +267,7 @@ const ChatbotWidget = () => {
                 </div>
             )}
 
-            <ConfirmModal 
+            <ConfirmModal
                 isOpen={isLoginAlertOpen}
                 title="Yêu cầu đăng nhập"
                 message="Vui lòng đăng nhập để sử dụng tính năng Chatbot AI!"

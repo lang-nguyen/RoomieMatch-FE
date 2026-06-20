@@ -70,7 +70,7 @@ const RentalHistory = () => {
                   <FileText className={styles.btnIcon} />
                   Xem hợp đồng
                 </button>
-                <button className={`${styles.btn} ${styles.btnSecondary}`}>
+                <button className={`${styles.btn} ${styles.btnPrimary}`}>
                   <Star className={styles.btnIcon} />
                   Đánh giá
                 </button>

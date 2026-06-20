@@ -4,14 +4,19 @@ import { emptyProfileForm } from '../models/matchingModels';
 
 const requiredFields = ['avatar', 'intro', 'habits', 'area', 'budget'];
 
-const MatchingProfileForm = ({ onSubmit }) => {
-  const [formValues, setFormValues] = useState(emptyProfileForm);
+const MatchingProfileForm = ({ initialData, onSubmit }) => {
+  const [formValues, setFormValues] = useState(() => initialData || emptyProfileForm);
   const [touched, setTouched] = useState({});
 
   const errors = useMemo(() => {
     return requiredFields.reduce((result, field) => {
       if (!String(formValues[field] || '').trim()) {
         result[field] = 'Vui lòng nhập đầy đủ thông tin';
+      } else if (field === 'budget') {
+        const budgetRegex = /^\d+-\d+$/;
+        if (!budgetRegex.test(formValues.budget.trim())) {
+          result[field] = 'Ngân sách phải nhập đúng định dạng min-max (VD: 1000000-5000000)';
+        }
       }
 
       return result;
@@ -45,7 +50,18 @@ const MatchingProfileForm = ({ onSubmit }) => {
     setTouched(requiredFields.reduce((result, field) => ({ ...result, [field]: true }), {}));
 
     if (Object.keys(errors).length > 0) return;
-    onSubmit(formValues);
+
+    const payload = {
+      account_id: 0,
+      image: formValues.avatar,
+      introduce: formValues.intro,
+      habit: formValues.habits.split(',').map((h) => h.trim()).filter(Boolean),
+      location: formValues.area,
+      budget: formValues.budget.trim(),
+      is_matching: true,
+    };
+
+    onSubmit(payload);
   };
 
   const getFieldClassName = (field) =>
@@ -105,14 +121,23 @@ const MatchingProfileForm = ({ onSubmit }) => {
         <input
           name="budget"
           value={formValues.budget}
-          placeholder="Nhập ngân sách bạn có thể chi"
+          placeholder="Nhập ngân sách dạng min-max (VD: 1000000-5000000)"
           onBlur={() => markTouched('budget')}
           onChange={(event) => updateField('budget', event.target.value)}
         />
       </label>
 
       {Object.keys(touched).length > 0 && Object.keys(errors).length > 0 && (
-        <p className="matching-form-error">Vui lòng nhập đầy đủ thông tin trước khi xác nhận.</p>
+        <div className="matching-form-error">
+          <p>Vui lòng kiểm tra lại thông tin:</p>
+          <ul>
+            {Object.entries(errors)
+              .filter(([field]) => touched[field])
+              .map(([field, error]) => (
+                <li key={field}>{error}</li>
+              ))}
+          </ul>
+        </div>
       )}
 
       <button className="matching-confirm-button" type="submit">

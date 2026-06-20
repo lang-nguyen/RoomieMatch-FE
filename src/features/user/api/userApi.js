@@ -61,6 +61,7 @@ export const userApi = baseApi.injectEndpoints({
       query: () => ({
         url: '/packages/',
         method: 'GET',
+        params: { target_role: 'tenant' },
       }),
     }),
     purchasePackage: builder.mutation({

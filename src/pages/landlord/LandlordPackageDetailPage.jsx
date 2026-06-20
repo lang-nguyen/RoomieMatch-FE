@@ -1,9 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, Package, X } from 'lucide-react';
 import {
-  useGetPackageUsageDetailQuery,
-  useRenewPackageMutation,
-} from '../../features/landlord/api/landlordApiMock';
+  useGetLandlordPackageUsageDetailQuery,
+  useRenewLandlordPackageMutation,
+} from '../../features/landlord/api/landlordApi';
 import PackageUsageBar from '../../features/landlord/components/PackageUsageBar';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import styles from './LandlordPackageDetailPage.module.css';
@@ -18,8 +18,8 @@ const percent = (value, limit) => {
 
 const LandlordPackageDetailPage = () => {
   const { invoiceId } = useParams();
-  const { data, isLoading } = useGetPackageUsageDetailQuery({ id: invoiceId });
-  const [renewPackage, renewState] = useRenewPackageMutation();
+  const { data, isLoading } = useGetLandlordPackageUsageDetailQuery({ id: invoiceId });
+  const [renewPackage, renewState] = useRenewLandlordPackageMutation();
   const detail = data?.detail;
 
   if (isLoading || !detail) {
@@ -27,7 +27,7 @@ const LandlordPackageDetailPage = () => {
   }
 
   const handleRenew = async () => {
-    await renewPackage({ id: detail.id }).unwrap();
+    await renewPackage({ packageId: detail.packageId }).unwrap();
   };
 
   return (
@@ -59,7 +59,7 @@ const LandlordPackageDetailPage = () => {
                 <dd>{formatDate(detail.expiredDate)}</dd>
               </div>
             </dl>
-            <em>Đã hết hạn</em>
+            <em>{detail.status === 'active' ? 'Đang kích hoạt' : detail.status}</em>
           </section>
 
           <dl className={styles.invoice}>
@@ -92,12 +92,12 @@ const LandlordPackageDetailPage = () => {
               <div>
                 <span>Bài đã đăng</span>
                 <strong className={styles.green}>{detail.postsUsed}</strong>
-                <small>/ không giới hạn</small>
+                <small>/ {detail.postsLimit || 0}</small>
               </div>
               <div>
                 <span>Lượt đẩy tin đã dùng</span>
                 <strong className={styles.orange}>{detail.boostUsed} / {detail.boostLimit}</strong>
-                <small>còn 1 lượt</small>
+                <small>còn {detail.boostRemaining ?? Math.max(0, detail.boostLimit - detail.boostUsed)} lượt</small>
               </div>
               <div>
                 <span>Lượt xem phòng</span>
@@ -111,8 +111,8 @@ const LandlordPackageDetailPage = () => {
             <h2>Chi tiết sử dụng tính năng</h2>
             <PackageUsageBar
               label="Bài đăng đang hoạt động"
-              valueText={`${detail.activePosts} / không giới hạn`}
-              percent={32}
+              valueText={`${detail.activePosts} / ${detail.postsLimit || 0}`}
+              percent={percent(detail.activePosts, detail.postsLimit)}
               tone="green"
             />
             <PackageUsageBar
@@ -129,9 +129,9 @@ const LandlordPackageDetailPage = () => {
             />
             <PackageUsageBar
               label="Thời gian gói còn lại"
-              valueText="Đã hết hạn"
-              percent={100}
-              tone="red"
+              valueText={detail.remainingDays === null ? 'Không giới hạn' : `${detail.remainingDays} ngày`}
+              percent={detail.remainingDays === null ? 100 : Math.min(100, (detail.remainingDays / 30) * 100)}
+              tone={detail.remainingDays > 0 || detail.remainingDays === null ? 'green' : 'red'}
             />
           </section>
 

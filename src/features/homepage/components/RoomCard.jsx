@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { selectIsAuthenticated } from '../../auth/slice';
+import { selectCurrentUser, selectIsAuthenticated } from '../../auth/slice';
 import { useGetSavedRoomsQuery, useSavePostMutation, useUnsavePostMutation } from '../../user/api/userApi';
+import { ACCOUNT_TYPES } from '../../../shared/constants/roles';
 import '../Homepage.css';
 
 const DEFAULT_ROOM_IMAGE =
@@ -10,8 +11,10 @@ const DEFAULT_ROOM_IMAGE =
 const RoomCard = ({ room }) => {
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const currentUser = useSelector(selectCurrentUser);
+  const isTenant = currentUser?.account_type === ACCOUNT_TYPES.TENANT;
   const { data: savedRoomsData } = useGetSavedRoomsQuery(undefined, {
-    skip: !isAuthenticated,
+    skip: !isAuthenticated || !isTenant,
   });
   const [savePost, { isLoading: isSaving }] = useSavePostMutation();
   const [unsavePost, { isLoading: isUnsaving }] = useUnsavePostMutation();
@@ -38,6 +41,11 @@ const RoomCard = ({ room }) => {
     if (!isAuthenticated) {
       alert('Vui lòng đăng nhập để lưu bài viết!');
       navigate('/login');
+      return;
+    }
+
+    if (!isTenant) {
+      alert('Chi tai khoan khach thue moi co the luu bai dang.');
       return;
     }
 

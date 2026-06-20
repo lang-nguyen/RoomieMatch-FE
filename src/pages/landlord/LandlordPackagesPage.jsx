@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag } from 'lucide-react';
-import { useGetPackagesQuery } from '../../features/landlord/api/landlordApiMock';
+import { useGetLandlordPackagesQuery } from '../../features/landlord/api/landlordApi';
 import PackageCard from '../../features/landlord/components/PackageCard';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import styles from './LandlordPackagesPage.module.css';
@@ -20,9 +20,13 @@ const LandlordPackagesPage = () => {
   const [activeTier, setActiveTier] = useState('');
   const [search, setSearch] = useState('');
 
-  const { data, isLoading } = useGetPackagesQuery({ tier: activeTier, search });
+  const { data, isLoading } = useGetLandlordPackagesQuery();
 
-  const packages = data?.items ?? [];
+  const packages = (data?.items ?? []).filter((pkg) => {
+    const matchTier = !activeTier || pkg.tier === activeTier;
+    const matchSearch = !search || pkg.name.toLowerCase().includes(search.toLowerCase());
+    return matchTier && matchSearch;
+  });
 
   const handleSelect = (pkg) => {
     navigate(`/landlord/packages/${pkg.id}/payment`);
@@ -74,11 +78,15 @@ const LandlordPackagesPage = () => {
       {isLoading ? (
         <div className={styles.loading}>Đang tải gói dịch vụ...</div>
       ) : (
-        <div className={styles.packageGrid}>
-          {packages.map((pkg) => (
-            <PackageCard key={pkg.id} pkg={pkg} onSelect={handleSelect} />
-          ))}
-        </div>
+        packages.length > 0 ? (
+          <div className={styles.packageGrid}>
+            {packages.map((pkg) => (
+              <PackageCard key={pkg.id} pkg={pkg} onSelect={handleSelect} />
+            ))}
+          </div>
+        ) : (
+          <div className={styles.loading}>Chua co goi phu hop.</div>
+        )
       )}
     </div>
   );

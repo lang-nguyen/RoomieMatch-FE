@@ -25,6 +25,8 @@ import LandlordPackageManagementPage from '../pages/landlord/LandlordPackageMana
 import LandlordPackageDetailPage from '../pages/landlord/LandlordPackageDetailPage';
 import LandlordPackagePaymentPage from '../pages/landlord/LandlordPackagePaymentPage';
 import LandlordPostsPage from '../pages/landlord/LandlordPostsPage';
+import LandlordPostCreatePage from '../pages/landlord/LandlordPostCreatePage';
+import LandlordPostSuccessPage from '../pages/landlord/LandlordPostSuccessPage';
 import LandlordStatsPage from '../pages/landlord/LandlordStatsPage';
 import RequireAuth from '../shared/components/RequireAuth';
 import { ACCOUNT_TYPES } from '../shared/constants/roles';
@@ -113,6 +115,8 @@ export const router = createBrowserRouter([
           { path: 'package-management', element: <LandlordPackageManagementPage /> },
           { path: 'package-management/:invoiceId', element: <LandlordPackageDetailPage /> },
           { path: 'posts', element: <LandlordPostsPage /> },
+          { path: 'posts/create', element: <LandlordPostCreatePage /> },
+          { path: 'posts/success', element: <LandlordPostSuccessPage /> },
           { path: 'stats', element: <LandlordStatsPage /> },
         ]
       }

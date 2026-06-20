@@ -11,6 +11,8 @@
 
 .modal {
   width: min(460px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
   background: #fff;
   border-radius: 14px;
   padding: 18px;
@@ -60,7 +62,9 @@
   font-weight: 700;
 }
 
-.field input {
+.field input,
+.field select,
+.field textarea {
   height: 38px;
   border: 1px solid #e6e1dd;
   border-radius: 8px;
@@ -70,7 +74,17 @@
   font-size: 13px;
 }
 
-.field input:focus {
+.field textarea {
+  min-height: 96px;
+  height: auto;
+  padding: 10px 12px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
   border-color: #c1440e;
 }
 

@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, CreditCard, Landmark, WalletCards, X } from 'lucide-react';
 import {
-  useGetPackageByIdQuery,
-  usePurchasePackageMutation,
-} from '../../features/landlord/api/landlordApiMock';
+  useGetLandlordPackageByIdQuery,
+  usePurchaseLandlordPackageMutation,
+} from '../../features/landlord/api/landlordApi';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import styles from './LandlordPackagePaymentPage.module.css';
 
@@ -92,8 +92,8 @@ const ResultDialog = ({ type, onClose, onRetry, onHome }) => {
 const LandlordPackagePaymentPage = () => {
   const navigate = useNavigate();
   const { packageId } = useParams();
-  const { data, isLoading, isError } = useGetPackageByIdQuery({ packageId });
-  const [purchasePackage, purchaseState] = usePurchasePackageMutation();
+  const { data, isLoading, isError } = useGetLandlordPackageByIdQuery({ packageId });
+  const [purchasePackage, purchaseState] = usePurchaseLandlordPackageMutation();
   const [method, setMethod] = useState('wallet');
   const [detailOption, setDetailOption] = useState('Momo');
   const [result, setResult] = useState(null);
@@ -160,8 +160,6 @@ const LandlordPackagePaymentPage = () => {
     try {
       await purchasePackage({
         packageId: pkg.id,
-        paymentMethod: method,
-        customer: form,
       }).unwrap();
 
       if (method === 'bank') return;

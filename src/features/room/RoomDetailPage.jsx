@@ -36,13 +36,18 @@ const RoomDetailPage = () => {
   const apiData = responseData.room ? responseData : { room: responseData, landlord: {} };
   const room = apiData.room;
   const landlord = apiData.landlord || {};
+  const createdAt = apiData.created_at ? new Date(apiData.created_at) : null;
+  const createdAtLabel = createdAt && !Number.isNaN(createdAt.getTime())
+    ? createdAt.toLocaleDateString('vi-VN')
+    : 'Đang cập nhật';
+  const deterministicViews = ((Number(apiData.post_id || room.room_id || roomId) || 1) * 37) % 500 + 50;
 
   const detail = {
     breadcrumbs: ['Trang chủ', room.city || 'TP. Hồ Chí Minh', room.district || 'N/A', room.ward || 'N/A'],
     address: room.full_address || `${room.street || ''}, ${room.ward || ''}, ${room.district || ''}, ${room.city || ''}`,
     badges: [apiData.is_vip ? 'Phòng VIP' : '', apiData.status === 'active' ? 'Còn phòng' : ''].filter(Boolean),
-    views: Math.floor(Math.random() * 500) + 50, // mock views
-    updatedAt: new Date(apiData.created_at || Date.now()).toLocaleDateString('vi-VN'),
+    views: deterministicViews,
+    updatedAt: createdAtLabel,
     gallery: apiData.images && apiData.images.length > 0
         ? apiData.images.map(img => img.image_url)
         : ['https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80'],
@@ -52,7 +57,8 @@ const RoomDetailPage = () => {
       { label: 'Tối đa', value: `${room.max_people || 1} người` },
       { label: 'Hiện tại', value: `${room.current_people || 0} người` }
     ],
-    description: room.description || 'Không có mô tả.',
+    title: apiData.title || room.title,
+    description: apiData.description || room.description || 'Không có mô tả.',
     amenities: apiData.amenities ? apiData.amenities.map(a => a.name) : [],
     costs: [
       { label: 'Giá phòng', value: `${room.price ? room.price.toLocaleString() : 0} VND`, highlight: true },
@@ -77,8 +83,8 @@ const RoomDetailPage = () => {
       }
     },
     reference: [
-      { label: 'Ngày đăng', value: new Date(apiData.created_at || Date.now()).toLocaleDateString('vi-VN') },
-      { label: 'Mã phòng', value: `ROOM-${room.room_id || roomId}` }
+      { label: 'Ngày đăng', value: createdAtLabel },
+      { label: 'Mã phòng', value: room.room_code || `ROOM-${room.room_id || roomId}` }
     ],
     // Mock rating and reviews for now since API doesn't have it
     rating: {
@@ -100,7 +106,7 @@ const RoomDetailPage = () => {
       <main className="room-detail-content">
         <div className="room-detail-container">
           <RoomDetailHeader
-            title={room.title}
+            title={detail.title}
             breadcrumbs={detail.breadcrumbs}
             address={detail.address}
             badges={detail.badges}

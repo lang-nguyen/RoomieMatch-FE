@@ -129,35 +129,35 @@ export const adminApiMock = baseApi.injectEndpoints({
     }),
 
     // ─── PACKAGES ───
-    getPackages: builder.query({
-      queryFn: async ({ targetCustomer = '' } = {}) => {
-        let result = [...mockPackages];
-        if (targetCustomer && targetCustomer !== 'all') result = result.filter(p => {
-          if (targetCustomer === 'suspended') return p.status === 'suspended';
-          return p.targetCustomer === targetCustomer;
-        });
-        return { data: await wait(result) };
-      },
-    }),
-    createPackage: builder.mutation({
-      queryFn: async (body) => {
-        const newPkg = { ...body, id: `PKG${String(mockPackages.length + 1).padStart(3, '0')}`, totalPurchased: 0 };
-        mockPackages.push(newPkg);
-        return { data: await wait(newPkg) };
-      },
-    }),
-    updatePackage: builder.mutation({
-      queryFn: async ({ id, ...changes }) => {
-        mockPackages = mockPackages.map(p => p.id === id ? { ...p, ...changes } : p);
-        return { data: await wait({ id, ...changes }) };
-      },
-    }),
-    deletePackage: builder.mutation({
-      queryFn: async (id) => {
-        mockPackages = mockPackages.filter(p => p.id !== id);
-        return { data: await wait({ id }) };
-      },
-    }),
+    // getPackages: builder.query({
+    //   queryFn: async ({ targetCustomer = '' } = {}) => {
+    //     let result = [...mockPackages];
+    //     if (targetCustomer && targetCustomer !== 'all') result = result.filter(p => {
+    //       if (targetCustomer === 'suspended') return p.status === 'suspended';
+    //       return p.targetCustomer === targetCustomer;
+    //     });
+    //     return { data: await wait(result) };
+    //   },
+    // }),
+    // createPackage: builder.mutation({
+    //   queryFn: async (body) => {
+    //     const newPkg = { ...body, id: `PKG${String(mockPackages.length + 1).padStart(3, '0')}`, totalPurchased: 0 };
+    //     mockPackages.push(newPkg);
+    //     return { data: await wait(newPkg) };
+    //   },
+    // }),
+    // updatePackage: builder.mutation({
+    //   queryFn: async ({ id, ...changes }) => {
+    //     mockPackages = mockPackages.map(p => p.id === id ? { ...p, ...changes } : p);
+    //     return { data: await wait({ id, ...changes }) };
+    //   },
+    // }),
+    // deletePackage: builder.mutation({
+    //   queryFn: async (id) => {
+    //     mockPackages = mockPackages.filter(p => p.id !== id);
+    //     return { data: await wait({ id }) };
+    //   },
+    // }),
 
     // ─── CATEGORIES ───
     getCategories: builder.query({

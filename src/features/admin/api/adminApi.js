@@ -89,6 +89,10 @@ export const adminApi = baseApi.injectEndpoints({
       query: ({ id, ...body }) => ({ url: `/admin/packages/${id}`, method: 'PUT', body }),
       invalidatesTags: ['Packages'],
     }),
+    updatePackageStatus: builder.mutation({
+      query: ({ id, active }) => ({ url: `/admin/packages/${id}/status`, method: 'PATCH', body: { active } }),
+      invalidatesTags: ['Packages'],
+    }),
     deletePackage: builder.mutation({
       query: (id) => ({ url: `/admin/packages/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Packages'],
@@ -153,6 +157,7 @@ export const {
   useGetPackagesQuery,
   useCreatePackageMutation,
   useUpdatePackageMutation,
+  useUpdatePackageStatusMutation,
   useDeletePackageMutation,
   useGetCategoriesQuery,
   useCreateCategoryMutation,

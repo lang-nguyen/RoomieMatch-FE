@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Camera, CheckCircle2 } from 'lucide-react';
 import { emptyProfileForm } from '../models/matchingModels';
 
-const requiredFields = ['avatar', 'intro', 'habits', 'area', 'budget'];
+const requiredFields = ['avatar', 'intro', 'habits', 'target_city', 'target_district', 'budget'];
 
 const MatchingProfileForm = ({ initialData, onSubmit }) => {
   const [formValues, setFormValues] = useState(() => initialData || emptyProfileForm);
@@ -56,7 +56,8 @@ const MatchingProfileForm = ({ initialData, onSubmit }) => {
       image: formValues.avatar,
       introduce: formValues.intro,
       habit: formValues.habits.split(',').map((h) => h.trim()).filter(Boolean),
-      location: formValues.area,
+      target_city: formValues.target_city,
+      target_district: formValues.target_district,
       budget: formValues.budget.trim(),
       is_matching: true,
     };
@@ -105,14 +106,25 @@ const MatchingProfileForm = ({ initialData, onSubmit }) => {
         />
       </label>
 
-      <label className={getFieldClassName('area')}>
-        <span className="matching-field-legend">Khu vực</span>
+      <label className={getFieldClassName('target_city')}>
+        <span className="matching-field-legend">Tỉnh/Thành phố</span>
         <input
-          name="area"
-          value={formValues.area}
-          placeholder="Nhập khu vực bạn muốn tìm"
-          onBlur={() => markTouched('area')}
-          onChange={(event) => updateField('area', event.target.value)}
+          name="target_city"
+          value={formValues.target_city}
+          placeholder="VD: Thành Phố Hồ Chí Minh"
+          onBlur={() => markTouched('target_city')}
+          onChange={(event) => updateField('target_city', event.target.value)}
+        />
+      </label>
+
+      <label className={getFieldClassName('target_district')}>
+        <span className="matching-field-legend">Quận/Huyện</span>
+        <input
+          name="target_district"
+          value={formValues.target_district}
+          placeholder="VD: Quận 1"
+          onBlur={() => markTouched('target_district')}
+          onChange={(event) => updateField('target_district', event.target.value)}
         />
       </label>
 

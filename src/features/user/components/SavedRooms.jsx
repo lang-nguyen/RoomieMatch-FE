@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import RoomCard from '../../../shared/components/RoomCard';
 import { useGetSavedRoomsQuery } from '../api/userApi';
 import styles from './SavedRooms.module.css';
@@ -6,6 +7,25 @@ import styles from './SavedRooms.module.css';
 const SavedRooms = () => {
   const { data, isLoading, isError } = useGetSavedRoomsQuery();
   const rooms = data?.items || [];
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('newest');
+
+  const filteredRooms = useMemo(() => {
+    let result = [...rooms];
+    if (searchTerm) {
+      result = result.filter(room => (room.title || '').toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+    
+    const getTimestamp = (r) => new Date(r.created_at || r.createdAt || r.saved_at || 0).getTime();
+    
+    if (sortOrder === 'newest') {
+      result.sort((a, b) => getTimestamp(b) - getTimestamp(a));
+    } else if (sortOrder === 'oldest') {
+      result.sort((a, b) => getTimestamp(a) - getTimestamp(b));
+    }
+    return result;
+  }, [rooms, searchTerm, sortOrder]);
 
   return (
     <div className={styles.container}>
@@ -20,10 +40,12 @@ const SavedRooms = () => {
             type="text"
             placeholder="Tìm theo tiêu đề..."
             className={styles.searchInput}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <select className={styles.filterSelect}>
+        <select className={styles.filterSelect} value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
           <option value="newest">Mới nhất</option>
           <option value="oldest">Cũ nhất</option>
         </select>
@@ -35,7 +57,7 @@ const SavedRooms = () => {
         <div>Đã có lỗi xảy ra khi tải dữ liệu.</div>
       ) : (
         <div className={styles.roomsList}>
-          {rooms.map(room => {
+          {filteredRooms.map(room => {
             const FALLBACK_IMAGE = room.thumbnail || room.image || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80';
             return (
               <RoomCard
@@ -47,7 +69,7 @@ const SavedRooms = () => {
               />
             );
           })}
-          {rooms.length === 0 && <div>Chưa có phòng nào được lưu.</div>}
+          {filteredRooms.length === 0 && <div>Không tìm thấy phòng nào phù hợp.</div>}
         </div>
       )}
     </div>

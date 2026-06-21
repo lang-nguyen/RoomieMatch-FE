@@ -168,14 +168,39 @@ const PackageManagement = () => {
                   <ul className={styles.pricingFeatures}>
                     {(() => {
                       let featureList = [];
-                      try {
-                        featureList = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : (pkg.features || []);
-                      } catch (e) {
-                        featureList = [];
+                      
+                      if (pkg.credits_match) {
+                        featureList.push(`${pkg.credits_match > 1000 ? 'Không giới hạn' : pkg.credits_match} lượt ghép phòng`);
                       }
-                      if (!Array.isArray(featureList) || featureList.length === 0) {
+                      if (pkg.credits_chatbot) {
+                        featureList.push(`${pkg.credits_chatbot > 1000 ? 'Không giới hạn' : pkg.credits_chatbot} lượt hỏi Chatbot AI`);
+                      }
+                      if (pkg.period === '30_days') {
+                        featureList.push('Thời hạn sử dụng: 30 ngày');
+                      } else if (pkg.period === 'annual') {
+                        featureList.push('Thời hạn sử dụng: 1 năm');
+                      } else if (pkg.period) {
+                        featureList.push(`Thời hạn sử dụng: ${pkg.period}`);
+                      }
+
+                      // Only add extra features from DB if we have less than 3 items
+                      // And we filter out the raw internal strings to avoid redundancy
+                      try {
+                        const parsed = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : (pkg.features || []);
+                        if (Array.isArray(parsed)) {
+                          const rawKeysToIgnore = ['match', 'matching', 'chatbot', 'active_subscription'];
+                          const validExtras = parsed.filter(f => !rawKeysToIgnore.includes(f));
+                          featureList = [...featureList, ...validExtras];
+                        }
+                      } catch (e) {}
+                      
+                      if (featureList.length === 0) {
                          featureList = ['Mua và sử dụng ngay', 'Hỗ trợ thanh toán nhanh'];
                       }
+                      
+                      // Explicitly limit to only the first 3 items
+                      featureList = featureList.slice(0, 3);
+                      
                       return featureList.map((feature, idx) => (
                         <li key={idx} className={styles.pricingFeature}>
                           <Check className={styles.featureIcon} size={18} />

@@ -1,14 +1,20 @@
+import { useNavigate } from 'react-router-dom';
 import '../Homepage.css';
 
 const Sidebar = () => {
+  const navigate = useNavigate();
   return (
     <aside className="sidebar">
       <div className="map-promo">
         <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Bản đồ" className="map-image" />
         <div className="map-overlay">
-          <button className="view-map-btn">
+          <button 
+            className="view-map-btn" 
+            onClick={() => alert('Tính năng bản đồ đang được phát triển.')}
+            style={{ opacity: 0.7, cursor: 'not-allowed' }}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            Xem trên bản đồ
+            Xem trên bản đồ (Sắp ra mắt)
           </button>
         </div>
       </div>
@@ -37,7 +43,7 @@ const Sidebar = () => {
           </li>
         </ul>
 
-        <button className="upgrade-btn">Nâng cấp tài khoản</button>
+        <button className="upgrade-btn" onClick={() => navigate('/user/package-management')}>Nâng cấp tài khoản</button>
       </div>
     </aside>
   );

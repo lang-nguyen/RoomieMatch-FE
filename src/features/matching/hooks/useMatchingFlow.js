@@ -9,6 +9,7 @@ import {
   useRejectRoommateMutation,
   useAcceptRoommateMutation,
 } from '../api/matchingApi';
+import { useUpdateUserProfileMutation } from '../../user/api/userApi';
 
 export const useMatchingFlow = () => {
   const [step, setStep] = useState(MATCHING_STEPS.ONBOARDING);
@@ -34,6 +35,7 @@ export const useMatchingFlow = () => {
   const [createProfileMutation] = useCreateMatchingProfileMutation();
   const [rejectRoommateMutation] = useRejectRoommateMutation();
   const [acceptRoommateMutation] = useAcceptRoommateMutation();
+  const [updateUserProfileMutation] = useUpdateUserProfileMutation();
 
   const matchingUsers = suggestionsData?.matches || [];
   
@@ -112,7 +114,18 @@ export const useMatchingFlow = () => {
   };
 
   const completeContactInfo = async (contactInfo) => {
-    // Currently no specific API for saving contact info in matchingApi
+    try {
+      await updateUserProfileMutation({
+        email: contactInfo.email,
+        phone: contactInfo.phone,
+        facebook: contactInfo.socials?.facebook || '',
+        instagram: contactInfo.socials?.instagram || '',
+        twitter: contactInfo.socials?.twitter || '',
+      }).unwrap();
+    } catch (error) {
+      console.error('Failed to update user profile with contact info:', error);
+    }
+
     setHasContactInfo(true);
     setCurrentUserContact((previous) => ({
       ...(previous || {}),

@@ -121,7 +121,7 @@ const RoomDetailPage = () => {
             </div>
 
             <RoomDetailSidebar
-              price="5.000.000 VND / tháng"
+              price={room.price ? `${room.price.toLocaleString('vi-VN')} VND / tháng` : 'Thỏa thuận'}
               deposit={detail.deposit}
               owner={detail.owner}
               contact={detail.owner.contact}

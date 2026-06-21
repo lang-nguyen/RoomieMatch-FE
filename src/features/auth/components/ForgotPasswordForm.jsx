@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForgotPasswordMutation } from '../api/authApi';
+import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
 import styles from './Auth.module.css';
 
 const BackArrowIcon = () => (
@@ -10,6 +13,22 @@ const BackArrowIcon = () => (
 
 export const ForgotPasswordForm = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSuccessMsg('');
+    setErrorMsg('');
+    try {
+      await forgotPassword(email).unwrap();
+      setSuccessMsg('Đã gửi liên kết khôi phục mật khẩu vào email của bạn. Vui lòng kiểm tra hộp thư.');
+    } catch (error) {
+      setErrorMsg(getApiErrorMessage(error, 'Không thể gửi yêu cầu khôi phục mật khẩu'));
+    }
+  };
 
   return (
     <div className={styles.formWrapper}>
@@ -24,12 +43,24 @@ export const ForgotPasswordForm = () => {
         Nhập email của bạn để nhận mã đặt lại mật khẩu
       </p>
 
-      <form onSubmit={(e) => e.preventDefault()}>
+      {successMsg && <div className={styles.successMessage}>{successMsg}</div>}
+      {errorMsg && <div className={styles.errorMessage}>{errorMsg}</div>}
+
+      <form onSubmit={handleSubmit}>
         <div className={styles.inputGroup}>
-          <input type="email" placeholder="Email" className={styles.input} required />
+          <input 
+            type="email" 
+            placeholder="Email" 
+            className={styles.input} 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required 
+          />
         </div>
 
-        <button type="submit" className={styles.primaryButton}>Tiếp tục</button>
+        <button type="submit" className={styles.primaryButton} disabled={isLoading}>
+          {isLoading ? 'Đang gửi...' : 'Tiếp tục'}
+        </button>
       </form>
 
       <div className={styles.supportText}>

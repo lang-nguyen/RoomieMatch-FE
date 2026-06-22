@@ -46,6 +46,10 @@ export const landlordApi = baseApi.injectEndpoints({
       query: ({ id }) => ({ url: `/landlord/rooms/${id}`, method: 'DELETE' }),
       invalidatesTags: ['LandlordRooms', 'LandlordPosts', 'LandlordStats', 'Posts'],
     }),
+    deleteLandlordRoomImage: builder.mutation({
+      query: ({ roomId, imageId }) => ({ url: `/landlord/rooms/${roomId}/images/${imageId}`, method: 'DELETE' }),
+      invalidatesTags: ['LandlordRooms'],
+    }),
 
     getLandlordPosts: builder.query({
       query: ({ page = 1, pageSize = 8, search = '', status = '', boostedOnly = false } = {}) => ({
@@ -67,6 +71,11 @@ export const landlordApi = baseApi.injectEndpoints({
         params: { range },
       }),
       providesTags: ['LandlordStats'],
+    }),
+
+    getLandlordPostDetail: builder.query({
+      query: ({ id }) => `/landlord/posts/${id}`,
+      providesTags: (_result, _error, { id }) => [{ type: 'LandlordPosts', id }],
     }),
 
     createLandlordPost: builder.mutation({
@@ -196,6 +205,65 @@ export const landlordApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Packages'],
     }),
+    getLandlordProfile: builder.query({
+      query: () => '/users/me/profile',
+      transformResponse: (response) => ({
+        profile: {
+          ...response.profile,
+          id: response.account.id,
+          display_name: response.profile.full_name || response.account.username,
+          nickname: response.profile.full_name || response.account.username,
+          avatar: response.profile.avatar_url,
+          dob: response.profile.date_of_birth,
+          location: response.profile.address,
+          role: response.account.account_type === 'landlord' ? 'Chủ trọ' : response.account.account_type,
+          status: response.account.status,
+          cccd_verified: false,
+        },
+      }),
+      providesTags: ['LandlordProfile'],
+    }),
+    updateLandlordProfile: builder.mutation({
+      query: (body) => ({ url: '/users/me/profile', method: 'PATCH', body }),
+      invalidatesTags: ['LandlordProfile', 'User'],
+    }),
+    getLandlordNotifications: builder.query({
+      query: ({ page = 1, pageSize = 20 } = {}) => ({ url: '/landlord/notifications', params: { limit: pageSize, offset: (page - 1) * pageSize } }),
+      transformResponse: (response) => ({ ...response, items: response.items.map((item) => ({ ...item, createdAt: item.created_at })) }),
+      providesTags: ['LandlordNotifications'],
+    }),
+    markLandlordNotificationRead: builder.mutation({
+      query: ({ id }) => ({ url: `/landlord/notifications/${id}`, method: 'PATCH' }),
+      invalidatesTags: ['LandlordNotifications'],
+    }),
+    getLandlordVerification: builder.query({
+      query: () => '/landlord/verification',
+      providesTags: ['Verification'],
+    }),
+    submitLandlordVerification: builder.mutation({
+      query: ({ legalName, identityNumber, issuedDate, issuedPlace, frontImage, backImage }) => {
+        const body = new FormData();
+        body.append('legal_name', legalName);
+        body.append('identity_number', identityNumber);
+        body.append('issued_date', issuedDate);
+        body.append('issued_place', issuedPlace);
+        body.append('front_image', frontImage);
+        body.append('back_image', backImage);
+        return { url: '/landlord/verification', method: 'POST', body };
+      },
+      invalidatesTags: ['Verification', 'LandlordNotifications'],
+    }),
+    getLandlordRentalRequests: builder.query({
+      query: ({ status = '' } = {}) => ({ url: '/landlord/rental-requests', params: status ? { status } : {} }),
+      providesTags: ['RentalRequests'],
+    }),
+    decideLandlordRentalRequest: builder.mutation({
+      query: ({ id, decision, reason }) => ({ url: `/landlord/rental-requests/${id}`, method: 'PATCH', body: { decision, reason } }),
+      invalidatesTags: ['RentalRequests', 'LandlordRooms', 'LandlordPosts', 'LandlordStats', 'Posts', 'LandlordNotifications'],
+    }),
+    createLandlordVnpayPayment: builder.mutation({
+      query: ({ packageId }) => ({ url: '/payments/vnpay/create_url', method: 'POST', body: { package_id: Number(packageId) } }),
+    }),
   }),
 });
 
@@ -205,7 +273,9 @@ export const {
   useAddRoomMutation,
   useUpdateRoomMutation,
   useDeleteRoomMutation,
+  useDeleteLandlordRoomImageMutation,
   useGetLandlordPostsQuery,
+  useGetLandlordPostDetailQuery,
   useGetLandlordStatsQuery,
   useCreateLandlordPostMutation,
   useUpdateLandlordPostMutation,
@@ -218,6 +288,15 @@ export const {
   useGetLandlordPackageHistoryQuery,
   useGetLandlordPackageUsageDetailQuery,
   useRenewLandlordPackageMutation,
+  useGetLandlordProfileQuery,
+  useUpdateLandlordProfileMutation,
+  useGetLandlordNotificationsQuery,
+  useMarkLandlordNotificationReadMutation,
+  useGetLandlordVerificationQuery,
+  useSubmitLandlordVerificationMutation,
+  useGetLandlordRentalRequestsQuery,
+  useDecideLandlordRentalRequestMutation,
+  useCreateLandlordVnpayPaymentMutation,
 } = landlordApi;
 
 const tierBySlug = {

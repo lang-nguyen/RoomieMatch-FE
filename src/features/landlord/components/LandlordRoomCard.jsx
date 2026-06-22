@@ -31,8 +31,8 @@ const LandlordRoomCard = ({ room, onEdit, onDelete, onTogglePost }) => {
   } = room;
 
   const displayCode = room_code || code || `TRO-${String(id).padStart(6, '0')}`;
-  const displayName = name || title || 'Phong tro';
-  const displayAddress = address || full_address || 'Dang cap nhat dia chi';
+  const displayName = name || title || 'Phòng trọ';
+  const displayAddress = address || full_address || 'Đang cập nhật địa chỉ';
   const displayCapacity = capacity || max_people || 1;
   const displayPrice = Number(price) || 0;
   const hasThumbnail = images.length > 0;
@@ -64,11 +64,11 @@ const LandlordRoomCard = ({ room, onEdit, onDelete, onTogglePost }) => {
         <div className={styles.chips}>
           <span className={styles.chip}>
             <Maximize2 size={11} />
-            {Number(area) || 0} m2
+            {Number(area) || 0} m²
           </span>
           <span className={styles.chip}>
             <Users size={11} />
-            {displayCapacity} nguoi
+            {displayCapacity} người
           </span>
           {amenities.slice(0, 2).map((a) => (
             <span key={a} className={styles.chip}>
@@ -80,26 +80,26 @@ const LandlordRoomCard = ({ room, onEdit, onDelete, onTogglePost }) => {
 
         <div className={styles.price}>
           {displayPrice.toLocaleString('vi-VN')}d&nbsp;
-          <span className={styles.priceUnit}>/ thang</span>
+          <span className={styles.priceUnit}>/ tháng</span>
         </div>
       </div>
 
       <div className={styles.actions}>
-        <button className={styles.actionLink} onClick={() => onEdit?.(room)}>
-          Chi tiet
+        <button className={`${styles.actionButton} ${styles.actionButtonGhost}`} onClick={() => onEdit?.(room)}>
+          Chi tiết
         </button>
-        <button className={styles.actionLink} onClick={() => onEdit?.(room)}>
-          Sua
+        <button className={`${styles.actionButton} ${styles.actionButtonGhost}`} onClick={() => onEdit?.(room)}>
+          Sửa
         </button>
         <button
-          className={styles.postBtn}
+          className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
           onClick={() => onTogglePost?.(room)}
         >
-          Dung cho bai
+          Dùng cho bài
         </button>
         {onDelete ? (
-          <button className={styles.actionLink} onClick={() => onDelete?.(room)}>
-            Xoa
+          <button className={`${styles.actionButton} ${styles.actionButtonDanger}`} onClick={() => onDelete?.(room)}>
+            Xóa
           </button>
         ) : null}
       </div>

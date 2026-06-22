@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Upload } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import { useAddRoomForm } from '../../hooks/useAddRoomForm';
+import { useDeleteLandlordRoomImageMutation } from '../../api/landlordApi';
 import { getAddRoomImageFiles, setAddRoomImageFiles } from '../../utils/addRoomImageFiles';
 import styles from './StepForm.module.css';
 
@@ -24,11 +26,14 @@ const AMENITIES = [
 
 const StepAmenities = () => {
   const { draft, updateDraft, goNext, goBack } = useAddRoomForm();
+  const { roomId } = useParams();
+  const [deleteRoomImage, deleteImageState] = useDeleteLandlordRoomImageMutation();
   const [imageError, setImageError] = useState('');
 
   const selectedAmenities = useMemo(() => draft.amenities || [], [draft.amenities]);
   const selectedImageMeta = useMemo(() => draft.image_files_meta || [], [draft.image_files_meta]);
   const selectedImages = getAddRoomImageFiles();
+  const existingImages = draft.existing_images || [];
   const previews = useMemo(
     () => selectedImages.map((file) => ({ file, url: URL.createObjectURL(file) })),
     // Metadata changes whenever the module-level file list changes.
@@ -89,6 +94,11 @@ const StepAmenities = () => {
     });
   };
 
+  const handleRemoveExistingImage = async (image) => {
+    await deleteRoomImage({ roomId, imageId: image.id }).unwrap();
+    updateDraft({ existing_images: existingImages.filter((item) => item.id !== image.id) });
+  };
+
   const handleNext = (e) => {
     e.preventDefault();
     goNext();
@@ -124,6 +134,17 @@ const StepAmenities = () => {
           ))}
         </div>
       ) : null}
+
+      {existingImages.length > 0 && (
+        <div className={styles.previewGrid}>
+          {existingImages.map((image) => (
+            <div key={image.id} className={styles.previewItem}>
+              <img src={image.image_url} alt="Ảnh phòng hiện có" />
+              <button type="button" disabled={deleteImageState.isLoading} onClick={() => handleRemoveExistingImage(image)}>Xóa</button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <h2 className={styles.sectionTitle} style={{ marginTop: 16 }}>Tien ich phong</h2>
       <div className={styles.checkboxGrid}>

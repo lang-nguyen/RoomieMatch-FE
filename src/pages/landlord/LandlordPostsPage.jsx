@@ -30,6 +30,7 @@ const STATUS_FILTERS = [
   { value: 'approved', label: 'Đã duyệt', countKey: 'approved' },
   { value: 'boosted', label: 'Đang đẩy nổi bật', countKey: 'boosted' },
   { value: 'rejected', label: 'Từ chối', countKey: 'rejected' },
+  { value: 'closed', label: 'Đã đóng', countKey: 'closed' },
 ];
 
 const formatCompact = (value = 0) => {
@@ -323,7 +324,7 @@ const LandlordPostsPage = () => {
                         ) : (
                           <button title="Hủy nổi bật" className={styles.dangerIcon} onClick={() => handleCancel(post.id)}><X size={13} /></button>
                         )}
-                        <button title="Xem" onClick={() => navigate(`/rooms/${post.id}`)}><Eye size={13} /></button>
+                        <button title="Xem" onClick={() => navigate(`/landlord/posts/${post.id}`)}><Eye size={13} /></button>
                         <button title="Xóa" onClick={() => handleDelete(post.id)}><Trash2 size={13} /></button>
                       </div>
                     </td>

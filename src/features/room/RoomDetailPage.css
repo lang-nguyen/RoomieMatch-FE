@@ -829,3 +829,80 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Rental Confirmation Modal Styles */
+.rental-confirm-modal {
+  max-width: 440px !important;
+  width: 90%;
+  padding: 28px 24px 24px !important;
+  text-align: left;
+}
+
+.rental-confirm-modal .modal-header {
+  margin-bottom: 20px;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.rental-confirm-modal .modal-title {
+  text-align: left;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f1f1f;
+  margin: 0;
+}
+
+.rental-confirm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.rental-confirm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rental-confirm-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.rental-confirm-input,
+.rental-confirm-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #eaded2;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #fff;
+  color: #1f1f1f;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.rental-confirm-input:focus,
+.rental-confirm-textarea:focus {
+  border-color: #c45f24;
+  box-shadow: 0 0 0 3px rgba(196, 95, 36, 0.15);
+}
+
+.rental-confirm-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.rental-confirm-submit-btn {
+  background-color: #c45f24 !important;
+  color: white !important;
+}
+
+.rental-confirm-submit-btn:hover {
+  background-color: #b14f1f !important;
+  box-shadow: 0 4px 12px rgba(196, 95, 36, 0.3) !important;
+}

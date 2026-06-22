@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useDeleteOrderMutation, useGetOrdersQuery, useUpdateOrderStatusMutation } from '../api/adminApiMock';
+import { useDeleteOrderMutation, useGetOrdersQuery, useUpdateOrderStatusMutation } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatCurrency, formatNumber, normalizeText, paginate } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';

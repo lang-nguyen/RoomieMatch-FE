@@ -30,6 +30,8 @@ const VnpayReturnPage = () => {
   const bankCode = searchParams.get('vnp_BankCode') || 'N/A';
   const orderInfo = searchParams.get('vnp_OrderInfo') || '';
   const txnRef = searchParams.get('vnp_TxnRef') || '';
+  const user = (() => { try { return JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch { return null; } })();
+  const benefitsPath = user?.account_type === 'landlord' ? '/landlord/package-management' : '/user/package-management';
 
   return (
     <div className={styles.container}>
@@ -72,7 +74,7 @@ const VnpayReturnPage = () => {
             </div>
 
             <div className={styles.actionButtons}>
-              <button className={styles.primaryBtn} onClick={() => navigate('/user/package-management')}>
+              <button className={styles.primaryBtn} onClick={() => navigate(benefitsPath)}>
                 Xem quyền lợi
               </button>
               <button className={styles.secondaryBtn} onClick={() => navigate('/')}>
@@ -93,7 +95,7 @@ const VnpayReturnPage = () => {
             </p>
 
             <div className={styles.actionButtons}>
-              <button className={styles.primaryBtnFail} onClick={() => navigate('/user/package-management')}>
+              <button className={styles.primaryBtnFail} onClick={() => navigate(benefitsPath)}>
                 Thử lại ngay
               </button>
               <button className={styles.secondaryBtn} onClick={() => navigate('/')}>

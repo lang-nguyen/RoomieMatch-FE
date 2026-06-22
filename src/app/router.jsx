@@ -29,7 +29,9 @@ import LandlordPackagePaymentPage from '../pages/landlord/LandlordPackagePayment
 import LandlordPostsPage from '../pages/landlord/LandlordPostsPage';
 import LandlordPostCreatePage from '../pages/landlord/LandlordPostCreatePage';
 import LandlordPostSuccessPage from '../pages/landlord/LandlordPostSuccessPage';
+import LandlordPostDetailPage from '../pages/landlord/LandlordPostDetailPage';
 import LandlordStatsPage from '../pages/landlord/LandlordStatsPage';
+import LandlordRentalRequestsPage from '../pages/landlord/LandlordRentalRequestsPage';
 import RequireAuth from '../shared/components/RequireAuth';
 import { ACCOUNT_TYPES } from '../shared/constants/roles';
 
@@ -127,7 +129,10 @@ export const router = createBrowserRouter([
           { path: 'posts', element: <LandlordPostsPage /> },
           { path: 'posts/create', element: <LandlordPostCreatePage /> },
           { path: 'posts/success', element: <LandlordPostSuccessPage /> },
+          { path: 'posts/:postId', element: <LandlordPostDetailPage /> },
           { path: 'stats', element: <LandlordStatsPage /> },
+          { path: 'rental-requests', element: <LandlordRentalRequestsPage /> },
+          { path: 'rooms/:roomId/edit', element: <LandlordAddRoomPage /> },
         ]
       }
     ]

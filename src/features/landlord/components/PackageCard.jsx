@@ -4,12 +4,12 @@ import styles from './PackageCard.module.css';
 const formatPrice = (price) =>
   price.toLocaleString('vi-VN') + 'đ';
 
-const PackageCard = ({ pkg, onSelect }) => {
+const PackageCard = ({ pkg, onSelect, isCarouselActive = false }) => {
   const { name, tier, price, unit, description, isFeatured, badge, features = [], ctaLabel } = pkg;
 
   return (
     <div
-      className={`${styles.card} ${isFeatured ? styles.cardFeatured : ''} ${styles[`card--${tier}`] || ''}`}
+      className={`${styles.card} ${isFeatured ? styles.cardFeatured : ''} ${styles[`card--${tier}`] || ''} ${isCarouselActive ? styles.cardCarouselActive : ''}`}
     >
       {/* Badge */}
       {badge && (

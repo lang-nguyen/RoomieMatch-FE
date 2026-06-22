@@ -49,28 +49,28 @@ const RoomDetailPage = () => {
     views: deterministicViews,
     updatedAt: createdAtLabel,
     gallery: apiData.images && apiData.images.length > 0
-        ? apiData.images.map(img => img.image_url)
-        : ['https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80'],
+      ? apiData.images.map((img) => img.image_url)
+      : ['https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80'],
     summary: [
       { label: 'Diện tích', value: `${room.area || 0} m²` },
       { label: 'Loại hình', value: room.room_type || 'Phòng trọ' },
       { label: 'Tối đa', value: `${room.max_people || 1} người` },
-      { label: 'Hiện tại', value: `${room.current_people || 0} người` }
+      { label: 'Hiện tại', value: `${room.current_people || 0} người` },
     ],
     title: apiData.title || room.title,
     description: apiData.description || room.description || 'Không có mô tả.',
-    amenities: apiData.amenities ? apiData.amenities.map(a => a.name) : [],
+    amenities: apiData.amenities ? apiData.amenities.map((a) => a.name) : [],
     costs: [
       { label: 'Giá phòng', value: `${room.price ? room.price.toLocaleString() : 0} VND`, highlight: true },
       { label: 'Tiền điện', value: `${room.electricity_price ? room.electricity_price.toLocaleString() : 0} VND` },
       { label: 'Tiền nước', value: `${room.water_price ? room.water_price.toLocaleString() : 0} VND` },
       { label: 'Tiền internet', value: `${room.internet_price ? room.internet_price.toLocaleString() : 'Miễn phí'} VND` },
-      { label: 'Tiền giữ xe', value: `${room.parking_price ? room.parking_price.toLocaleString() : 'Miễn phí'} VND` }
+      { label: 'Tiền giữ xe', value: `${room.parking_price ? room.parking_price.toLocaleString() : 'Miễn phí'} VND` },
     ],
     deposit: `${room.deposit ? room.deposit.toLocaleString() : 0} VND`,
     location: {
       address: room.full_address || '',
-      coords: `${room.latitude || 0}, ${room.longitude || 0}`
+      coords: `${room.latitude || 0}, ${room.longitude || 0}`,
     },
     owner: {
       name: landlord.display_name || 'Chủ trọ',
@@ -80,25 +80,13 @@ const RoomDetailPage = () => {
       contact: {
         phone: landlord.contact_phone || 'N/A',
         zalo: landlord.contact_social || '',
-      }
+      },
     },
     reference: [
       { label: 'Ngày đăng', value: createdAtLabel },
-      { label: 'Mã phòng', value: room.room_code || `ROOM-${room.room_id || roomId}` }
+      { label: 'Mã phòng', value: room.room_code || `ROOM-${room.room_id || roomId}` },
     ],
-    // Mock rating and reviews for now since API doesn't have it
-    rating: {
-      overall: 4.5,
-      count: 0,
-      breakdown: [
-        { label: 'Vị trí', value: 4.5 },
-        { label: 'Giá cả', value: 4.0 },
-        { label: 'Chủ phòng', value: 5.0 },
-        { label: 'Vệ sinh', value: 4.8 }
-      ]
-    },
-    reviews: [],
-    relatedRooms: [] // would be fetched differently
+    relatedRooms: [],
   };
 
   return (
@@ -122,17 +110,19 @@ const RoomDetailPage = () => {
               <RoomDetailAmenities items={detail.amenities} />
               <RoomDetailCosts items={detail.costs} />
               <RoomDetailLocation address={detail.location.address} coords={detail.location.coords} />
-              <RoomDetailReviews rating={detail.rating} roomId={room.room_id || roomId} />
+              <RoomDetailReviews roomId={room.room_id || roomId} />
               <RoomDetailRelated rooms={detail.relatedRooms} ownerName={detail.owner.name} />
             </div>
 
             <RoomDetailSidebar
-              price="5.000.000 VND / tháng"
+              price={`${room.price ? room.price.toLocaleString('vi-VN') : 0} VND / tháng`}
               deposit={detail.deposit}
               owner={detail.owner}
               contact={detail.owner.contact}
               reference={detail.reference}
+              postId={apiData.post_id || roomId}
               roomId={room.room_id || roomId}
+              postStatus={apiData.status}
             />
           </div>
 

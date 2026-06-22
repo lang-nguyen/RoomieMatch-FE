@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useDeletePostMutation, useGetPostsQuery, useUpdatePostStatusMutation } from '../api/adminApiMock';
+import { useDeletePostMutation, useGetPostsQuery, useUpdatePostStatusMutation } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatNumber, normalizeText, paginate, toArray } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
@@ -138,7 +138,10 @@ export const PostsTab = () => {
   const topPost = useMemo(() => [...allPosts].sort((first, second) => getPostScore(second) - getPostScore(first))[0], [allPosts]);
 
   const handlePostChange = async (id, changes) => {
-    await updatePostStatus({ id, ...changes });
+    if (!changes.status) return;
+    const reason = changes.status === 'rejected' ? window.prompt('Nhập lý do từ chối bài đăng:') : null;
+    if (changes.status === 'rejected' && !reason) return;
+    await updatePostStatus({ id, ...changes, reason }).unwrap();
     refetch();
   };
 

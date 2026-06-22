@@ -1,19 +1,42 @@
-import { Edit3, Bookmark, ThumbsUp, Star, User } from 'lucide-react';
+import { Bookmark, Edit3, Eye, Star, Users } from 'lucide-react';
 import { useLandlordProfile } from '../hooks/useLandlordProfile';
 import styles from './LandlordProfileForm.module.css';
 
-const ScoreBadge = ({ value, icon: Icon }) => (
+const formatGender = (value) => {
+  if (value === 'male') return 'Nam';
+  if (value === 'female') return 'Nữ';
+  if (value === 'other') return 'Khác';
+  return '';
+};
+
+const formatStatus = (value) => {
+  if (value === 'active') return 'Đang hoạt động';
+  if (value === 'blocked') return 'Bị khóa';
+  return value || '';
+};
+
+const formatDate = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('vi-VN');
+};
+
+const ScoreBadge = ({ value, label, icon: Icon }) => (
   <div className={styles.scoreBadgeWrapper}>
-    <div className={styles.scoreBadgeCircle}>
-      <span className={styles.scoreValue}>{value}</span>
+    <div className={styles.scoreBadgeTop}>
+      <div className={styles.scoreBadgeCircle}>
+        <span className={styles.scoreValue}>{value}</span>
+      </div>
+      <div className={styles.scoreIcon}>
+        <Icon size={24} color="#111111" strokeWidth={2.2} />
+      </div>
     </div>
-    <div className={styles.scoreIcon}>
-      <Icon size={18} color="#1a1a1a" strokeWidth={1.5} />
-    </div>
+    <span className={styles.scoreBadgeLabel}>{label}</span>
   </div>
 );
 
-const InfoRow = ({ label, value, name, isEditing, onChange, type = 'text' }) => (
+const InfoRow = ({ label, value, name, isEditing, onChange, type = 'text', placeholder, displayValue }) => (
   <div className={styles.infoRow}>
     <span className={styles.infoLabel}>
       {label} <span style={{ color: '#c1440e' }}>:</span>
@@ -25,10 +48,10 @@ const InfoRow = ({ label, value, name, isEditing, onChange, type = 'text' }) => 
         className={styles.infoInput}
         value={value || ''}
         onChange={onChange}
-        placeholder={`Nhập ${label.toLowerCase()}`}
+        placeholder={placeholder || `Nhập ${label.toLowerCase()}`}
       />
     ) : (
-      <span className={styles.infoValue}>{value || ''}</span>
+      <span className={styles.infoValue}>{displayValue || value || 'Chưa cập nhật'}</span>
     )}
   </div>
 );
@@ -67,27 +90,23 @@ const LandlordProfileForm = () => {
   }
 
   const display = isEditing ? formData : profile;
+  const avatarLetter = (profile.display_name || profile.nickname || 'C').trim().charAt(0).toUpperCase();
 
   return (
     <div className={styles.container}>
-      {/* Header: Avatar + Name + Actions */}
       <div className={styles.topSection}>
-        {/* Avatar */}
         <div className={styles.avatarWrapper}>
           <div className={styles.avatarRing}>
             <div className={styles.avatarInner}>
               {profile.avatar ? (
                 <img src={profile.avatar} alt={profile.display_name} className={styles.avatarImg} />
               ) : (
-                <span className={styles.avatarLetter}>
-                  {profile.nickname?.[0]?.toUpperCase() ?? 'C'}
-                </span>
+                <span className={styles.avatarLetter}>{avatarLetter}</span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Name + Role + Scores */}
         <div className={styles.nameSection}>
           <div className={styles.nameLine}>
             <h1 className={styles.displayName}>
@@ -102,60 +121,44 @@ const LandlordProfileForm = () => {
                 profile.display_name
               )}
             </h1>
-            <button className={styles.editNameBtn} onClick={isEditing ? undefined : startEditing}>
-              <Edit3 size={14} />
-            </button>
+            {!isEditing && (
+              <button className={styles.editNameBtn} type="button" onClick={startEditing}>
+                <Edit3 size={14} />
+              </button>
+            )}
 
-            {/* Action buttons */}
             <div className={styles.actions}>
               {isEditing ? (
                 <>
-                  <button className={styles.cancelBtn} onClick={cancelEditing}>
+                  <button className={styles.cancelBtn} type="button" onClick={cancelEditing}>
                     Hủy
                   </button>
-                  <button
-                    className={styles.saveBtn}
-                    onClick={handleSave}
-                    disabled={isUpdating}
-                  >
-                    {isUpdating ? 'Đang lưu...' : 'Hoàn Tất'}
+                  <button className={styles.saveBtn} type="button" onClick={handleSave} disabled={isUpdating}>
+                    {isUpdating ? 'Đang lưu...' : 'Hoàn tất'}
                   </button>
                 </>
               ) : (
                 <>
-                  <button className={styles.editBtn} onClick={startEditing}>
-                    Chỉnh Sửa Tất Cả
+                  <button className={styles.editBtn} type="button" onClick={startEditing}>
+                    Chỉnh sửa tất cả
                   </button>
-                  <button className={styles.doneBtn} disabled>
-                    Hoàn Tất
+                  <button className={styles.doneBtn} type="button" disabled>
+                    Hoàn tất
                   </button>
                 </>
               )}
             </div>
           </div>
 
-          {/* Role */}
           <div className={styles.roleLine}>
-            {isEditing ? (
-              <input
-                name="role"
-                className={styles.roleInput}
-                value={display?.role || ''}
-                onChange={handleChange}
-                placeholder="Vai trò / Mô tả"
-              />
-            ) : (
-              <span className={styles.roleText}>{profile.role}</span>
-            )}
-            <Edit3 size={12} color="#c1440e" />
+            <span className={styles.roleText}>{formatStatus(profile.role) || profile.role || 'Chủ trọ'}</span>
           </div>
 
-          {/* Score Badges */}
           <div className={styles.scores}>
-            <ScoreBadge value={profile.scores?.posts ?? 100} icon={Bookmark} />
-            <ScoreBadge value={profile.scores?.likes ?? 100} icon={ThumbsUp} />
-            <ScoreBadge value={profile.scores?.connections ?? 100} icon={Star} />
-            <ScoreBadge value={profile.scores?.verified ?? 100} icon={User} />
+            <ScoreBadge value={profile.scores?.saved ?? 0} label="Lượt lưu" icon={Bookmark} />
+            <ScoreBadge value={profile.scores?.reviews ?? 0} label="Đánh giá" icon={Star} />
+            <ScoreBadge value={profile.scores?.tenants ?? 0} label="Người thuê" icon={Users} />
+            <ScoreBadge value={profile.scores?.views ?? 0} label="Lượt xem" icon={Eye} />
           </div>
         </div>
       </div>
@@ -163,45 +166,92 @@ const LandlordProfileForm = () => {
       {successMessage && <div className={styles.successMsg}>{successMessage}</div>}
       {errorMessage && <div className={styles.errorMsg}>{errorMessage}</div>}
 
-      {/* Info Sections */}
       <div className={styles.infoGrid}>
-        {/* Left column */}
         <div className={styles.infoCol}>
-          <div className={styles.sectionTitle} style={{ color: '#c1440e' }}>
-            Thông Tin Cá Nhân
-          </div>
+          <div className={styles.sectionTitle}>Thông tin cá nhân</div>
           <div className={styles.infoBlock}>
-            <InfoRow label="Ngày Sinh" name="dob" value={display?.dob} isEditing={isEditing} onChange={handleChange} />
-            <InfoRow label="Giới Tính" name="gender" value={display?.gender} isEditing={isEditing} onChange={handleChange} />
-            <InfoRow label="Tình Trạng" name="status" value={display?.status} isEditing={isEditing} onChange={handleChange} />
-            <InfoRow label="Số Điện Thoại" name="phone" value={display?.phone} isEditing={isEditing} onChange={handleChange} type="tel" />
-            <InfoRow label="Facebook" name="facebook" value={display?.facebook} isEditing={isEditing} onChange={handleChange} />
-            <InfoRow label="Zalo" name="zalo" value={display?.zalo} isEditing={isEditing} onChange={handleChange} />
+            <InfoRow
+              label="Ngày sinh"
+              name="dob"
+              value={display?.dob}
+              displayValue={formatDate(display?.dob)}
+              isEditing={isEditing}
+              onChange={handleChange}
+              type="date"
+            />
+            <InfoRow
+              label="Giới tính"
+              name="gender"
+              value={display?.gender}
+              displayValue={formatGender(display?.gender)}
+              isEditing={isEditing}
+              onChange={handleChange}
+            />
+            <InfoRow
+              label="Tình trạng"
+              name="status"
+              value={display?.status}
+              displayValue={formatStatus(display?.status)}
+              isEditing={false}
+            />
+            <InfoRow
+              label="Số điện thoại"
+              name="phone"
+              value={display?.phone}
+              isEditing={isEditing}
+              onChange={handleChange}
+              type="tel"
+            />
+            <InfoRow
+              label="Facebook"
+              name="facebook"
+              value={display?.facebook}
+              isEditing={isEditing}
+              onChange={handleChange}
+            />
+            <InfoRow
+              label="Zalo"
+              name="zalo"
+              value={display?.zalo}
+              isEditing={isEditing}
+              onChange={handleChange}
+            />
           </div>
         </div>
 
-        {/* Right column */}
         <div className={styles.infoCol}>
-          <div className={styles.infoBlock} style={{ marginTop: '28px' }}>
-            <InfoRow label="Vị Trí" name="location" value={display?.location} isEditing={isEditing} onChange={handleChange} />
-            <InfoRow label="Quê Quán" name="hometown" value={display?.hometown} isEditing={isEditing} onChange={handleChange} />
+          <div className={styles.sectionTitle}>Thông tin bổ sung</div>
+          <div className={styles.infoBlock}>
+            <InfoRow
+              label="Vị trí"
+              name="location"
+              value={display?.location}
+              isEditing={isEditing}
+              onChange={handleChange}
+            />
+            <InfoRow
+              label="Quê quán"
+              name="hometown"
+              value={display?.hometown}
+              isEditing={isEditing}
+              onChange={handleChange}
+            />
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>
-                Căn Cước Công Dân <span style={{ color: '#c1440e' }}>:</span>
+                Căn cước công dân <span style={{ color: '#c1440e' }}>:</span>
               </span>
               <span className={profile.cccd_verified ? styles.verified : styles.unverified}>
-                {profile.cccd_verified ? 'Đã Xác Thực' : 'Chưa Xác Thực'}
+                {profile.cccd_verified ? 'Đã xác thực' : 'Chưa xác thực'}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bio */}
       <div className={styles.bioSection}>
         <div className={styles.bioHeader}>
-          <span className={styles.sectionTitle}>Giới Thiệu</span>
-          <Edit3 size={14} color="#c1440e" />
+          <span className={styles.sectionTitle}>Giới thiệu</span>
+          {!isEditing && <Edit3 size={14} color="#c1440e" />}
         </div>
         {isEditing ? (
           <textarea
@@ -209,11 +259,11 @@ const LandlordProfileForm = () => {
             className={styles.bioTextarea}
             value={display?.bio || ''}
             onChange={handleChange}
-            rows={3}
+            rows={4}
             placeholder="Giới thiệu bản thân..."
           />
         ) : (
-          <p className={styles.bioText}>{profile.bio}</p>
+          <p className={styles.bioText}>{profile.bio || 'Chưa có phần giới thiệu.'}</p>
         )}
       </div>
     </div>

@@ -6,6 +6,7 @@ const CONFIG = {
   approved: { label: 'Đã duyệt', icon: CheckCircle2 },
   boosted: { label: 'Đang đẩy nổi bật', icon: Flame },
   rejected: { label: 'Từ chối', icon: XCircle },
+  closed: { label: 'Đã đóng', icon: XCircle },
 };
 
 const PostStatusBadge = ({ status, subText }) => {

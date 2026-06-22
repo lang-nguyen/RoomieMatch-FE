@@ -5,10 +5,10 @@ import {
   ShoppingBag,
   List,
   BarChart2,
-  Settings,
   LogOut,
   Package,
   FileText,
+  UserCheck,
 } from 'lucide-react';
 import { logout } from '../../features/auth/slice';
 import styles from './LandlordSidebar.module.css';
@@ -20,11 +20,10 @@ const OVERVIEW_ITEMS = [
   { id: 'stats', label: 'Thống kê', path: '/landlord/stats', icon: BarChart2 },
   { id: 'package-mgmt', label: 'Quản lý gói', path: '/landlord/package-management', icon: Package },
   { id: 'posts', label: 'Quản lý bài đăng', path: '/landlord/posts', icon: FileText },
+  { id: 'rental-requests', label: 'Xác nhận thuê', path: '/landlord/rental-requests', icon: UserCheck },
 ];
 
-const SETTINGS_ITEMS = [
-  { id: 'settings', label: 'Cài đặt', path: '/landlord/settings', icon: Settings },
-];
+const SETTINGS_ITEMS = [];
 
 const LandlordSidebar = ({ promotedUsers = [] }) => {
   const dispatch = useDispatch();

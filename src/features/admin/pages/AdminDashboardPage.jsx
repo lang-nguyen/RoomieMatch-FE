@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { baseApi } from '../../../shared/api/baseApi';
@@ -16,6 +16,7 @@ import { UsersTab } from '../components/UsersTab';
 import { PostsTab } from '../components/PostsTab';
 import { RoomsTab } from '../components/RoomsTab';
 import { PackagesTab } from '../components/PackagesTab';
+import { RoleFeaturesTab } from '../components/RoleFeaturesTab';
 import { CategoriesTab } from '../components/CategoriesTab';
 import { OrdersTab } from '../components/OrdersTab';
 import { ComplaintsTab } from '../components/ComplaintsTab';
@@ -53,6 +54,11 @@ const pageHeaders = {
     title: 'Gói dịch vụ',
     highlight: 'vụ',
     subtitle: 'Thiết lập gói trả phí, quyền lợi và trạng thái kinh doanh',
+  },
+  'role-features': {
+    title: 'Tính năng gói',
+    highlight: 'năng',
+    subtitle: 'Quản lý các định mức và chức năng dành riêng cho từng nhóm khách',
   },
   categories: {
     title: 'Danh mục',
@@ -167,6 +173,8 @@ const AdminDashboardPage = () => {
         return <RoomsTab />;
       case 'packages':
         return <PackagesTab />;
+      case 'role-features':
+        return <RoleFeaturesTab />;
       case 'categories':
         return <CategoriesTab />;
       case 'orders':

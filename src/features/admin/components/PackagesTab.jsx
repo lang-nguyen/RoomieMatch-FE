@@ -3,6 +3,7 @@ import {
   useCreatePackageMutation,
   useDeletePackageMutation,
   useGetPackagesQuery,
+  useGetRoleFeaturesQuery,
   useUpdatePackageMutation,
   useUpdatePackageStatusMutation,
 } from '../api/adminApi';
@@ -12,13 +13,13 @@ import styles from './AdminDashboard.module.css';
 
 const packageTabs = [
   { id: 'all', label: 'Tất cả' },
-  { id: 'owner', label: 'Chủ trọ' },
+  { id: 'landlord', label: 'Chủ trọ' },
   { id: 'tenant', label: 'Khách thuê' },
   { id: 'suspended', label: 'Tạm ngưng' },
 ];
 
 const targetOptions = [
-  { value: 'owner', label: 'Chủ trọ' },
+  { value: 'landlord', label: 'Chủ trọ' },
   { value: 'tenant', label: 'Khách thuê' },
 ];
 
@@ -27,13 +28,15 @@ const statusOptions = [
   { value: 'suspended', label: 'Tạm ngưng' },
 ];
 
+
+
 const emptyPackage = {
   name: '',
   icon: 'package',
-  targetCustomer: 'owner',
+  target_role: 'landlord',
   pricePerMonth: 99000,
   duration: '30 ngày',
-  features: 'Hiển thị ưu tiên\nHỗ trợ duyệt nhanh',
+  features: [],
   status: 'active',
 };
 
@@ -46,6 +49,21 @@ export const PackagesTab = () => {
   const [form, setForm] = useState(emptyPackage);
   const { data: responseData, isLoading, refetch } = useGetPackagesQuery();
   const allPackages = responseData?.items || responseData || [];
+  
+  const { data: roleFeaturesData } = useGetRoleFeaturesQuery();
+  const allRoleFeatures = roleFeaturesData?.items || roleFeaturesData || [];
+
+  const featureDefinitions = useMemo(() => {
+    const defs = { tenant: [], landlord: [], all: [] };
+    allRoleFeatures.forEach(rf => {
+      if (rf.active) {
+        if (!defs[rf.target_role]) defs[rf.target_role] = [];
+        defs[rf.target_role].push({ key: rf.feature_key, label: rf.feature_name });
+      }
+    });
+    return defs;
+  }, [allRoleFeatures]);
+
   const [createPackage] = useCreatePackageMutation();
   const [updatePackage] = useUpdatePackageMutation();
   const [updatePackageStatus] = useUpdatePackageStatusMutation();
@@ -55,14 +73,14 @@ export const PackagesTab = () => {
     let result = allPackages;
     
     if (activeTab !== 'all') {
-      result = result.filter(p => p.status === activeTab || p.targetCustomer === activeTab);
+      result = result.filter(p => p.status === activeTab || p.target_role === activeTab);
     }
 
     const keyword = normalizeText(search);
     if (!keyword) return result;
 
     return result.filter((item) =>
-      [item.name, item.id, item.targetCustomerLabel, item.statusLabel].some((value) => normalizeText(value).includes(keyword))
+      [item.name, item.id, item.target_role === 'landlord' ? 'Chủ trọ' : 'Khách thuê', item.statusLabel].some((value) => normalizeText(value).includes(keyword))
     );
   }, [allPackages, search, activeTab]);
 
@@ -88,13 +106,24 @@ export const PackagesTab = () => {
 
   const openEdit = (item) => {
     setEditingPackage(item);
+    
+    const reconstructedFeatures = [];
+    const role = item.target_role || 'landlord';
+    const defs = featureDefinitions[role] || [];
+    
+    defs.forEach(def => {
+       if (item.feature_quotas && item.feature_quotas[def.key] && item.feature_quotas[def.key] > 0) {
+           reconstructedFeatures.push({ key: def.key, quantity: item.feature_quotas[def.key] });
+       }
+    });
+
     setForm({
       name: item.name,
       icon: item.icon,
-      targetCustomer: item.targetCustomer,
+      target_role: role,
       pricePerMonth: item.pricePerMonth,
       duration: item.duration,
-      features: item.features.join('\n'),
+      features: reconstructedFeatures,
       status: item.status,
     });
   };
@@ -102,6 +131,26 @@ export const PackagesTab = () => {
   const closeModal = () => {
     setEditingPackage(undefined);
     setForm(emptyPackage);
+  };
+
+  const handleAddFeature = () => {
+    const role = form.target_role || 'landlord';
+    const availableFeatures = featureDefinitions[role] || [];
+    if (availableFeatures.length > 0) {
+      const existingKeys = form.features.map(f => f.key);
+      const nextFeature = availableFeatures.find(f => !existingKeys.includes(f.key)) || availableFeatures[0];
+      setForm(prev => ({ ...prev, features: [...prev.features, { key: nextFeature.key, quantity: 1 }] }));
+    }
+  };
+
+  const handleUpdateFeature = (index, field, value) => {
+    const newFeatures = [...form.features];
+    newFeatures[index][field] = value;
+    setForm(prev => ({ ...prev, features: newFeatures }));
+  };
+
+  const handleRemoveFeature = (index) => {
+    setForm(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }));
   };
 
   const handleSave = async (event) => {
@@ -114,15 +163,27 @@ export const PackagesTab = () => {
     const payload = {
       name: form.name,
       icon: form.icon,
-      targetCustomer: form.targetCustomer,
+      target_role: form.target_role,
       price_cents: Number(form.pricePerMonth),
       period: `${durationNum}_days`,
-      features_list: form.features
-        .split('\n')
-        .map((feature) => feature.trim())
-        .filter(Boolean),
       active: form.status === 'active',
     };
+
+    const feature_quotas = {};
+
+    const displayFeatures = [];
+    const roleDefs = featureDefinitions[form.target_role] || [];
+
+    form.features.forEach(f => {
+       feature_quotas[f.key] = f.quantity;
+       const labelDef = roleDefs.find(def => def.key === f.key);
+       if (labelDef) {
+           displayFeatures.push(`${f.quantity} ${labelDef.label}`);
+       }
+    });
+    
+    payload.feature_quotas = feature_quotas;
+    payload.features_list = displayFeatures;
 
     try {
       if (editingPackage) {
@@ -192,8 +253,8 @@ export const PackagesTab = () => {
         <article className={styles.insightCard}>
           <div>
             <span className={styles.insightLabel}>Tỷ trọng khách hàng</span>
-            <strong>{formatNumber(allPackages.filter((item) => item.targetCustomer === 'owner').length)} gói chủ trọ</strong>
-            <p>{formatNumber(allPackages.filter((item) => item.targetCustomer === 'tenant').length)} gói dành cho khách thuê</p>
+            <strong>{formatNumber(allPackages.filter((item) => item.target_role === 'landlord').length)} gói chủ trọ</strong>
+            <p>{formatNumber(allPackages.filter((item) => item.target_role === 'tenant').length)} gói dành cho khách thuê</p>
           </div>
           <span className={styles.insightIcon}>
             <AdminIcon name="users" size={20} />
@@ -249,8 +310,8 @@ export const PackagesTab = () => {
                   <span className={styles.packageIcon}>
                     <AdminIcon name={item.icon} size={19} />
                   </span>
-                  <span className={`${styles.dataBadge} ${item.targetCustomer === 'owner' ? styles.badgeInfo : styles.badgeSuccess}`}>
-                    {item.targetCustomerLabel}
+                  <span className={`${styles.dataBadge} ${item.target_role === 'landlord' ? styles.badgeInfo : styles.badgeSuccess}`}>
+                    {item.target_role === 'landlord' ? 'Chủ trọ' : 'Khách thuê'}
                   </span>
                 </div>
                 <h3>{item.name}</h3>
@@ -340,7 +401,10 @@ export const PackagesTab = () => {
               </label>
               <label>
                 Khách hàng
-                <select value={form.targetCustomer} onChange={(event) => setForm((value) => ({ ...value, targetCustomer: event.target.value }))}>
+                <select 
+                  value={form.target_role} 
+                  onChange={(event) => setForm((value) => ({ ...value, target_role: event.target.value, features: [] }))}
+                >
                   {targetOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -373,7 +437,34 @@ export const PackagesTab = () => {
               </label>
               <label className={styles.formWide}>
                 Tính năng
-                <textarea rows="4" value={form.features} onChange={(event) => setForm((value) => ({ ...value, features: event.target.value }))} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                  {form.features.map((feat, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <select 
+                        value={feat.key} 
+                        onChange={(e) => handleUpdateFeature(index, 'key', e.target.value)}
+                        style={{ flex: 1, margin: 0, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                      >
+                        {(featureDefinitions[form.target_role] || []).map(def => (
+                          <option key={def.key} value={def.key}>{def.label}</option>
+                        ))}
+                      </select>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        value={feat.quantity} 
+                        onChange={(e) => handleUpdateFeature(index, 'quantity', parseInt(e.target.value, 10) || 1)} 
+                        style={{ width: '80px', margin: 0, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                      />
+                      <button type="button" onClick={() => handleRemoveFeature(index)} className={styles.actionButton} style={{ margin: 0, padding: '8px' }}>
+                         <AdminIcon name="trash" size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={handleAddFeature} className={styles.buttonSmall} style={{ alignSelf: 'flex-start', marginTop: '4px' }}>
+                    <AdminIcon name="plus" size={14} /> Thêm tính năng
+                  </button>
+                </div>
               </label>
             </div>
             <div className={styles.modalActions}>

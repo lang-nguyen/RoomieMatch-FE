@@ -23,6 +23,17 @@ export const userApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: passwords,
       }),
+    uploadAvatar: builder.mutation({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return {
+          url: '/users/me/avatar',
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: ['User'],
     }),
     getSavedRooms: builder.query({
       query: () => ({
@@ -107,6 +118,7 @@ export const {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
   useChangePasswordMutation,
+  useUploadAvatarMutation,
   useGetSavedRoomsQuery,
   useSavePostMutation,
   useUnsavePostMutation,

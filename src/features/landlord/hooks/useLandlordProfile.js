@@ -4,6 +4,7 @@ import {
   useGetLandlordStatsQuery,
   useGetLandlordVerificationQuery,
   useUpdateLandlordProfileMutation,
+  useUploadLandlordAvatarMutation,
 } from '../api/landlordApi';
 import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
 
@@ -36,6 +37,7 @@ export const useLandlordProfile = () => {
   const { data: statsData } = useGetLandlordStatsQuery({ range: '30d' });
   const { data: verification } = useGetLandlordVerificationQuery();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateLandlordProfileMutation();
+  const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadLandlordAvatarMutation();
 
   const profile = data?.profile
     ? {
@@ -98,6 +100,16 @@ export const useLandlordProfile = () => {
     }
   };
 
+  const handleAvatarUpload = async (file) => {
+    if (!file) return;
+    try {
+      await uploadAvatar(file).unwrap();
+      setSuccessMessage('Cập nhật ảnh đại diện thành công!');
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, 'Cập nhật ảnh đại diện thất bại'));
+    }
+  };
+
   return {
     profile,
     isLoading,
@@ -111,5 +123,7 @@ export const useLandlordProfile = () => {
     cancelEditing,
     handleChange,
     handleSave,
+    handleAvatarUpload,
+    isUploadingAvatar,
   };
 };

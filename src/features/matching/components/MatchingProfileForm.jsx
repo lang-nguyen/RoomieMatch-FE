@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Camera, CheckCircle2 } from 'lucide-react';
 import { emptyProfileForm } from '../models/matchingModels';
+import { useUploadAvatarMutation } from '../../user/api/userApi';
 
 const requiredFields = ['avatar', 'intro', 'habits', 'target_city', 'target_district', 'budget'];
 
 const MatchingProfileForm = ({ initialData, onSubmit }) => {
   const [formValues, setFormValues] = useState(() => initialData || emptyProfileForm);
   const [touched, setTouched] = useState({});
+  const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadAvatarMutation();
 
   const errors = useMemo(() => {
     return requiredFields.reduce((result, field) => {
@@ -37,12 +39,19 @@ const MatchingProfileForm = ({ initialData, onSubmit }) => {
     }));
   };
 
-  const handleImageChange = (event) => {
+  const handleImageChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    updateField('avatar', URL.createObjectURL(file));
-    markTouched('avatar');
+    try {
+      const response = await uploadAvatar(file).unwrap();
+      updateField('avatar', response.avatar_url);
+    } catch (error) {
+      console.error('Lỗi khi upload ảnh:', error);
+      alert('Tải ảnh lên thất bại. Vui lòng thử lại.');
+    } finally {
+      markTouched('avatar');
+    }
   };
 
   const handleSubmit = (event) => {
@@ -72,16 +81,16 @@ const MatchingProfileForm = ({ initialData, onSubmit }) => {
     <form className="matching-profile-form matching-panel-pop" onSubmit={handleSubmit}>
       <h2>Hồ sơ tìm bạn</h2>
 
-      <label className={`matching-upload ${touched.avatar && errors.avatar ? 'is-invalid' : ''}`}>
+      <label className={`matching-upload ${touched.avatar && errors.avatar ? 'is-invalid' : ''} ${isUploadingAvatar ? 'is-uploading' : ''}`}>
         {formValues.avatar ? (
-          <img src={formValues.avatar} alt="Ảnh hồ sơ cá nhân" />
+          <img src={formValues.avatar} alt="Ảnh hồ sơ cá nhân" style={{ opacity: isUploadingAvatar ? 0.5 : 1 }} />
         ) : (
           <>
             <Camera size={58} strokeWidth={2.4} />
-            <strong>Tải ảnh hồ sơ cá nhân</strong>
+            <strong>{isUploadingAvatar ? 'Đang tải lên...' : 'Tải ảnh hồ sơ cá nhân'}</strong>
           </>
         )}
-        <input type="file" accept="image/*" onChange={handleImageChange} />
+        <input type="file" accept="image/*" onChange={handleImageChange} disabled={isUploadingAvatar} />
       </label>
 
       <label className={getFieldClassName('intro')}>

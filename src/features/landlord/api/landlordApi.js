@@ -227,6 +227,18 @@ export const landlordApi = baseApi.injectEndpoints({
       query: (body) => ({ url: '/users/me/profile', method: 'PATCH', body }),
       invalidatesTags: ['LandlordProfile', 'User'],
     }),
+    uploadLandlordAvatar: builder.mutation({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return {
+          url: '/users/me/avatar',
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: ['LandlordProfile'],
+    }),
     getLandlordNotifications: builder.query({
       query: ({ page = 1, pageSize = 20 } = {}) => ({ url: '/landlord/notifications', params: { limit: pageSize, offset: (page - 1) * pageSize } }),
       transformResponse: (response) => ({ ...response, items: response.items.map((item) => ({ ...item, createdAt: item.created_at })) }),
@@ -290,6 +302,7 @@ export const {
   useRenewLandlordPackageMutation,
   useGetLandlordProfileQuery,
   useUpdateLandlordProfileMutation,
+  useUploadLandlordAvatarMutation,
   useGetLandlordNotificationsQuery,
   useMarkLandlordNotificationReadMutation,
   useGetLandlordVerificationQuery,

@@ -1,4 +1,5 @@
-import { Bookmark, Edit3, Eye, Star, Users } from 'lucide-react';
+import { Bookmark, Edit3, Eye, Star, Users, Camera } from 'lucide-react';
+import { useRef } from 'react';
 import { useLandlordProfile } from '../hooks/useLandlordProfile';
 import styles from './LandlordProfileForm.module.css';
 
@@ -70,7 +71,23 @@ const LandlordProfileForm = () => {
     cancelEditing,
     handleChange,
     handleSave,
+    handleAvatarUpload,
+    isUploadingAvatar,
   } = useLandlordProfile();
+
+  const fileInputRef = useRef(null);
+
+  const onAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const onFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await handleAvatarUpload(file);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   if (isLoading) {
     return (
@@ -95,16 +112,26 @@ const LandlordProfileForm = () => {
   return (
     <div className={styles.container}>
       <div className={styles.topSection}>
-        <div className={styles.avatarWrapper}>
-          <div className={styles.avatarRing}>
+        <div className={styles.avatarWrapper} onClick={onAvatarClick} style={{ cursor: 'pointer', position: 'relative' }}>
+          <div className={`${styles.avatarRing} ${isUploadingAvatar ? styles.uploading : ''}`}>
             <div className={styles.avatarInner}>
               {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.display_name} className={styles.avatarImg} />
+                <img src={profile.avatar} alt={profile.display_name} className={styles.avatarImg} style={{ opacity: isUploadingAvatar ? 0.5 : 1 }} />
               ) : (
                 <span className={styles.avatarLetter}>{avatarLetter}</span>
               )}
+              <div className={styles.avatarOverlay} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0}>
+                <Camera size={24} color="#fff" />
+              </div>
             </div>
           </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={onFileChange} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
+          />
         </div>
 
         <div className={styles.nameSection}>

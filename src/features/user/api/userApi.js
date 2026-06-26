@@ -17,6 +17,18 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
+    uploadAvatar: builder.mutation({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return {
+          url: '/users/me/avatar',
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: ['User'],
+    }),
     getSavedRooms: builder.query({
       query: () => ({
         url: '/posts/saved',
@@ -99,6 +111,7 @@ export const userApi = baseApi.injectEndpoints({
 export const {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
+  useUploadAvatarMutation,
   useGetSavedRoomsQuery,
   useSavePostMutation,
   useUnsavePostMutation,

@@ -11,14 +11,16 @@ import {
   Lock,
   EyeOff
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useGetUserProfileQuery, useUpdateUserProfileMutation } from '../api/userApi';
+import { useState, useEffect, useRef } from 'react';
+import { useGetUserProfileQuery, useUpdateUserProfileMutation, useUploadAvatarMutation } from '../api/userApi';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
 import styles from './Profile.module.css';
 
 const Profile = () => {
   const { data, isLoading, isError } = useGetUserProfileQuery();
   const [updateUserProfile, { isLoading: isUpdating }] = useUpdateUserProfileMutation();
+  const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadAvatarMutation();
+  const fileInputRef = useRef(null);
   
   const profile = data?.profile;
   const account = data?.account;
@@ -74,6 +76,25 @@ const Profile = () => {
     setIsEditing(false);
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      await uploadAvatar(file).unwrap();
+      setAlertModal({ isOpen: true, type: 'confirm', message: 'Cập nhật ảnh đại diện thành công!', title: 'Thành công' });
+    } catch (error) {
+      console.error('Lỗi khi upload avatar:', error);
+      setAlertModal({ isOpen: true, type: 'alert', message: 'Lỗi khi tải ảnh lên. Vui lòng thử lại.', title: 'Lỗi' });
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
 
   if (isLoading) {
     return <div className={styles.container}>Đang tải hồ sơ cá nhân...</div>;
@@ -106,9 +127,16 @@ const Profile = () => {
             </div>
           )}
 
-          <button className={styles.changeAvatarBtn}>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleAvatarChange} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
+          />
+          <button className={styles.changeAvatarBtn} onClick={handleAvatarClick} disabled={isUploadingAvatar}>
             <Camera className={styles.btnIcon} />
-            Thay đổi ảnh đại diện
+            {isUploadingAvatar ? 'Đang tải...' : 'Thay đổi ảnh đại diện'}
           </button>
         </div>
 

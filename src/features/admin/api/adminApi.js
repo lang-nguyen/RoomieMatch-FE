@@ -120,6 +120,28 @@ export const adminApi = baseApi.injectEndpoints({
       invalidatesTags: ['Categories'],
     }),
 
+    // ─── ROLE FEATURES ───
+    getRoleFeatures: builder.query({
+      query: (target_role) => {
+        let url = '/admin/role-features';
+        if (target_role && target_role !== 'all') url += `?target_role=${target_role}`;
+        return { url, method: 'GET' };
+      },
+      providesTags: ['RoleFeatures'],
+    }),
+    createRoleFeature: builder.mutation({
+      query: (body) => ({ url: '/admin/role-features', method: 'POST', body }),
+      invalidatesTags: ['RoleFeatures'],
+    }),
+    updateRoleFeature: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/admin/role-features/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['RoleFeatures'],
+    }),
+    deleteRoleFeature: builder.mutation({
+      query: (id) => ({ url: `/admin/role-features/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['RoleFeatures'],
+    }),
+
     // ─── ORDERS ───
     getOrders: builder.query({
       query: (params) => ({ url: '/admin/orders', method: 'GET', params }),
@@ -172,6 +194,10 @@ export const {
   useGetCategoriesQuery,
   useCreateCategoryMutation,
   useDeleteCategoryMutation,
+  useGetRoleFeaturesQuery,
+  useCreateRoleFeatureMutation,
+  useUpdateRoleFeatureMutation,
+  useDeleteRoleFeatureMutation,
   useGetOrdersQuery,
   useUpdateOrderStatusMutation,
   useDeleteOrderMutation,

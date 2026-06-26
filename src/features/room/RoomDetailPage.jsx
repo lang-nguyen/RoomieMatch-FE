@@ -79,7 +79,6 @@ const RoomDetailPage = () => {
       note: 'Vui lòng liên hệ trực tiếp để biết thêm chi tiết.',
       contact: {
         phone: landlord.contact_phone || 'N/A',
-        zalo: landlord.contact_social || '',
       },
     },
     reference: [

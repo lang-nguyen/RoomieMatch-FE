@@ -40,7 +40,6 @@ const LandlordRentalRequestsPage = () => {
     { label: 'Ngày sinh', value: request.tenant_date_of_birth ? formatDate(request.tenant_date_of_birth) : null, icon: CalendarDays },
     { label: 'Địa chỉ', value: request.tenant_address, icon: MapPin },
     { label: 'Quê quán', value: request.tenant_hometown, icon: MapPin },
-    { label: 'Zalo', value: request.tenant_zalo, icon: Phone },
     { label: 'Facebook', value: request.tenant_facebook, icon: Mail },
     { label: 'Instagram', value: request.tenant_instagram, icon: Mail },
     { label: 'Twitter', value: request.tenant_twitter, icon: Mail },

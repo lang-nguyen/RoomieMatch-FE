@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Package } from 'lucide-react';
-import { useGetLandlordPackageHistoryQuery } from '../../features/landlord/api/landlordApiMock';
+import { useGetLandlordPackageHistoryQuery } from '../../features/landlord/api/landlordApi';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import styles from './LandlordPackageManagementPage.module.css';
 
@@ -44,7 +44,7 @@ const LandlordPackageManagementPage = () => {
                   <td>{formatMoney(item.price)}</td>
                   <td className={styles.date}>{formatDate(item.purchaseDate)}</td>
                   <td>{formatDate(item.expiredDate)}</td>
-                  <td>Hết hạn</td>
+                  <td>{item.status === 'active' ? 'Đang kích hoạt' : item.status}</td>
                   <td>
                     <Link className={styles.detailLink} to={`/landlord/package-management/${item.id}`}>
                       Chi tiết

@@ -19,6 +19,7 @@ import { PackagesTab } from '../components/PackagesTab';
 import { CategoriesTab } from '../components/CategoriesTab';
 import { OrdersTab } from '../components/OrdersTab';
 import { ComplaintsTab } from '../components/ComplaintsTab';
+import { useGetLandlordVerificationsQuery } from '../api/adminApi';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
 import styles from '../components/AdminDashboard.module.css';
 
@@ -80,6 +81,8 @@ const AdminDashboardPage = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [isVerificationMenuOpen, setIsVerificationMenuOpen] = useState(false);
+  const [verificationFocusId, setVerificationFocusId] = useState(null);
   const {
     navSections,
     activeNavId,
@@ -97,6 +100,7 @@ const AdminDashboardPage = () => {
     isError,
     refetch,
   } = useAdminDashboard();
+  const { data: pendingVerifications = [] } = useGetLandlordVerificationsQuery({ status: 'pending' });
 
   const handleNavChange = (itemId) => {
     setActiveNavId(itemId);
@@ -151,7 +155,12 @@ const AdminDashboardPage = () => {
       case 'analytics':
         return <AnalyticsTab />;
       case 'users':
-        return <UsersTab />;
+        return (
+          <UsersTab
+            verificationFocusId={verificationFocusId}
+            onVerificationFocusHandled={() => setVerificationFocusId(null)}
+          />
+        );
       case 'posts':
         return <PostsTab />;
       case 'rooms':
@@ -189,7 +198,15 @@ const AdminDashboardPage = () => {
       <main className={styles.main}>
         <AdminTopbar
           currentUser={dashboard.currentUser}
-          hasUnreadNotifications={unreadCount > 0}
+          hasUnreadNotifications={unreadCount > 0 || pendingVerifications.length > 0}
+          pendingVerifications={pendingVerifications}
+          isVerificationMenuOpen={isVerificationMenuOpen}
+          onToggleVerificationMenu={() => setIsVerificationMenuOpen((value) => !value)}
+          onOpenVerification={(item) => {
+            setActiveNavId('users');
+            setVerificationFocusId(item.id);
+            setIsVerificationMenuOpen(false);
+          }}
           onOpenMenu={() => setIsSidebarOpen(true)}
           onLogout={handleLogout}
         />

@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom';
-import { Home, Plus, Search } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Home, Plus, Search, Info } from 'lucide-react';
 import { useLandlordRooms } from '../../features/landlord/hooks/useLandlordRooms';
 import LandlordRoomCard from '../../features/landlord/components/LandlordRoomCard';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
@@ -47,6 +47,12 @@ const LandlordRoomsPage = () => {
     handlePageChange,
     handleDelete,
   } = useLandlordRooms();
+  const [searchParams] = useSearchParams();
+  const isSelectForPostMode = searchParams.get('mode') === 'select-for-post';
+
+  const handleTogglePost = (room) => {
+    navigate(`/landlord/posts/create?roomId=${room.id}`);
+  };
 
   return (
     <div className={sharedStyles.page}>
@@ -64,6 +70,13 @@ const LandlordRoomsPage = () => {
           </button>
         )}
       />
+
+      {isSelectForPostMode && (
+        <div style={{ backgroundColor: '#eef2ff', color: '#4f46e5', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
+          <Info size={18} />
+          Hướng dẫn: Bấm vào [Dùng cho bài] trên phòng trọ bạn muốn đăng bài.
+        </div>
+      )}
 
       {/* Filter bar */}
       <div className={styles.filterBar}>
@@ -100,7 +113,7 @@ const LandlordRoomsPage = () => {
                 room={room}
                 onEdit={(r) => navigate(`/landlord/rooms/${r.id}/edit`)}
                 onDelete={(r) => handleDelete(r.id)}
-                onTogglePost={(r) => console.log('toggle post', r.id)}
+                onTogglePost={handleTogglePost}
               />
             ))}
             {/* Add room CTA card */}

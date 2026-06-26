@@ -60,8 +60,8 @@ export const useMatchingFlow = () => {
     if (userProfileData) {
       const profile = userProfileData.data || userProfileData;
       
-      // Kiểm tra xem profile có dữ liệu hợp lệ không (ví dụ có introduce hoặc location)
-      if (profile && Object.keys(profile).length > 0 && (profile.introduce || profile.location || profile.account_id)) {
+      // Kiểm tra xem profile có dữ liệu hợp lệ không (ví dụ có introduce hoặc target_city)
+      if (profile && Object.keys(profile).length > 0 && (profile.introduce || profile.target_city || profile.account_id)) {
         setHasProfile(true);
         setHasContactInfo(true);
         setCurrentUserContact({
@@ -78,7 +78,8 @@ export const useMatchingFlow = () => {
           avatar: profile.image || '',
           intro: profile.introduce || '',
           habits: Array.isArray(profile.habit) ? profile.habit.join(', ') : '',
-          area: profile.location || '',
+          target_city: profile.target_city || '',
+          target_district: profile.target_district || '',
           budget: profile.budget || '',
         });
 

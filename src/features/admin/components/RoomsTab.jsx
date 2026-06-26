@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useGetRoomsQuery, useUpdateRoomStatusMutation } from '../api/adminApiMock';
+import { useGetRoomsQuery, useUpdateRoomStatusMutation } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatNumber, normalizeText, paginate, toArray } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
@@ -7,9 +7,8 @@ import styles from './AdminDashboard.module.css';
 const statusOptions = [
   { value: '', label: 'Tất cả' },
   { value: 'available', label: 'Trống' },
-  { value: 'renting', label: 'Đang thuê' },
-  { value: 'pending', label: 'Chờ duyệt' },
-  { value: 'inactive', label: 'Tạm ngưng' },
+  { value: 'rented', label: 'Đang thuê' },
+  { value: 'archived', label: 'Tạm ngưng' },
 ];
 
 const roomTypeOptions = [
@@ -50,8 +49,8 @@ export const RoomsTab = () => {
     () => [
       { label: 'Tổng phòng', value: allRooms.reduce((sum, room) => sum + (room.totalRooms || 0), 0), icon: 'building' },
       { label: 'Đang trống', value: allRooms.filter((room) => room.status === 'available').length, icon: 'check' },
-      { label: 'Đang thuê', value: allRooms.filter((room) => room.status === 'renting').length, icon: 'users' },
-      { label: 'Chờ duyệt', value: allRooms.filter((room) => room.status === 'pending').length, icon: 'activity' },
+      { label: 'Đang thuê', value: allRooms.filter((room) => room.status === 'rented').length, icon: 'users' },
+      { label: 'Tạm ngưng', value: allRooms.filter((room) => room.status === 'archived').length, icon: 'activity' },
     ],
     [allRooms]
   );
@@ -187,9 +186,7 @@ export const RoomsTab = () => {
                         className={`${styles.dataBadge} ${styles.statusFilterBadge} ${
                           room.status === 'available'
                             ? styles.badgeSuccess
-                            : room.status === 'pending'
-                              ? styles.badgeWarning
-                              : room.status === 'inactive'
+                            : room.status === 'archived'
                                 ? styles.badgeDanger
                                 : styles.badgeInfo
                         }`}
@@ -215,7 +212,7 @@ export const RoomsTab = () => {
                         <button type="button" className={styles.actionButton} title="Cho hiển thị" onClick={() => handleStatus(room.id, 'available')}>
                           <AdminIcon name="check" size={14} />
                         </button>
-                        <button type="button" className={styles.actionButton} title="Tạm ngưng" onClick={() => handleStatus(room.id, 'inactive')}>
+                        <button type="button" className={styles.actionButton} title="Tạm ngưng" onClick={() => handleStatus(room.id, 'archived')}>
                           <AdminIcon name="x-circle" size={14} />
                         </button>
                       </div>

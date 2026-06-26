@@ -12,6 +12,10 @@
   box-shadow: 0 8px 24px rgba(32, 27, 24, 0.04);
 }
 
+.cardCarouselActive {
+  border-width: 2px;
+}
+
 .card:hover {
   box-shadow: 0 12px 28px rgba(32, 27, 24, 0.08);
   transform: translateY(-2px);
@@ -27,6 +31,21 @@
 /* VIP card */
 .card--vip .price .priceAmount {
   color: #16a34a !important;
+}
+
+.card--basic.cardCarouselActive {
+  border-color: #8b5cf6;
+  box-shadow: 0 14px 30px rgba(139, 92, 246, 0.16);
+}
+
+.card--pro.cardCarouselActive {
+  border-color: #c1440e;
+  box-shadow: 0 14px 30px rgba(193, 68, 14, 0.18);
+}
+
+.card--vip.cardCarouselActive {
+  border-color: #16a34a;
+  box-shadow: 0 14px 30px rgba(22, 163, 74, 0.16);
 }
 
 /* Badge */

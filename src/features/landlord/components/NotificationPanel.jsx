@@ -1,5 +1,5 @@
 import { Bell, AlertTriangle } from 'lucide-react';
-import { useGetLandlordNotificationsQuery } from '../api/landlordApiMock';
+import { useGetLandlordNotificationsQuery, useMarkLandlordNotificationReadMutation } from '../api/landlordApi';
 import styles from './NotificationPanel.module.css';
 
 const formatDate = (iso) => {
@@ -8,11 +8,11 @@ const formatDate = (iso) => {
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-const NotificationItem = ({ notification }) => {
+const NotificationItem = ({ notification, onRead }) => {
   const { type, title, message, isAlert, alertLabel, createdAt, read } = notification;
 
   return (
-    <div className={`${styles.item} ${!read ? styles.unread : ''}`}>
+    <div className={`${styles.item} ${!read ? styles.unread : ''}`} onClick={() => !read && onRead(notification.id)}>
       <div className={styles.itemAvatar}>
         {type === 'subscription' ? (
           <AlertTriangle size={14} color="#c1440e" />
@@ -34,6 +34,7 @@ const NotificationItem = ({ notification }) => {
 
 const NotificationPanel = () => {
   const { data, isLoading } = useGetLandlordNotificationsQuery({ page: 1, pageSize: 3 });
+  const [markRead] = useMarkLandlordNotificationReadMutation();
   const notifications = data?.items ?? [];
 
   if (isLoading) {
@@ -51,7 +52,7 @@ const NotificationPanel = () => {
           <div className={styles.empty}>Không có thông báo nào</div>
         ) : (
           notifications.map((n) => (
-            <NotificationItem key={n.id} notification={n} />
+            <NotificationItem key={n.id} notification={n} onRead={(id) => markRead({ id })} />
           ))
         )}
       </div>

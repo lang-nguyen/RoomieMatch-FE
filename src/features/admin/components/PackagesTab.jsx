@@ -4,7 +4,8 @@ import {
   useDeletePackageMutation,
   useGetPackagesQuery,
   useUpdatePackageMutation,
-} from '../api/adminApiMock';
+  useUpdatePackageStatusMutation,
+} from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatCurrency, formatNumber, labelFromOptions, normalizeText } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
@@ -43,20 +44,27 @@ export const PackagesTab = () => {
   const [search, setSearch] = useState('');
   const [editingPackage, setEditingPackage] = useState(undefined);
   const [form, setForm] = useState(emptyPackage);
-  const { data: packages = [], isLoading, refetch } = useGetPackagesQuery({ targetCustomer: activeTab });
-  const { data: allPackages = [] } = useGetPackagesQuery({ targetCustomer: 'all' });
+  const { data: responseData, isLoading, refetch } = useGetPackagesQuery();
+  const allPackages = responseData?.items || responseData || [];
   const [createPackage] = useCreatePackageMutation();
   const [updatePackage] = useUpdatePackageMutation();
+  const [updatePackageStatus] = useUpdatePackageStatusMutation();
   const [deletePackage] = useDeletePackageMutation();
 
   const filteredPackages = useMemo(() => {
-    const keyword = normalizeText(search);
-    if (!keyword) return packages;
+    let result = allPackages;
+    
+    if (activeTab !== 'all') {
+      result = result.filter(p => p.status === activeTab || p.targetCustomer === activeTab);
+    }
 
-    return packages.filter((item) =>
+    const keyword = normalizeText(search);
+    if (!keyword) return result;
+
+    return result.filter((item) =>
       [item.name, item.id, item.targetCustomerLabel, item.statusLabel].some((value) => normalizeText(value).includes(keyword))
     );
-  }, [packages, search]);
+  }, [allPackages, search, activeTab]);
 
   const summary = useMemo(
     () => [
@@ -98,40 +106,60 @@ export const PackagesTab = () => {
 
   const handleSave = async (event) => {
     event.preventDefault();
+    const durationNum = form.duration.replace(/\D/g, '') || 30;
+    
+    // Generate a simple slug from name to satisfy BE validation
+    const makeSlug = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+    
     const payload = {
-      ...form,
-      pricePerMonth: Number(form.pricePerMonth),
-      features: form.features
+      name: form.name,
+      icon: form.icon,
+      targetCustomer: form.targetCustomer,
+      price_cents: Number(form.pricePerMonth),
+      period: `${durationNum}_days`,
+      features_list: form.features
         .split('\n')
         .map((feature) => feature.trim())
         .filter(Boolean),
-      targetCustomerLabel: labelFromOptions(targetOptions, form.targetCustomer),
-      statusLabel: labelFromOptions(statusOptions, form.status),
+      active: form.status === 'active',
     };
 
-    if (editingPackage) {
-      await updatePackage({ id: editingPackage.id, ...payload });
-    } else {
-      await createPackage(payload);
+    try {
+      if (editingPackage) {
+        const id = parseInt(editingPackage.id.replace(/\D/g, ''), 10);
+        await updatePackage({ id, ...payload });
+      } else {
+        payload.slug = makeSlug(form.name) + '-' + Date.now();
+        await createPackage(payload);
+      }
+      closeModal();
+    } catch (error) {
+      console.error("Failed to save package", error);
+      alert("Có lỗi xảy ra khi lưu gói dịch vụ.");
     }
-
-    closeModal();
-    refetch();
   };
 
   const handleDelete = async (id) => {
-    await deletePackage(id);
-    refetch();
+    if (!window.confirm("Bạn có chắc chắn muốn xóa gói này?")) return;
+    try {
+      const numericId = parseInt(id.replace(/\D/g, ''), 10);
+      await deletePackage(numericId).unwrap();
+    } catch (error) {
+      if (error.status === 400) {
+        alert(error.data?.detail || "Không thể xóa gói đã có người mua. Vui lòng Tạm ngưng thay vì xóa.");
+      } else {
+        alert("Có lỗi xảy ra khi xóa gói.");
+      }
+    }
   };
 
   const handleToggleStatus = async (item) => {
-    const nextStatus = item.status === 'active' ? 'suspended' : 'active';
-    await updatePackage({
-      id: item.id,
-      status: nextStatus,
-      statusLabel: labelFromOptions(statusOptions, nextStatus),
+    const numericId = parseInt(item.id.replace(/\D/g, ''), 10);
+    const isActive = item.status === 'active';
+    await updatePackageStatus({
+      id: numericId,
+      active: !isActive
     });
-    refetch();
   };
 
   return (
@@ -234,12 +262,21 @@ export const PackagesTab = () => {
                   <span style={{ width: `${Math.max(8, Math.round((item.totalPurchased / maxPurchased) * 100))}%` }} />
                 </div>
                 <ul>
-                  {item.features.map((feature) => (
-                    <li key={feature}>
-                      <AdminIcon name="check" size={14} />
-                      {feature}
-                    </li>
-                  ))}
+                  {item.features.map((feature) => {
+                    const featureTranslations = {
+                      matching: 'Kết nối phòng',
+                      chatbot: 'Hỗ trợ Chatbot AI',
+                      priority_match: 'Ưu tiên ghép phòng',
+                      vip_listing: 'Đăng tin nổi bật',
+                    };
+                    const displayFeature = featureTranslations[feature] || feature;
+                    return (
+                      <li key={feature}>
+                        <AdminIcon name="check" size={14} />
+                        {displayFeature}
+                      </li>
+                    );
+                  })}
                 </ul>
                 <div className={styles.packageFooter}>
                   <div>

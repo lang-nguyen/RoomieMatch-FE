@@ -1,17 +1,18 @@
 /* ── LandlordRoomCard ────────────────────────────────────────────── */
 .card {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   border: 1px solid #eee8e4;
   display: flex;
   flex-direction: column;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
 }
 
 .card:hover {
   box-shadow: 0 8px 24px rgba(32, 27, 24, 0.08);
   transform: translateY(-2px);
+  border-color: rgba(193, 68, 14, 0.18);
 }
 
 /* Thumbnail */
@@ -37,31 +38,31 @@
 
 .codeBadge {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  font-size: 10px;
+  top: 10px;
+  left: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
   background: rgba(0,0,0,0.35);
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
   letter-spacing: 0.04em;
   backdrop-filter: blur(2px);
 }
 
 .statusBadgeWrapper {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
 }
 
 /* Status badges — global classes (used by StatusBadge component) */
 :global(.status-badge) {
   display: inline-block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
   letter-spacing: 0.03em;
 }
 
@@ -82,102 +83,120 @@
 
 /* Info */
 .info {
-  padding: 12px 14px 8px;
+  padding: 14px 16px 10px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-  white-space: nowrap;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .address {
-  font-size: 11px;
-  color: #999;
+  font-size: 12px;
+  color: #8a8f98;
   margin: 0;
+  line-height: 1.45;
+  min-height: 34px;
 }
 
 /* Chips */
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-size: 10px;
-  color: #666;
-  background: #f5f5f5;
-  padding: 3px 7px;
-  border-radius: 4px;
+  gap: 4px;
+  font-size: 11px;
+  color: #4b5563;
+  background: #f8f7f5;
+  border: 1px solid #f0ebe7;
+  padding: 5px 9px;
+  border-radius: 8px;
 }
 
 /* Price */
 .price {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
   color: #c1440e;
   margin-top: 4px;
 }
 
 .priceUnit {
-  font-size: 11px;
-  font-weight: 400;
-  color: #aaa;
+  font-size: 12px;
+  font-weight: 500;
+  color: #98a2b3;
 }
 
 /* Actions */
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 0 14px 14px;
-  margin-top: 4px;
+  padding: 0 16px 16px;
+  margin-top: 6px;
 }
 
-.actionLink {
+.actionButton {
   font-size: 12px;
-  font-weight: 500;
-  color: #555;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 2px 0;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.15s;
-}
-
-.actionLink:hover {
-  color: #c1440e;
-}
-
-.postBtn {
-  margin-left: auto;
-  font-size: 11px;
   font-weight: 700;
-  color: #fff;
-  background: #c1440e;
-  border: none;
-  border-radius: 7px;
-  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 8px 12px;
   cursor: pointer;
+  transition: all 0.18s ease;
   white-space: nowrap;
-  transition: opacity 0.15s;
 }
 
-.postBtn:hover {
-  opacity: 0.88;
+.actionButtonGhost {
+  color: #475467;
+  background: #fff;
+  border-color: #ece7e2;
+}
+
+.actionButtonGhost:hover {
+  color: #c1440e;
+  border-color: rgba(193, 68, 14, 0.28);
+  background: rgba(193, 68, 14, 0.06);
+}
+
+.actionButtonPrimary {
+  margin-left: auto;
+  color: #fff;
+  background: linear-gradient(135deg, #cf560f, #b94709);
+  box-shadow: 0 10px 18px rgba(193, 68, 14, 0.22);
+}
+
+.actionButtonPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(193, 68, 14, 0.26);
+}
+
+.actionButtonDanger {
+  color: #c2410c;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.actionButtonDanger:hover {
+  color: #fff;
+  background: #ea580c;
+  border-color: #ea580c;
 }

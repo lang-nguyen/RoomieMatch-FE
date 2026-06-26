@@ -8,7 +8,7 @@ const baseQuery = fetchBaseQuery({
   // tránh browser gọi thẳng BE dẫn tới CORS preflight (OPTIONS).
   baseUrl: import.meta.env.DEV
     ? '/api/v1'
-    : (import.meta.env.VITE_BASE_API || '/api/v1'),
+    : (import.meta.env.VITE_API_URL || '/api/v1'),
   paramsSerializer: serializeQueryParams,
   prepareHeaders: (headers, { getState }) => {
     // Tự động thêm Token vào Header nếu đã đăng nhập.
@@ -36,27 +36,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 // Shared RTK Query base layer for real API calls.
 export const baseApi = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({
-    // Trong môi trường dev luôn gọi relative path để đi qua Vite proxy,
-    // tránh browser gọi thẳng BE dẫn tới CORS preflight (OPTIONS).
-    baseUrl: import.meta.env.DEV
-      ? '/api/v1'
-      : (import.meta.env.VITE_BASE_API || '/api/v1'),
-    paramsSerializer: serializeQueryParams,
-    prepareHeaders: (headers, { getState }) => {
-      // Tự động thêm Token vào Header nếu đã đăng nhập.
-      // Ưu tiên lấy từ redux state, fallback sang localStorage helper.
-      let token = getState?.().auth?.access_token;
-      if (!token) {
-        token = getAccessToken();
-      }
-
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['User', 'Room', 'AdminUsers', 'AdminUserStats', 'AdminUserMeta', 'AdminDashboard', 'Analytics', 'Posts', 'Packages', 'Categories', 'Orders', 'Complaints'],
+  baseQuery: baseQueryWithReauth,
+  tagTypes: ['User', 'Room', 'Review', 'LandlordRooms', 'LandlordPosts', 'LandlordStats', 'LandlordProfile', 'LandlordNotifications', 'RentalRequests', 'Verification', 'AdminUsers', 'AdminUserStats', 'AdminUserMeta', 'AdminDashboard', 'Analytics', 'Posts', 'Packages', 'Categories', 'Orders', 'Complaints'],
   endpoints: () => ({}),
 });

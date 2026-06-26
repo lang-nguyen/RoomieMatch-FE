@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Bell, Shield, Mail, MoreVertical, Plus } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { selectCurrentUser } from '../../features/auth/slice';
 import NotificationPanel from '../../features/landlord/components/NotificationPanel';
 import VerificationModal from '../../features/landlord/components/VerificationModal';
@@ -12,6 +13,7 @@ import styles from './UserInfoPanel.module.css';
  */
 const UserInfoPanel = ({ ownedRooms = [], chartData = [] }) => {
   const user = useSelector(selectCurrentUser);
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
 
@@ -99,7 +101,7 @@ const UserInfoPanel = ({ ownedRooms = [], chartData = [] }) => {
           <div className={styles.ownedBlock}>
             <div className={styles.ownedHeader}>
               <span className={styles.ownedTitle}>Phòng Thuộc Sở Hữu Của Bạn</span>
-              <button className={styles.addBtn} title="Thêm phòng">
+              <button className={styles.addBtn} title="Thêm phòng" onClick={() => navigate('/landlord/rooms/add')}>
                 <Plus size={14} />
               </button>
             </div>
@@ -117,14 +119,14 @@ const UserInfoPanel = ({ ownedRooms = [], chartData = [] }) => {
                       <div className={styles.ownedName}>{room.name}</div>
                       <div className={styles.ownedCode}>Mã Trọ: {room.code}</div>
                     </div>
-                    <button className={styles.detailBtn}>Chi Tiết</button>
+                    <button className={styles.detailBtn} onClick={() => navigate(`/landlord/rooms/${room.id}/edit`)}>Chi Tiết</button>
                   </div>
                 ))
               )}
             </div>
 
             {ownedRooms.length > 0 && (
-              <button className={styles.viewAllBtn}>Xem tất cả</button>
+              <button className={styles.viewAllBtn} onClick={() => navigate('/landlord/rooms')}>Xem tất cả</button>
             )}
           </div>
         </>

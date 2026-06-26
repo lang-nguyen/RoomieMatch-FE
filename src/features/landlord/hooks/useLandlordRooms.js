@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useGetLandlordRoomsQuery, useDeleteRoomMutation } from '../api/landlordApiMock';
+import { useGetLandlordRoomsQuery, useDeleteRoomMutation } from '../api/landlordApi';
 import { setRoomFilters, setRoomsPage, selectRoomFilters, selectRoomsPage } from '../slice';
 
 const PAGE_SIZE = 6;

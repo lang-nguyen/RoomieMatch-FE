@@ -1,18 +1,21 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useEffect, useMemo, useState } from 'react';
 import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
+import { getAccessToken } from '../../../shared/utils/authToken';
 import {
   useCreateAdminUserMutation,
   useDeleteAdminUserMutation,
   useGetAdminUserStatsQuery,
   useGetAdminUsersQuery,
+  useGetLandlordVerificationsQuery,
   useGetUserMetaQuery,
   useLazyGetAdminUserByIdQuery,
   useUpdateAdminUserMutation,
   useUpdateAdminUserStatusMutation,
+  useUpdateLandlordVerificationMutation,
 } from '../api/adminApi';
-import { AdminIcon } from './adminIconMap';
 import { formatNumber, labelFromOptions, normalizeText } from './adminFeatureUtils';
+import { AdminIcon } from './adminIconMap';
 import styles from './AdminDashboard.module.css';
 
 const PAGE_SIZE = 6;
@@ -44,7 +47,43 @@ const normalizeUser = (user = {}, roleOptions = [], statusOptions = []) => ({
   updatedAt: user.updated_at || null,
 });
 
-export const UsersTab = () => {
+const getVerificationMeta = (verification, stylesRef) => {
+  if (!verification) {
+    return {
+      label: 'Chưa xác minh',
+      className: stylesRef.badgeInfo,
+      title: 'Chủ trọ chưa gửi hồ sơ xác minh.',
+      showDecisionActions: false,
+    };
+  }
+
+  if (verification.status === 'approved') {
+    return {
+      label: 'Đã xác minh',
+      className: stylesRef.badgeSuccess,
+      title: 'Hồ sơ CCCD đã được admin xác nhận.',
+      showDecisionActions: false,
+    };
+  }
+
+  if (verification.status === 'rejected') {
+    return {
+      label: 'Bị từ chối',
+      className: stylesRef.badgeDanger,
+      title: verification.rejection_reason || 'Hồ sơ đã bị từ chối, có thể cần nộp lại.',
+      showDecisionActions: false,
+    };
+  }
+
+  return {
+    label: 'Cần duyệt CCCD',
+    className: stylesRef.badgeWarning,
+    title: 'Hồ sơ đang chờ admin duyệt.',
+    showDecisionActions: true,
+  };
+};
+
+export const UsersTab = ({ verificationFocusId = null, onVerificationFocusHandled = () => {} }) => {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [role, setRole] = useState('');
@@ -55,6 +94,7 @@ export const UsersTab = () => {
   const [formError, setFormError] = useState('');
   const [toast, setToast] = useState(null);
   const [confirmation, setConfirmation] = useState(null);
+  const [selectedVerification, setSelectedVerification] = useState(null);
   const [form, setForm] = useState(buildEmptyForm());
 
   const { data: meta, isLoading: isMetaLoading } = useGetUserMetaQuery();
@@ -83,22 +123,44 @@ export const UsersTab = () => {
     error,
     refetch: refetchUsers,
   } = useGetAdminUsersQuery(queryParams);
+
   const [fetchUserById, { isFetching: isFetchingDetail }] = useLazyGetAdminUserByIdQuery();
   const [createUser, { isLoading: isCreating }] = useCreateAdminUserMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateAdminUserMutation();
   const [updateUserStatus, { isLoading: isChangingStatus }] = useUpdateAdminUserStatusMutation();
   const [deleteUser, { isLoading: isDeleting }] = useDeleteAdminUserMutation();
+  const { data: pendingVerifications = [] } = useGetLandlordVerificationsQuery({ status: 'pending' });
+  const { data: allVerifications = [] } = useGetLandlordVerificationsQuery();
+  const [updateVerification, verificationState] = useUpdateLandlordVerificationMutation();
 
   const users = useMemo(
     () => (usersResponse?.items ?? []).map((user) => normalizeUser(user, roleOptions, statusOptions)),
     [roleOptions, statusOptions, usersResponse?.items]
   );
 
+  const latestVerificationByAccountId = useMemo(() => {
+    const map = new Map();
+    allVerifications.forEach((item) => {
+      if (!map.has(item.account_id)) map.set(item.account_id, item);
+    });
+    return map;
+  }, [allVerifications]);
+
+  const pendingVerificationByAccountId = useMemo(
+    () => new Map(pendingVerifications.map((item) => [item.account_id, item])),
+    [pendingVerifications]
+  );
+
+  const verificationById = useMemo(
+    () => new Map(allVerifications.map((item) => [item.id, item])),
+    [allVerifications]
+  );
+
   const summary = useMemo(
     () => ({
       admin: [
         { label: 'Tổng quản trị viên', value: stats?.total_admins ?? 0, icon: 'shield' },
-        { label: 'Quản trị viên đang hoạt động', value: stats?.active_admins ?? 0, icon: 'activity' },
+        { label: 'Quản trị viên hoạt động', value: stats?.active_admins ?? 0, icon: 'activity' },
       ],
       users: [
         { label: 'Tổng người dùng', value: stats?.total_users ?? 0, icon: 'users' },
@@ -112,9 +174,7 @@ export const UsersTab = () => {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setDebouncedSearch(search.trim());
-    }, 400);
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 400);
     return () => window.clearTimeout(timer);
   }, [search]);
 
@@ -123,6 +183,15 @@ export const UsersTab = () => {
     const timer = window.setTimeout(() => setToast(null), 3200);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    if (!verificationFocusId) return;
+    const item = verificationById.get(verificationFocusId);
+    if (!item) return;
+    setRole('landlord');
+    setSelectedVerification(item);
+    onVerificationFocusHandled();
+  }, [onVerificationFocusHandled, verificationById, verificationFocusId]);
 
   const refreshUsersAndStats = () => {
     refetchUsers();
@@ -180,6 +249,9 @@ export const UsersTab = () => {
     setForm(buildEmptyForm(activeRole));
   };
 
+  const openVerificationReview = (item) => setSelectedVerification(item);
+  const closeVerificationReview = () => setSelectedVerification(null);
+
   const handleSave = async (event) => {
     event.preventDefault();
     const shouldUpdatePassword = !editingUser || isPasswordEditOpen;
@@ -219,9 +291,7 @@ export const UsersTab = () => {
     }
   };
 
-  const requestDelete = (user) => {
-    setConfirmation({ type: 'delete', user });
-  };
+  const requestDelete = (user) => setConfirmation({ type: 'delete', user });
 
   const requestStatusChange = (user) => {
     const nextStatus = user.status === 'blocked' ? 'active' : 'blocked';
@@ -250,6 +320,32 @@ export const UsersTab = () => {
     }
   };
 
+  const handleVerification = async (item, nextStatus) => {
+    const reason = nextStatus === 'rejected' ? window.prompt('Nhập lý do từ chối hồ sơ:') : null;
+    if (nextStatus === 'rejected' && !reason) return;
+
+    try {
+      await updateVerification({ id: item.id, status: nextStatus, reason }).unwrap();
+      setSelectedVerification((current) => (current ? { ...current, status: nextStatus, rejection_reason: reason ?? null } : null));
+      showSuccess('Đã cập nhật hồ sơ xác minh.');
+      refreshUsersAndStats();
+    } catch (verificationError) {
+      showError(getApiErrorMessage(verificationError, 'Không thể duyệt hồ sơ.'));
+    }
+  };
+
+  const openVerificationImage = async (url) => {
+    try {
+      const response = await fetch(url, { headers: { Authorization: `Bearer ${getAccessToken()}` } });
+      if (!response.ok) throw new Error('Không thể tải ảnh');
+      const objectUrl = URL.createObjectURL(await response.blob());
+      window.open(objectUrl, '_blank', 'noopener,noreferrer');
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (imageError) {
+      showError(imageError.message);
+    }
+  };
+
   const shouldShowPasswordFields = !editingUser || isPasswordEditOpen;
   const isPasswordInvalid = shouldShowPasswordFields && (!form.password || form.password !== form.passwordConfirm);
   const isFormBusy = isCreating || isUpdating || isFetchingDetail;
@@ -258,6 +354,13 @@ export const UsersTab = () => {
   const totalPages = usersResponse?.total_pages ?? 1;
   const currentPage = usersResponse?.page ?? page;
   const hasUsers = users.length > 0;
+
+  const selectedVerificationUser = selectedVerification
+    ? users.find((user) => user.id === selectedVerification.account_id) || editingUser
+    : null;
+  const selectedVerificationMeta = getVerificationMeta(selectedVerification, styles);
+  const editingUserVerification = editingUser ? latestVerificationByAccountId.get(editingUser.id) : null;
+  const editingUserVerificationMeta = getVerificationMeta(editingUserVerification, styles);
 
   return (
     <div className={styles.featureStack}>
@@ -375,6 +478,7 @@ export const UsersTab = () => {
                   <th>Email</th>
                   <th>Số điện thoại</th>
                   <th>Vai trò</th>
+                  <th>Xác minh</th>
                   <th>Trạng thái</th>
                   <th>Thao tác</th>
                 </tr>
@@ -382,46 +486,78 @@ export const UsersTab = () => {
               <tbody>
                 {isLoading || isMetaLoading ? (
                   <tr>
-                    <td colSpan="7">Đang tải người dùng...</td>
+                    <td colSpan="8">Đang tải người dùng...</td>
                   </tr>
                 ) : hasUsers ? (
-                  users.map((user) => (
-                    <tr key={user.id}>
-                      <td>{user.id}</td>
-                      <td className={styles.strongCell}>{user.username}</td>
-                      <td>{user.email}</td>
-                      <td>{user.phone || <span className={styles.subText}>Chưa cập nhật</span>}</td>
-                      <td>
-                        <span className={`${styles.dataBadge} ${styles.badgeInfo}`}>{user.displayRoleLabel}</span>
-                      </td>
-                      <td>
-                        <span className={`${styles.dataBadge} ${user.status === 'blocked' ? styles.badgeDanger : styles.badgeSuccess}`}>
-                          {user.statusLabel}
-                        </span>
-                      </td>
-                      <td>
-                        <div className={styles.actionGroup}>
-                          <button type="button" className={styles.actionButton} title="Sửa" onClick={() => openEditModal(user)}>
-                            <AdminIcon name="edit" size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.actionButton}
-                            title={user.status === 'blocked' ? 'Mở khóa' : 'Khóa'}
-                            onClick={() => requestStatusChange(user)}
-                          >
-                            <AdminIcon name={user.status === 'blocked' ? 'unlock' : 'lock'} size={14} />
-                          </button>
-                          <button type="button" className={styles.actionButton} title="Xóa" onClick={() => requestDelete(user)}>
-                            <AdminIcon name="trash" size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                  users.map((user) => {
+                    const latestVerification = latestVerificationByAccountId.get(user.id);
+                    const pendingVerification = pendingVerificationByAccountId.get(user.id);
+                    const verificationMeta = getVerificationMeta(latestVerification, styles);
+
+                    return (
+                      <tr key={user.id}>
+                        <td>{user.id}</td>
+                        <td className={styles.strongCell}>{user.username}</td>
+                        <td>{user.email}</td>
+                        <td>{user.phone || <span className={styles.subText}>Chưa cập nhật</span>}</td>
+                        <td>
+                          <span className={`${styles.dataBadge} ${styles.badgeInfo}`}>{user.displayRoleLabel}</span>
+                        </td>
+                        <td>
+                          {user.displayRole === 'landlord' ? (
+                            <button
+                              type="button"
+                              className={`${styles.dataBadge} ${verificationMeta.className} ${styles.statusFilterBadge}`}
+                              onClick={() => latestVerification && openVerificationReview(latestVerification)}
+                              disabled={!latestVerification}
+                              title={verificationMeta.title}
+                            >
+                              <AdminIcon name="shield" size={12} />
+                              {verificationMeta.label}
+                            </button>
+                          ) : (
+                            <span className={styles.subText}>Không áp dụng</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`${styles.dataBadge} ${user.status === 'blocked' ? styles.badgeDanger : styles.badgeSuccess}`}>
+                            {user.statusLabel}
+                          </span>
+                        </td>
+                        <td>
+                          <div className={styles.actionGroup}>
+                            {pendingVerification && (
+                              <button
+                                type="button"
+                                className={styles.actionButton}
+                                title="Duyệt CCCD"
+                                onClick={() => openVerificationReview(pendingVerification)}
+                              >
+                                <AdminIcon name="shield" size={14} />
+                              </button>
+                            )}
+                            <button type="button" className={styles.actionButton} title="Sửa" onClick={() => openEditModal(user)}>
+                              <AdminIcon name="edit" size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.actionButton}
+                              title={user.status === 'blocked' ? 'Mở khóa' : 'Khóa'}
+                              onClick={() => requestStatusChange(user)}
+                            >
+                              <AdminIcon name={user.status === 'blocked' ? 'unlock' : 'lock'} size={14} />
+                            </button>
+                            <button type="button" className={styles.actionButton} title="Xóa" onClick={() => requestDelete(user)}>
+                              <AdminIcon name="trash" size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan="7">Không có người dùng phù hợp.</td>
+                    <td colSpan="8">Không có người dùng phù hợp.</td>
                   </tr>
                 )}
               </tbody>
@@ -460,6 +596,89 @@ export const UsersTab = () => {
                 <AdminIcon name="close" size={15} />
               </button>
             </div>
+
+            {editingUser?.displayRole === 'landlord' && (
+              <div className={styles.inlineVerificationCard}>
+                <div className={styles.inlineVerificationHead}>
+                  <div>
+                    <strong>{editingUserVerificationMeta.label}</strong>
+                    <span>{editingUserVerificationMeta.title}</span>
+                  </div>
+                  <span className={`${styles.dataBadge} ${editingUserVerificationMeta.className}`}>
+                    {editingUserVerification?.status === 'approved'
+                      ? 'Verified'
+                      : editingUserVerification?.status === 'rejected'
+                        ? 'Rejected'
+                        : editingUserVerification?.status === 'pending'
+                          ? 'Pending'
+                          : 'None'}
+                  </span>
+                </div>
+
+                {editingUserVerification ? (
+                  <>
+                    <div className={styles.inlineVerificationMeta}>
+                      <article>
+                        <span>Họ tên theo CCCD</span>
+                        <strong>{editingUserVerification.legal_name || 'Chưa cập nhật'}</strong>
+                      </article>
+                      <article>
+                        <span>Số CCCD</span>
+                        <strong>{editingUserVerification.identity_number || 'Chưa cập nhật'}</strong>
+                      </article>
+                      <article>
+                        <span>Ngày cấp</span>
+                        <strong>{editingUserVerification.issued_date || 'Chưa cập nhật'}</strong>
+                      </article>
+                      <article>
+                        <span>Nơi cấp</span>
+                        <strong>{editingUserVerification.issued_place || 'Chưa cập nhật'}</strong>
+                      </article>
+                    </div>
+
+                    <div className={styles.actionGroup}>
+                      <button type="button" className={styles.buttonSmall} onClick={() => openVerificationImage(editingUserVerification.front_image_url)}>
+                        <AdminIcon name="eye" size={14} />
+                        Mặt trước
+                      </button>
+                      <button type="button" className={styles.buttonSmall} onClick={() => openVerificationImage(editingUserVerification.back_image_url)}>
+                        <AdminIcon name="eye" size={14} />
+                        Mặt sau
+                      </button>
+                      <button type="button" className={styles.buttonSmall} onClick={() => openVerificationReview(editingUserVerification)}>
+                        <AdminIcon name="shield" size={14} />
+                        Mở modal duyệt
+                      </button>
+                      {editingUserVerificationMeta.showDecisionActions && (
+                        <>
+                          <button
+                            type="button"
+                            className={`${styles.buttonSmall} ${styles.buttonPrimary}`}
+                            onClick={() => handleVerification(editingUserVerification, 'approved')}
+                            disabled={verificationState.isLoading}
+                          >
+                            <AdminIcon name="check" size={14} />
+                            Duyệt
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.buttonSmall} ${styles.buttonDanger}`}
+                            onClick={() => handleVerification(editingUserVerification, 'rejected')}
+                            disabled={verificationState.isLoading}
+                          >
+                            <AdminIcon name="close" size={14} />
+                            Từ chối
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.subText}>Chủ trọ này chưa gửi hồ sơ CCCD nên hiện chưa có dữ liệu để duyệt.</div>
+                )}
+              </div>
+            )}
+
             <div className={styles.formGrid}>
               <label>
                 Tên đăng nhập
@@ -470,6 +689,7 @@ export const UsersTab = () => {
                   required
                 />
               </label>
+
               <label>
                 Email liên hệ
                 <input
@@ -480,6 +700,7 @@ export const UsersTab = () => {
                   required
                 />
               </label>
+
               <label>
                 Số điện thoại
                 <input
@@ -488,6 +709,7 @@ export const UsersTab = () => {
                   disabled={isFormBusy}
                 />
               </label>
+
               <label>
                 Vai trò
                 <select value={form.role} onChange={(event) => setForm((value) => ({ ...value, role: event.target.value }))} disabled={isFormBusy}>
@@ -498,6 +720,7 @@ export const UsersTab = () => {
                   ))}
                 </select>
               </label>
+
               {editingUser && (
                 <div className={styles.formWide}>
                   <button
@@ -515,6 +738,7 @@ export const UsersTab = () => {
                   </button>
                 </div>
               )}
+
               {shouldShowPasswordFields && (
                 <div className={`${styles.passwordFields} ${styles.formWide}`}>
                   <label>
@@ -545,6 +769,7 @@ export const UsersTab = () => {
                   </label>
                 </div>
               )}
+
               <label>
                 Trạng thái
                 <select value={form.status} onChange={(event) => setForm((value) => ({ ...value, status: event.target.value }))} disabled={isFormBusy}>
@@ -556,7 +781,9 @@ export const UsersTab = () => {
                 </select>
               </label>
             </div>
+
             {formError && <p className={styles.formError}>{formError}</p>}
+
             <div className={styles.modalActions}>
               <button type="button" className={styles.buttonSmall} onClick={closeModal} disabled={isFormBusy}>
                 Hủy
@@ -566,6 +793,78 @@ export const UsersTab = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {selectedVerification && (
+        <div className={styles.modalOverlay} role="presentation" onMouseDown={closeVerificationReview}>
+          <section className={styles.confirmCard} onMouseDown={(event) => event.stopPropagation()}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Duyệt hồ sơ chủ trọ</h2>
+                <p>
+                  {selectedVerificationUser?.username || selectedVerification.legal_name || 'Chủ trọ'} ·{' '}
+                  {selectedVerificationUser?.email || selectedVerification.email || 'Chưa có email'}
+                </p>
+              </div>
+              <button type="button" className={styles.actionButton} onClick={closeVerificationReview}>
+                <AdminIcon name="close" size={15} />
+              </button>
+            </div>
+
+            <div className={styles.verificationReviewGrid}>
+              <article className={styles.verificationReviewBlock}>
+                <span>Họ tên theo CCCD</span>
+                <strong>{selectedVerification.legal_name || 'Chưa cập nhật'}</strong>
+              </article>
+              <article className={styles.verificationReviewBlock}>
+                <span>Số CCCD</span>
+                <strong>{selectedVerification.identity_number || 'Chưa cập nhật'}</strong>
+              </article>
+              <article className={styles.verificationReviewBlock}>
+                <span>Ngày cấp</span>
+                <strong>{selectedVerification.issued_date || 'Chưa cập nhật'}</strong>
+              </article>
+              <article className={styles.verificationReviewBlock}>
+                <span>Nơi cấp</span>
+                <strong>{selectedVerification.issued_place || 'Chưa cập nhật'}</strong>
+              </article>
+            </div>
+
+            <div className={styles.modalActions}>
+              <span className={`${styles.dataBadge} ${selectedVerificationMeta.className}`}>{selectedVerificationMeta.label}</span>
+              <button type="button" className={styles.buttonSmall} onClick={() => openVerificationImage(selectedVerification.front_image_url)}>
+                <AdminIcon name="eye" size={14} />
+                Xem mặt trước
+              </button>
+              <button type="button" className={styles.buttonSmall} onClick={() => openVerificationImage(selectedVerification.back_image_url)}>
+                <AdminIcon name="eye" size={14} />
+                Xem mặt sau
+              </button>
+              {selectedVerificationMeta.showDecisionActions && (
+                <>
+                  <button
+                    type="button"
+                    className={`${styles.buttonSmall} ${styles.buttonPrimary}`}
+                    onClick={() => handleVerification(selectedVerification, 'approved')}
+                    disabled={verificationState.isLoading}
+                  >
+                    <AdminIcon name="check" size={14} />
+                    Duyệt
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.buttonSmall} ${styles.buttonDanger}`}
+                    onClick={() => handleVerification(selectedVerification, 'rejected')}
+                    disabled={verificationState.isLoading}
+                  >
+                    <AdminIcon name="close" size={14} />
+                    Từ chối
+                  </button>
+                </>
+              )}
+            </div>
+          </section>
         </div>
       )}
 

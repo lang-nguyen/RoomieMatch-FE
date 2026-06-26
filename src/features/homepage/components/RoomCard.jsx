@@ -1,9 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { selectCurrentUser, selectIsAuthenticated } from '../../auth/slice';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
-import { selectIsAuthenticated } from '../../auth/slice';
 import { useGetSavedRoomsQuery, useSavePostMutation, useUnsavePostMutation } from '../../user/api/userApi';
+import { ACCOUNT_TYPES } from '../../../shared/constants/roles';
 import '../Homepage.css';
 
 const DEFAULT_ROOM_IMAGE =
@@ -12,8 +13,10 @@ const DEFAULT_ROOM_IMAGE =
 const RoomCard = ({ room }) => {
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const currentUser = useSelector(selectCurrentUser);
+  const isTenant = currentUser?.account_type === ACCOUNT_TYPES.TENANT;
   const { data: savedRoomsData } = useGetSavedRoomsQuery(undefined, {
-    skip: !isAuthenticated,
+    skip: !isAuthenticated || !isTenant,
   });
   const [savePost, { isLoading: isSaving }] = useSavePostMutation();
   const [unsavePost, { isLoading: isUnsaving }] = useUnsavePostMutation();
@@ -45,6 +48,11 @@ const RoomCard = ({ room }) => {
       return;
     }
 
+    if (!isTenant) {
+      alert('Chi tai khoan khach thue moi co the luu bai dang.');
+      return;
+    }
+
     try {
       if (isSaved) {
         await unsavePost(room.id).unwrap();
@@ -63,10 +71,10 @@ const RoomCard = ({ room }) => {
         <img src={room.image || DEFAULT_ROOM_IMAGE} alt={room.title} className="room-image" onError={handleImageError} />
         <div className="image-gradient"></div>
 
-        {room.verified && (
+        {room.featured && (
           <div className="badge-verified">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Đã xác minh
+            Tin nổi bật{room.boostDaysLeft > 0 ? ` · còn ${room.boostDaysLeft} ngày` : ''}
           </div>
         )}
 

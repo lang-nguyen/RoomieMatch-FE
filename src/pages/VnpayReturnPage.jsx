@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle } from 'lucide-react';
 import styles from './VnpayReturnPage.module.css';
@@ -6,28 +6,32 @@ import styles from './VnpayReturnPage.module.css';
 const VnpayReturnPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState('loading'); // 'loading', 'success', 'fail'
+  const queryString = searchParams.toString();
+  const responseCode = searchParams.get('vnp_ResponseCode');
+  const [status, setStatus] = useState(responseCode === '00' ? 'loading' : 'fail');
   
   useEffect(() => {
-    const vnp_ResponseCode = searchParams.get('vnp_ResponseCode');
-    if (vnp_ResponseCode === '00') {
-      setStatus('success');
-      // Fallback/Hack cho môi trường Dev (khi BE không có IP Public để VNPAY gọi Webhook):
-      // Gửi thẳng request IPN từ FE xuống BE cùng các tham số từ VNPAY để xác nhận thanh toán.
-      // (Trong production, BE đã xác thực IPN bằng SecureHash nên gọi thế này cũng an toàn vì request idempotent)
-      fetch(`/api/v1/payments/vnpay/ipn?${searchParams.toString()}`)
-        .then(res => res.json())
-        .then(data => console.log('IPN local fallback result:', data))
-        .catch(err => console.error('IPN local fallback error:', err));
-    } else {
-      setStatus('fail');
-    }
-  }, [searchParams]);
+    if (responseCode !== '00') return;
+
+    // Backend xác thực checksum, số tiền và trạng thái giao dịch trước khi FE báo thành công.
+    fetch(`/api/v1/payments/vnpay/ipn?${queryString}`)
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((data) => setStatus(['00', '02'].includes(data.RspCode) ? 'success' : 'fail'))
+      .catch((error) => {
+        console.error('VNPAY verification error:', error);
+        setStatus('fail');
+      });
+  }, [queryString, responseCode]);
 
   const amount = searchParams.get('vnp_Amount') ? parseInt(searchParams.get('vnp_Amount')) / 100 : 0;
   const bankCode = searchParams.get('vnp_BankCode') || 'N/A';
   const orderInfo = searchParams.get('vnp_OrderInfo') || '';
   const txnRef = searchParams.get('vnp_TxnRef') || '';
+  const user = (() => { try { return JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch { return null; } })();
+  const benefitsPath = user?.account_type === 'landlord' ? '/landlord/package-management' : '/user/package-management';
 
   return (
     <div className={styles.container}>
@@ -70,7 +74,7 @@ const VnpayReturnPage = () => {
             </div>
 
             <div className={styles.actionButtons}>
-              <button className={styles.primaryBtn} onClick={() => navigate('/user/package-management')}>
+              <button className={styles.primaryBtn} onClick={() => navigate(benefitsPath)}>
                 Xem quyền lợi
               </button>
               <button className={styles.secondaryBtn} onClick={() => navigate('/')}>
@@ -91,7 +95,7 @@ const VnpayReturnPage = () => {
             </p>
 
             <div className={styles.actionButtons}>
-              <button className={styles.primaryBtnFail} onClick={() => navigate('/user/package-management')}>
+              <button className={styles.primaryBtnFail} onClick={() => navigate(benefitsPath)}>
                 Thử lại ngay
               </button>
               <button className={styles.secondaryBtn} onClick={() => navigate('/')}>

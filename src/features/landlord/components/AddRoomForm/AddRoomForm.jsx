@@ -16,7 +16,7 @@ const STEPS = [
 
 const AddRoomForm = () => {
   const navigate = useNavigate();
-  const { currentStep, goToStep } = useAddRoomForm();
+  const { currentStep, goToStep, isEditing } = useAddRoomForm();
 
   const renderStep = () => {
     switch (currentStep) {
@@ -33,8 +33,8 @@ const AddRoomForm = () => {
       {/* Header */}
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Thêm Trợ Mới</h1>
-          <p className={styles.subtitle}>Điền đầy đủ thông tin để tạo hồ sơ phòng trọ</p>
+          <h1 className={styles.title}>{isEditing ? 'Chỉnh sửa phòng trọ' : 'Thêm trọ mới'}</h1>
+          <p className={styles.subtitle}>{isEditing ? 'Cập nhật thông tin và bổ sung hình ảnh phòng trọ' : 'Điền đầy đủ thông tin để tạo hồ sơ phòng trọ'}</p>
         </div>
         <div className={styles.actions}>
           <button className={styles.backBtn} onClick={() => navigate('/landlord/rooms')}>

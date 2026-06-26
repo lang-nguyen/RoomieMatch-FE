@@ -1,47 +1,57 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { selectIsAuthenticated } from '../../auth/slice';
-import { useGetSavedRoomsQuery, useSavePostMutation, useUnsavePostMutation } from '../../user/api/userApi';
-import ConfirmModal from '../../../shared/components/ConfirmModal';
 import { X } from 'lucide-react';
+import { selectIsAuthenticated } from '../../auth/slice';
+import { useCreateRentalRequestMutation, useGetSavedRoomsQuery, useRevealPostContactMutation, useSavePostMutation, useUnsavePostMutation } from '../../user/api/userApi';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 
-const RoomDetailSidebar = ({ price, deposit, owner, contact, reference, roomId }) => {
-  const [showContact, setShowContact] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [alertModal, setAlertModal] = useState({ isOpen: false, type: 'alert', message: '', title: 'Thông báo' });
+const RoomDetailSidebar = ({ price, deposit, owner, reference, roomId, postId, postStatus }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showContact, setShowContact] = useState(false);
+  const [showRentalRequest, setShowRentalRequest] = useState(false);
+  const [contactData, setContactData] = useState(null);
+  const [rentalForm, setRentalForm] = useState({ startDate: new Date().toISOString().slice(0, 10), note: '' });
+  const [alertModal, setAlertModal] = useState({ isOpen: false, message: '', title: 'Thông báo' });
+  const { data: savedRoomsData } = useGetSavedRoomsQuery(undefined, { skip: !isAuthenticated });
+  const [savePost, saveState] = useSavePostMutation();
+  const [unsavePost, unsaveState] = useUnsavePostMutation();
+  const [revealContact, revealState] = useRevealPostContactMutation();
+  const [createRentalRequest, requestState] = useCreateRentalRequestMutation();
+  const isSaved = savedRoomsData?.items?.some((item) => String(item.post_id) === String(postId)) || false;
 
-  const { data: savedRoomsData } = useGetSavedRoomsQuery(undefined, {
-    skip: !isAuthenticated,
-  });
-  const [savePost, { isLoading: isSaving }] = useSavePostMutation();
-  const [unsavePost, { isLoading: isUnsaving }] = useUnsavePostMutation();
-  
-  const isSaved = savedRoomsData?.items?.some((item) => String(item.post_id) === String(roomId)) || false;
+  const requireAuth = (callback) => (isAuthenticated ? callback() : setShowLoginModal(true));
+  const showError = (error, fallback) => setAlertModal({ isOpen: true, title: 'Thông báo', message: error?.data?.detail || fallback });
 
-  const handleAction = (actionCallback) => {
-    if (!isAuthenticated) {
-      setShowLoginModal(true);
-      return;
+  const handleSave = async () => {
+    try {
+      await (isSaved ? unsavePost(postId) : savePost(postId)).unwrap();
+    } catch (error) {
+      showError(error, 'Không thể cập nhật danh sách đã lưu.');
     }
-    actionCallback();
   };
 
-  const handleSaveClick = async () => {
-    if (!roomId) return;
+  const handleContact = async () => {
     try {
-      if (isSaved) {
-        await unsavePost(roomId).unwrap();
-      } else {
-        await savePost(roomId).unwrap();
-      }
-    } catch (err) {
-      console.error('Error toggling wishlist:', err);
-      setAlertModal({ isOpen: true, type: 'alert', message: 'Đã xảy ra lỗi khi lưu bài viết. Vui lòng thử lại.', title: 'Lỗi' });
+      setContactData(await revealContact({ postId }).unwrap());
+      setShowContact(true);
+    } catch (error) {
+      showError(error, 'Không thể mở thông tin liên hệ.');
+    }
+  };
+
+  const handleRentalSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      await createRentalRequest({ postId, startDate: rentalForm.startDate, note: rentalForm.note }).unwrap();
+      setShowRentalRequest(false);
+      showError(null, 'Đã gửi xác nhận thuê cho chủ trọ.');
+    } catch (error) {
+      showError(error, 'Không thể gửi xác nhận thuê.');
     }
   };
 
@@ -54,46 +64,22 @@ const RoomDetailSidebar = ({ price, deposit, owner, contact, reference, roomId }
       </div>
 
       <div className="room-detail-sidebar-actions">
+        <button type="button" className="room-detail-action primary" disabled={revealState.isLoading} onClick={() => requireAuth(handleContact)}>
+          {revealState.isLoading ? 'Đang tải...' : 'Xem liên hệ'}
+        </button>
         <button
           type="button"
           className="room-detail-action primary"
-          onClick={() => handleAction(() => setShowContact((prev) => !prev))}
+          onClick={() => requireAuth(() => setShowRentalRequest(true))}
+          disabled={postStatus !== 'active'}
+          style={postStatus !== 'active' ? { opacity: 0.6, cursor: 'not-allowed', backgroundColor: '#94a3b8' } : {}}
         >
-          Quan tâm
+          {postStatus !== 'active' ? 'Tin đã đóng / đã thuê' : 'Xác nhận đang thuê'}
         </button>
-        <button 
-          type="button" 
-          className="room-detail-action ghost"
-          style={{ color: isSaved ? '#D45B13' : 'inherit' }}
-          disabled={isSaving || isUnsaving}
-          onClick={() => handleAction(handleSaveClick)}
-        >
-           {isSaved ? 'Đã lưu' : 'Lưu'}
+        <button type="button" className="room-detail-action ghost" disabled={saveState.isLoading || unsaveState.isLoading} onClick={() => requireAuth(handleSave)}>
+          {isSaved ? 'Đã lưu' : 'Lưu'}
         </button>
       </div>
-
-      {showContact && contact && createPortal(
-        <div className="modal-overlay" onClick={() => setShowContact(false)}>
-          <div className="room-detail-contact" onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
-            <button type="button" className="modal-close-btn" onClick={() => setShowContact(false)} style={{ position: 'absolute', top: '12px', right: '12px' }}>
-              <X size={24} />
-            </button>
-            <div className="room-detail-contact-header" style={{ justifyContent: 'center' }}>
-              <p style={{ fontSize: '18px', margin: 0 }}>Thông tin liên hệ</p>
-            </div>
-            <div className="room-detail-contact-body">
-              <div className="room-detail-contact-avatar">{owner.initials}</div>
-              <div className="room-detail-contact-name">{owner.name}</div>
-              <div className="room-detail-contact-role">{owner.role}</div>
-            </div>
-            <button type="button" className="room-detail-contact-btn phone">📞 {contact.phone}</button>
-            <button type="button" className="room-detail-contact-btn zalo">💬 {contact.zalo}</button>
-            <button type="button" className="room-detail-contact-btn facebook">f {contact.facebook}</button>
-            <button type="button" className="room-detail-contact-btn email">✉ {contact.email}</button>
-          </div>
-        </div>,
-        document.body
-      )}
 
       <div className="room-detail-sidebar-card">
         <div className="room-detail-owner">
@@ -103,7 +89,7 @@ const RoomDetailSidebar = ({ price, deposit, owner, contact, reference, roomId }
             <p className="room-detail-owner-role">{owner.role}</p>
           </div>
         </div>
-        <div className="room-detail-owner-note">"{owner.note}"</div>
+        <div className="room-detail-owner-note">“{owner.note}”</div>
       </div>
 
       <div className="room-detail-sidebar-card">
@@ -118,24 +104,93 @@ const RoomDetailSidebar = ({ price, deposit, owner, contact, reference, roomId }
         </div>
       </div>
 
+      {showContact && contactData && createPortal(
+        <div className="modal-overlay" onClick={() => setShowContact(false)}>
+          <div className="room-detail-contact" onClick={(event) => event.stopPropagation()} style={{ width: '90%', maxWidth: 400, position: 'relative' }}>
+            <button type="button" className="modal-close-btn" onClick={() => setShowContact(false)}>
+              <X size={24} />
+            </button>
+            <h3>Thông tin liên hệ</h3>
+            <p>{contactData.name || owner.name}</p>
+            <p>📞 {contactData.phone || 'Chưa cập nhật'}</p>
+            <p>{contactData.social || 'Chưa có liên hệ khác'}</p>
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {showRentalRequest && createPortal(
+        <div className="modal-overlay" onClick={() => setShowRentalRequest(false)}>
+          <form className="modal-container rental-confirm-modal" onSubmit={handleRentalSubmit} onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="modal-close-btn" onClick={() => setShowRentalRequest(false)}>
+              <X size={20} />
+            </button>
+
+            <div className="modal-header">
+              <h3 className="modal-title">Xác nhận đang thuê phòng</h3>
+            </div>
+
+            <div className="modal-body rental-confirm-body">
+              <div className="rental-confirm-field">
+                <label className="rental-confirm-label">Ngày bắt đầu</label>
+                <input
+                  required
+                  type="date"
+                  className="rental-confirm-input"
+                  value={rentalForm.startDate}
+                  onChange={(event) => setRentalForm((current) => ({ ...current, startDate: event.target.value }))}
+                />
+              </div>
+
+              <div className="rental-confirm-field">
+                <label className="rental-confirm-label">Ghi chú</label>
+                <textarea
+                  maxLength={1000}
+                  className="rental-confirm-textarea"
+                  placeholder="Nhập ghi chú cho chủ trọ..."
+                  value={rentalForm.note}
+                  onChange={(event) => setRentalForm((current) => ({ ...current, note: event.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="modal-btn modal-btn-cancel"
+                onClick={() => setShowRentalRequest(false)}
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="modal-btn modal-btn-confirm rental-confirm-submit-btn"
+                disabled={requestState.isLoading}
+              >
+                {requestState.isLoading ? 'Đang gửi...' : 'Gửi cho chủ trọ'}
+              </button>
+            </div>
+          </form>
+        </div>,
+        document.body,
+      )}
+
       <ConfirmModal
         isOpen={showLoginModal}
         title="Yêu cầu đăng nhập"
-        message="Vui lòng đăng nhập để xem thông tin liên hệ và lưu phòng!"
+        message="Vui lòng đăng nhập bằng tài khoản khách thuê để tiếp tục."
         confirmText="Đăng nhập ngay"
         cancelText="Đóng"
         onConfirm={() => navigate('/login', { state: { from: location } })}
         onCancel={() => setShowLoginModal(false)}
       />
-
       <ConfirmModal
         isOpen={alertModal.isOpen}
         title={alertModal.title}
         message={alertModal.message}
         confirmText="Đóng"
-        type={alertModal.type}
-        onConfirm={() => setAlertModal({ ...alertModal, isOpen: false })}
-        onCancel={() => setAlertModal({ ...alertModal, isOpen: false })}
+        onConfirm={() => setAlertModal((current) => ({ ...current, isOpen: false }))}
+        onCancel={() => setAlertModal((current) => ({ ...current, isOpen: false }))}
       />
     </aside>
   );

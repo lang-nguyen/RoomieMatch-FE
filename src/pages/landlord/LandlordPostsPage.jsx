@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Edit3,
   Eye,
   Flame,
   Grid2X2,
@@ -12,16 +11,16 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   useBoostLandlordPostMutation,
   useCancelPostBoostMutation,
-  useCreateLandlordPostMutation,
   useDeleteLandlordPostMutation,
   useGetLandlordPostsQuery,
-} from '../../features/landlord/api/landlordApiMock';
+} from '../../features/landlord/api/landlordApi';
 import LandlordMiniHeader from '../../features/landlord/components/LandlordMiniHeader';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
-import PostFormModal from '../../features/landlord/components/PostFormModal';
+
 import PostStatusBadge from '../../features/landlord/components/PostStatusBadge';
 import styles from './LandlordPostsPage.module.css';
 
@@ -31,44 +30,48 @@ const STATUS_FILTERS = [
   { value: 'approved', label: 'Đã duyệt', countKey: 'approved' },
   { value: 'boosted', label: 'Đang đẩy nổi bật', countKey: 'boosted' },
   { value: 'rejected', label: 'Từ chối', countKey: 'rejected' },
+  { value: 'closed', label: 'Đã đóng', countKey: 'closed' },
 ];
 
-const formatCompact = (value) => {
-  if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 1 : 1)}k`;
-  return String(value);
+const formatCompact = (value = 0) => {
+  const numeric = Number(value) || 0;
+  if (numeric >= 1000) return `${(numeric / 1000).toFixed(1)}k`;
+  return String(numeric);
 };
 
-const formatDate = (date) =>
-  new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(date));
+const formatDate = (date) => {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return '--';
+  return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
+};
 
-const MetricCard = ({ tone, icon, value, label, sub }) => (
+const MetricCard = ({ tone, icon, value, label }) => (
   <div className={`${styles.metricCard} ${styles[tone] || ''}`}>
     <span className={styles.metricIcon}>{icon}</span>
     <div>
       <strong>{value}</strong>
       <span>{label}</span>
-      {sub ? <em>{sub}</em> : null}
     </div>
   </div>
 );
 
 const BoostTrend = ({ data }) => {
-  const max = Math.max(...data.map((item) => item.views), 1);
+  const max = Math.max(...data.map((item) => item.likes || item.views || 0), 1);
 
   return (
     <div className={styles.trendCard}>
       <div className={styles.trendHead}>
-        <strong>Tăng trưởng lượt xem & like (7 ngày)</strong>
+        <strong>Tăng trưởng lượt xem và lượt lưu trong 7 ngày</strong>
         <div>
           <span className={styles.legendViews}>Lượt xem</span>
-          <span className={styles.legendLikes}>Like</span>
+          <span className={styles.legendLikes}>Lượt lưu</span>
         </div>
       </div>
       <div className={styles.trendBars}>
         {data.map((item) => (
           <div key={item.label} className={styles.trendCol}>
-            <span className={styles.viewLine} style={{ width: `${Math.max(18, (item.views / max) * 100)}%` }} />
-            <span className={styles.likeLine} style={{ width: `${Math.max(14, (item.likes / max) * 100)}%` }} />
+            <span className={styles.viewLine} style={{ width: `${Math.max(18, ((item.views || 0) / max) * 100)}%` }} />
+            <span className={styles.likeLine} style={{ width: `${Math.max(14, ((item.likes || 0) / max) * 100)}%` }} />
             <small>{item.label}</small>
           </div>
         ))}
@@ -92,13 +95,13 @@ const BoostedList = ({ posts, onBoost, onCancel }) => (
           <div className={styles.boostBody}>
             <h3>{post.title}</h3>
             <div className={styles.postMeta}>
-              <span>{post.author}</span>
+              <span>{post.room_code || post.code}</span>
               <span>{formatCompact(post.views)} lượt xem</span>
-              <span>♥ {post.likes}</span>
-              <span>💬 {post.comments}</span>
+              <span>{formatCompact(post.likes)} lượt lưu</span>
+              <span>{formatCompact(post.comments)} bình luận</span>
             </div>
             <div className={styles.tags}>
-              {post.badges.map((badge) => <span key={badge}>{badge}</span>)}
+              {(post.badges || []).map((badge) => <span key={badge}>{badge}</span>)}
             </div>
             <div className={styles.progressRow}>
               <span>Thời gian còn lại</span>
@@ -115,7 +118,7 @@ const BoostedList = ({ posts, onBoost, onCancel }) => (
             </button>
             <button className={styles.ghostDanger} onClick={() => onCancel(post.id)}>
               <X size={12} />
-              Yêu cầu hủy nổi bật
+              Hủy nổi bật
             </button>
           </div>
         </article>
@@ -124,22 +127,28 @@ const BoostedList = ({ posts, onBoost, onCancel }) => (
   </div>
 );
 
+const PostThumbnail = ({ post }) => (
+  <div className={styles.thumb}>
+    {post.thumbnail ? <img src={post.thumbnail} alt="" /> : <Search size={13} />}
+  </div>
+);
+
 const LandlordPostsPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
-  const [modalOpen, setModalOpen] = useState(false);
+
 
   const boostedOnly = activeTab === 'boosted';
-  const { data, isLoading, isFetching, refetch } = useGetLandlordPostsQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useGetLandlordPostsQuery({
     page,
     pageSize: 8,
     search,
     status: boostedOnly ? '' : status,
     boostedOnly,
   });
-  const [createPost, createState] = useCreateLandlordPostMutation();
   const [deletePost] = useDeleteLandlordPostMutation();
   const [boostPost] = useBoostLandlordPostMutation();
   const [cancelBoost] = useCancelPostBoostMutation();
@@ -150,17 +159,11 @@ const LandlordPostsPage = () => {
   const totalPages = data?.total_pages ?? 1;
 
   const metrics = useMemo(() => {
-    const totalViews = posts.reduce((sum, post) => sum + post.views, 0);
-    const totalLikes = posts.reduce((sum, post) => sum + post.likes, 0);
-    const totalDays = posts.reduce((sum, post) => sum + post.boostDaysLeft, 0);
+    const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0);
+    const totalLikes = posts.reduce((sum, post) => sum + (post.likes || 0), 0);
+    const totalDays = posts.reduce((sum, post) => sum + (post.boostDaysLeft || 0), 0);
     return { totalViews, totalLikes, totalDays };
   }, [posts]);
-
-  const handleCreate = async (payload) => {
-    await createPost(payload).unwrap();
-    setModalOpen(false);
-    refetch();
-  };
 
   const handleDelete = async (id) => {
     await deletePost({ id }).unwrap();
@@ -168,8 +171,13 @@ const LandlordPostsPage = () => {
   };
 
   const handleBoost = async (id) => {
-    await boostPost({ id, days: 7 }).unwrap();
-    refetch();
+    try {
+      await boostPost({ id }).unwrap();
+      refetch();
+    } catch (error) {
+      const message = error?.data?.detail || 'Không thể đẩy nổi bật bài đăng. Vui lòng kiểm tra gói đang sử dụng.';
+      alert(message);
+    }
   };
 
   const handleCancel = async (id) => {
@@ -201,12 +209,12 @@ const LandlordPostsPage = () => {
           <LandlordPageHeader
             icon={Flame}
             title="Bài viết đang đẩy nổi bật"
-            subtitle="Theo dõi tăng trưởng, vị trí hiển thị và quản lý thời gian boost"
+            subtitle="Theo dõi vị trí hiển thị và quản lý thời gian boost"
           />
           <div className={styles.metricGridBoost}>
-            <MetricCard tone="hot" icon="3" value={boostedCount} label="Bài đang đẩy nổi bật" />
+            <MetricCard tone="hot" icon="3" value={boostedCount} label="Bài đang nổi bật" />
             <MetricCard value={formatCompact(metrics.totalViews)} label="Tổng lượt xem" />
-            <MetricCard value={formatCompact(metrics.totalLikes)} label="Tổng lượt thích" />
+            <MetricCard value={formatCompact(metrics.totalLikes)} label="Tổng lượt lưu" />
             <MetricCard value={metrics.totalDays} label="Tổng ngày còn lại" />
           </div>
           <BoostTrend data={data?.engagement ?? []} />
@@ -219,27 +227,27 @@ const LandlordPostsPage = () => {
           <LandlordPageHeader
             icon={List}
             title="Quản lý bài đăng"
-            subtitle="Duyệt, quản lý trạng thái và đẩy nổi bật bài viết"
+            subtitle="Quản lý trạng thái và đẩy nổi bật bài viết"
             actions={(
               <>
-              <button className={styles.primaryBtn} onClick={() => setModalOpen(true)}>
-                <Plus size={15} />
-                Thêm bài đăng
-              </button>
-              <button className={styles.lightBtn} onClick={refetch}>
-                <RefreshCcw size={13} />
-                Làm mới
-              </button>
+                <button className={styles.primaryBtn} onClick={() => navigate('/landlord/rooms?mode=select-for-post')}>
+                  <Plus size={15} />
+                  Thêm bài đăng
+                </button>
+                <button className={styles.lightBtn} onClick={refetch}>
+                  <RefreshCcw size={13} />
+                  Làm mới
+                </button>
               </>
             )}
           />
 
           <div className={styles.metricGrid}>
-            <MetricCard icon="▣" value={counts.total ?? 0} label="Tổng bài viết" sub="+2 hôm nay" />
-            <MetricCard icon="●" value={counts.pending ?? 0} label="Chờ duyệt" sub="3 mới" />
-            <MetricCard tone="green" icon="●" value={counts.approved ?? 0} label="Đã duyệt" sub="12% tuần" />
-            <MetricCard tone="hot" icon="♨" value={counts.boosted ?? 0} label="Đang đẩy nổi bật" sub="2 đang chạy" />
-            <MetricCard tone="red" icon="⊘" value={counts.rejected ?? 0} label="Từ chối" sub="1 tuần qua" />
+            <MetricCard icon="B" value={counts.total ?? 0} label="Tổng bài viết" />
+            <MetricCard icon="C" value={counts.pending ?? 0} label="Chờ duyệt" />
+            <MetricCard tone="green" icon="D" value={counts.approved ?? 0} label="Đã duyệt" />
+            <MetricCard tone="hot" icon="N" value={counts.boosted ?? 0} label="Đang nổi bật" />
+            <MetricCard tone="red" icon="T" value={counts.rejected ?? 0} label="Từ chối" />
           </div>
 
           <div className={styles.filters}>
@@ -279,6 +287,8 @@ const LandlordPostsPage = () => {
               <tbody>
                 {isLoading ? (
                   <tr><td colSpan="6" className={styles.empty}>Đang tải danh sách bài đăng...</td></tr>
+                ) : isError ? (
+                  <tr><td colSpan="6" className={styles.empty}>Không tải được danh sách bài đăng.</td></tr>
                 ) : posts.length === 0 ? (
                   <tr><td colSpan="6" className={styles.empty}>Không có bài đăng phù hợp.</td></tr>
                 ) : posts.map((post) => (
@@ -286,14 +296,14 @@ const LandlordPostsPage = () => {
                     <td><input type="checkbox" /></td>
                     <td>
                       <div className={styles.postCell}>
-                        <div className={styles.thumb}><Search size={13} /></div>
+                        <PostThumbnail post={post} />
                         <div>
                           <strong>{post.title}</strong>
-                          <span>#{post.code}</span>
+                          <span>{post.room_code || post.code}</span>
                         </div>
                       </div>
                     </td>
-                    <td>{formatDate(post.publishedAt)}</td>
+                    <td>{formatDate(post.publishedAt || post.created_at)}</td>
                     <td>
                       <PostStatusBadge
                         status={post.status}
@@ -302,20 +312,19 @@ const LandlordPostsPage = () => {
                     </td>
                     <td>
                       <div className={styles.inlineStats}>
-                        <span>⌾ {formatCompact(post.views)}</span>
-                        <span>♥ {post.likes}</span>
-                        <span>💬 {post.comments}</span>
+                        <span>{formatCompact(post.views)} xem</span>
+                        <span>{formatCompact(post.likes)} lưu</span>
+                        <span>{formatCompact(post.comments)} bình luận</span>
                       </div>
                     </td>
                     <td>
                       <div className={styles.actions}>
-                        <button title="Sửa"><Edit3 size={13} /></button>
                         {post.status !== 'boosted' ? (
                           <button title="Đẩy nổi bật" onClick={() => handleBoost(post.id)}><Flame size={13} /></button>
                         ) : (
                           <button title="Hủy nổi bật" className={styles.dangerIcon} onClick={() => handleCancel(post.id)}><X size={13} /></button>
                         )}
-                        <button title="Xem"><Eye size={13} /></button>
+                        <button title="Xem" onClick={() => navigate(`/landlord/posts/${post.id}`)}><Eye size={13} /></button>
                         <button title="Xóa" onClick={() => handleDelete(post.id)}><Trash2 size={13} /></button>
                       </div>
                     </td>
@@ -336,12 +345,7 @@ const LandlordPostsPage = () => {
         </>
       )}
 
-      <PostFormModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleCreate}
-        isSaving={createState.isLoading}
-      />
+
     </div>
   );
 };

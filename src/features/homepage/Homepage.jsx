@@ -74,7 +74,8 @@ const mapPostToRoom = (post) => ({
   city: post.city || '',
   district: post.district || '',
   ward: post.ward || '',
-  verified: Boolean(post.is_vip),
+  featured: Boolean(post.is_vip),
+  boostDaysLeft: Number(post.boost_days_left) || 0,
   timeAgo: formatRelativeTime(post.created_at),
   image: post.thumbnail || post.image || post.cover_image || DEFAULT_ROOM_IMAGE,
   status: post.status,
@@ -149,7 +150,7 @@ const Homepage = () => {
 
   const handleSearch = () => {
     // Strip empty-string selections (the 'Tất cả' option has value '')
-    const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([_, v]) => v !== ''));
+    const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([, value]) => value !== ''));
     setAppliedFilters(cleaned);
   };
 

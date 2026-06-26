@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Star, X } from 'lucide-react';
-import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCancelRentalRequestMutation, useGetMyRentalRequestsQuery, useGetRentalHistoryQuery } from '../api/userApi';
 import { useAddRoomReviewMutation } from '../../homepage/api/postsApi';
@@ -150,54 +149,6 @@ const RentalHistory = () => {
           ))}
           {filteredRentals.length === 0 && <div>Không tìm thấy lịch sử thuê phòng phù hợp.</div>}
           {rentals.length === 0 && <div>Chưa có lịch sử thuê phòng.</div>}
-        </div>
-      )}
-
-      {reviewModal.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setReviewModal(prev => ({ ...prev, isOpen: false }))}>
-          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '500px', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setReviewModal(prev => ({ ...prev, isOpen: false }))} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
-            <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '18px', color: '#1e293b' }}>Đánh giá phòng trọ</h2>
-            <form onSubmit={handleSubmitReview}>
-              <div style={{ marginBottom: '24px', textAlign: 'center' }}>
-                <label style={{ display: 'block', marginBottom: '12px', fontWeight: '600', color: '#475569', fontSize: '15px' }}>Chất lượng phòng</label>
-                <div style={{ display: 'flex', gap: '8px', cursor: 'pointer', justifyContent: 'center' }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      onClick={() => setReviewModal(prev => ({ ...prev, rating: star }))}
-                      style={{ color: star <= reviewModal.rating ? '#fbbf24' : '#e5e7eb', fontSize: '48px', userSelect: 'none', transition: 'transform 0.1s', lineHeight: '1' }}
-                      onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
-                      onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '14px' }}>Nhận xét</label>
-                <textarea
-                  required
-                  value={reviewModal.comment}
-                  onChange={(e) => setReviewModal(prev => ({ ...prev, comment: e.target.value }))}
-                  placeholder="Chia sẻ trải nghiệm của bạn..."
-                  style={{ width: '100%', minHeight: '100px', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', resize: 'vertical' }}
-                />
-              </div>
-              {reviewModal.error && (
-                <div style={{ padding: '12px', backgroundColor: '#fef2f2', color: '#dc2626', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>
-                  {reviewModal.error}
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button type="button" onClick={() => setReviewModal(prev => ({ ...prev, isOpen: false }))} style={{ padding: '10px 16px', border: '1px solid #cbd5e1', backgroundColor: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#475569' }}>Hủy</button>
-                <button type="submit" disabled={reviewState.isLoading} style={{ padding: '10px 16px', border: 'none', backgroundColor: '#c1440e', color: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-                  {reviewState.isLoading ? 'Đang gửi...' : 'Gửi đánh giá'}
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
 

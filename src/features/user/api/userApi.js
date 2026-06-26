@@ -17,6 +17,13 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
+    changePassword: builder.mutation({
+      query: (passwords) => ({
+        url: '/users/me/password',
+        method: 'PATCH',
+        body: passwords,
+      }),
+    }),
     getSavedRooms: builder.query({
       query: () => ({
         url: '/posts/saved',
@@ -99,6 +106,7 @@ export const userApi = baseApi.injectEndpoints({
 export const {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
+  useChangePasswordMutation,
   useGetSavedRoomsQuery,
   useSavePostMutation,
   useUnsavePostMutation,

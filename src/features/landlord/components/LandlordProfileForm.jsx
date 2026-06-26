@@ -209,13 +209,6 @@ const LandlordProfileForm = () => {
               isEditing={isEditing}
               onChange={handleChange}
             />
-            <InfoRow
-              label="Zalo"
-              name="zalo"
-              value={display?.zalo}
-              isEditing={isEditing}
-              onChange={handleChange}
-            />
           </div>
         </div>
 

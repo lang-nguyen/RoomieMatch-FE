@@ -83,7 +83,6 @@ export const useLandlordProfile = () => {
         gender: ['male', 'female', 'other'].includes(formData.gender) ? formData.gender : null,
         avatar_url: normalizeOptionalText(formData.avatar_url || formData.avatar),
         facebook: normalizeOptionalText(formData.facebook),
-        zalo: normalizeOptionalText(formData.zalo),
         bio: normalizeOptionalText(formData.bio),
         date_of_birth: normalizeDateValue(formData.date_of_birth || formData.dob),
         address: normalizeOptionalText(formData.address || formData.location),

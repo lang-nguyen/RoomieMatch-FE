@@ -12,8 +12,9 @@ import {
   EyeOff
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useGetUserProfileQuery, useUpdateUserProfileMutation, useUploadAvatarMutation } from '../api/userApi';
+import { useGetUserProfileQuery, useUpdateUserProfileMutation, useChangePasswordMutation, useUploadAvatarMutation } from '../api/userApi';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
+import { uploadImage } from '../../../shared/api/uploadApi';
 import styles from './Profile.module.css';
 
 const Profile = () => {
@@ -28,6 +29,15 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [alertModal, setAlertModal] = useState({ isOpen: false, type: 'alert', message: '', title: 'Thông báo' });
+  
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ old_password: '', new_password: '', confirm_password: '' });
+
+  const fileInputRef = useRef(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -62,18 +72,73 @@ const Profile = () => {
 
   const confirmUpdate = async () => {
     setShowConfirmModal(false);
+    setIsUploading(true);
     try {
-      await updateUserProfile(formData).unwrap();
+      const updateData = { ...formData };
+      
+      // Loại bỏ các trường rỗng để tránh lỗi validation từ Pydantic (ví dụ: gender=""), và bỏ email/username
+      delete updateData.username;
+      delete updateData.email;
+      if (updateData.gender === '') delete updateData.gender;
+      if (updateData.phone === '') delete updateData.phone;
+      if (updateData.full_name === '') delete updateData.full_name;
+
+      if (avatarFile) {
+        const uploadResult = await uploadImage(avatarFile);
+        updateData.avatar_url = uploadResult.url;
+      }
+      await updateUserProfile(updateData).unwrap();
       setIsEditing(false);
+      setAvatarFile(null);
       setAlertModal({ isOpen: true, type: 'confirm', message: 'Cập nhật thành công!', title: 'Thành công' });
     } catch (error) {
       console.error('Lỗi khi cập nhật:', error);
       setAlertModal({ isOpen: true, type: 'alert', message: 'Cập nhật thất bại. Vui lòng thử lại.', title: 'Lỗi' });
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setAvatarPreview(null);
+    setAvatarFile(null);
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result);
+        setShowConfirmModal(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      setAlertModal({ isOpen: true, type: 'alert', message: 'Mật khẩu mới không khớp!', title: 'Lỗi' });
+      return;
+    }
+    try {
+      await changePassword({ 
+        old_password: passwordForm.old_password, 
+        new_password: passwordForm.new_password 
+      }).unwrap();
+      setShowPasswordModal(false);
+      setPasswordForm({ old_password: '', new_password: '', confirm_password: '' });
+      setAlertModal({ isOpen: true, type: 'confirm', message: 'Đổi mật khẩu thành công!', title: 'Thành công' });
+    } catch (error) {
+      console.error('Lỗi khi đổi mật khẩu:', error);
+      setAlertModal({ isOpen: true, type: 'alert', message: error?.data?.detail || 'Đổi mật khẩu thất bại. Vui lòng thử lại.', title: 'Lỗi' });
+    }
   };
 
   const handleAvatarClick = () => {
@@ -112,7 +177,7 @@ const Profile = () => {
         <div className={styles.leftSidebar}>
           <div className={styles.avatarWrapper}>
             <img
-              src={profile.avatar_url || profile.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"}
+              src={avatarPreview || profile.avatar_url || profile.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"}
               alt="Avatar"
               className={styles.avatar}
             />
@@ -135,6 +200,7 @@ const Profile = () => {
             style={{ display: 'none' }} 
           />
           <button className={styles.changeAvatarBtn} onClick={handleAvatarClick} disabled={isUploadingAvatar}>
+
             <Camera className={styles.btnIcon} />
             {isUploadingAvatar ? 'Đang tải...' : 'Thay đổi ảnh đại diện'}
           </button>
@@ -156,9 +222,9 @@ const Profile = () => {
                 <button 
                   className={styles.updateBtn} 
                   onClick={handleUpdate} 
-                  disabled={isUpdating}
+                  disabled={isUpdating || isUploading}
                 >
-                  {isUpdating ? 'Đang cập nhật...' : 'Cập nhật'}
+                  {(isUpdating || isUploading) ? 'Đang cập nhật...' : 'Cập nhật'}
                 </button>
               </div>
             )}
@@ -189,9 +255,10 @@ const Profile = () => {
                 type="email" 
                 name="email"
                 className={styles.input} 
-                value={isEditing ? formData.email : (account.email || '')} 
-                onChange={handleChange}
-                readOnly={!isEditing} 
+                value={account.email || ''} 
+                readOnly
+                style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed', color: '#6b7280' }}
+                title="Email không thể thay đổi"
               />
             </div>
 
@@ -268,7 +335,24 @@ const Profile = () => {
               </div>
               <div className={styles.passwordGroup}>
                 <input type="password" className={styles.input} value="****************" readOnly />
-                <EyeOff className={styles.eyeIcon} />
+                <button 
+                  className={styles.changePasswordBtn} 
+                  onClick={() => setShowPasswordModal(true)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#ea580c',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  Đổi mật khẩu
+                </button>
               </div>
             </div>
           </div>
@@ -282,8 +366,66 @@ const Profile = () => {
         confirmText="Cập nhật"
         cancelText="Hủy"
         onConfirm={confirmUpdate}
-        onCancel={() => setShowConfirmModal(false)}
+        onCancel={() => {
+          setShowConfirmModal(false);
+          if (!isEditing && avatarFile) {
+            setAvatarPreview(null);
+            setAvatarFile(null);
+          }
+        }}
       />
+
+      {showPasswordModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '400px', maxWidth: '90%' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '16px' }}>Đổi mật khẩu</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <input 
+                type="password" 
+                placeholder="Mật khẩu cũ" 
+                className={styles.input} 
+                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db' }}
+                value={passwordForm.old_password}
+                onChange={(e) => setPasswordForm({...passwordForm, old_password: e.target.value})}
+              />
+              <input 
+                type="password" 
+                placeholder="Mật khẩu mới" 
+                className={styles.input} 
+                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db' }}
+                value={passwordForm.new_password}
+                onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
+              />
+              <input 
+                type="password" 
+                placeholder="Nhập lại mật khẩu mới" 
+                className={styles.input} 
+                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db' }}
+                value={passwordForm.confirm_password}
+                onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                className={styles.cancelBtn} 
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordForm({ old_password: '', new_password: '', confirm_password: '' });
+                }}
+              >
+                Hủy
+              </button>
+              <button 
+                className={styles.updateBtn} 
+                onClick={handleChangePassword}
+                disabled={isChangingPassword || !passwordForm.old_password || !passwordForm.new_password || !passwordForm.confirm_password}
+              >
+                {isChangingPassword ? 'Đang đổi...' : 'Xác nhận'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={alertModal.isOpen}

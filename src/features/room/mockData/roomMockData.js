@@ -108,8 +108,11 @@ export const districtOptions = [
 ];
 
 export const typeOptions = [
+  { value: '', label: 'Tất cả loại phòng' },
   { value: 'Phòng trọ', label: 'Phòng trọ' },
-  { value: 'Chung cư mini', label: 'Chung cư mini' }
+  { value: 'Chung cư mini', label: 'Chung cư mini' },
+  { value: 'Ký túc xá', label: 'Ký túc xá' },
+  { value: 'Nhà nguyên căn', label: 'Nhà nguyên căn' }
 ];
 
 export const sortOptions = [

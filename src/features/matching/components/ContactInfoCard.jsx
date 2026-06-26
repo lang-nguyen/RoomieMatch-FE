@@ -5,7 +5,7 @@ const ContactInfoCard = ({ user }) => {
   if (!user) return null;
 
   const contact = user.contact || user;
-  const socials = contact.socials || {};
+  const socials = contact.socials || contact || user;
 
   return (
     <aside className="matching-contact-card matching-panel-pop">

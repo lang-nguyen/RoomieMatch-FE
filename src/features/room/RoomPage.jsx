@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Footer from '../../shared/components/Footer';
 import RoomHero from './components/RoomHero';
 import RoomRecommended from './components/RoomRecommended';
@@ -56,10 +57,26 @@ const mapPostToRoom = (post) => ({
 });
 
 const RoomPage = () => {
-  const [searchParams, setSearchParams] = useState(defaultSearchParams);
+  const [urlSearchParams, setUrlSearchParams] = useSearchParams();
 
-  const [appliedFilters, setAppliedFilters] = useState(searchParams);
-  const [currentPage, setCurrentPage] = useState(1);
+  const initialSearchParams = useMemo(() => {
+    return {
+      ...defaultSearchParams,
+      city: urlSearchParams.get('city') || defaultSearchParams.city || '',
+      district: urlSearchParams.get('district') || defaultSearchParams.district || '',
+      type: urlSearchParams.get('type') || defaultSearchParams.type || '',
+      price: urlSearchParams.get('price') || defaultSearchParams.price || '',
+      sort: urlSearchParams.get('sort') || defaultSearchParams.sort || 'newest',
+      keyword: urlSearchParams.get('keyword') || defaultSearchParams.keyword || ''
+    };
+  }, []);
+
+  const [searchParams, setSearchParams] = useState(initialSearchParams);
+  const [appliedFilters, setAppliedFilters] = useState(initialSearchParams);
+  const [currentPage, setCurrentPage] = useState(parseInt(urlSearchParams.get('page')) || 1);
+
+  useEffect(() => {
+  }, []);
   const { data: provinceOptions = [] } = useGetProvincesQuery();
   const { data: districtOptions = [] } = useGetDistrictsByProvinceNameQuery(searchParams.city, {
     skip: !searchParams.city,
@@ -94,6 +111,10 @@ const RoomPage = () => {
   const handleSearch = () => {
     setAppliedFilters(searchParams);
     setCurrentPage(1);
+
+    const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([_, v]) => v !== ''));
+    cleaned.page = 1;
+    setUrlSearchParams(cleaned);
   };
 
   const searchTags = useMemo(() => {
@@ -108,6 +129,10 @@ const RoomPage = () => {
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+
+      const cleaned = Object.fromEntries(Object.entries(appliedFilters).filter(([_, v]) => v !== ''));
+      cleaned.page = page;
+      setUrlSearchParams(cleaned);
     }
   };
 

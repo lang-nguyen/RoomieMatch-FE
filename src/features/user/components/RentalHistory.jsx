@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Star, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCancelRentalRequestMutation, useGetMyRentalRequestsQuery, useGetRentalHistoryQuery } from '../api/userApi';
@@ -37,6 +37,25 @@ const RentalHistory = () => {
     }
   };
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const filteredRentals = useMemo(() => {
+    let result = [...rentals];
+    if (searchTerm) {
+      result = result.filter(r => (r.title || '').toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+    if (statusFilter !== 'all') {
+      result = result.filter(r => {
+        const isCurrentlyActive = r.status === 'Đang thuê' || r.rental_status === 'Đang thuê';
+        if (statusFilter === 'active') return isCurrentlyActive;
+        if (statusFilter === 'completed') return !isCurrentlyActive;
+        return true;
+      });
+    }
+    return result;
+  }, [rentals, searchTerm, statusFilter]);
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -62,10 +81,12 @@ const RentalHistory = () => {
             type="text"
             placeholder="Tìm theo tiêu đề..."
             className={styles.searchInput}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <select className={styles.filterSelect}>
+        <select className={styles.filterSelect} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="all">Tất cả</option>
           <option value="active">Đang thuê</option>
           <option value="completed">Đã trả phòng</option>
@@ -78,7 +99,7 @@ const RentalHistory = () => {
         <div>Đã có lỗi xảy ra khi tải dữ liệu.</div>
       ) : (
         <div className={styles.rentalsList}>
-          {rentals.map(rental => (
+          {filteredRentals.map(rental => (
             <div key={rental.rental_id} className={styles.card}>
               <div className={styles.imageWrapper}>
                 <img
@@ -126,6 +147,7 @@ const RentalHistory = () => {
               </div>
             </div>
           ))}
+          {filteredRentals.length === 0 && <div>Không tìm thấy lịch sử thuê phòng phù hợp.</div>}
           {rentals.length === 0 && <div>Chưa có lịch sử thuê phòng.</div>}
         </div>
       )}

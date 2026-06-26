@@ -143,17 +143,23 @@ const MatchingPage = () => {
         />
 
         <section className="matching-card-stage">
-          <RotatingMatchingDeck
-            users={matching.availableUsers}
-            isSelecting={matching.isFlipping}
-            onSelect={(selectedOffset) => {
-              setSelectedHistoryContact(null);
-              matching.setShowContactCard(false);
-              matching.revealCard(selectedOffset);
-            }}
-          />
+          {!matching.isRevealed && !selectedHistoryContact && matching.availableUsers.length === 0 ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+              <NoMatchingCard />
+            </div>
+          ) : (
+            <RotatingMatchingDeck
+              users={matching.availableUsers}
+              isSelecting={matching.isFlipping}
+              onSelect={(selectedOffset) => {
+                setSelectedHistoryContact(null);
+                matching.setShowContactCard(false);
+                matching.revealCard(selectedOffset);
+              }}
+            />
+          )}
 
-          {(matching.isRevealed || selectedHistoryContact) && (
+          {(matching.isRevealed || selectedHistoryContact) && matching.activeUser && (
             <div
               className="matching-focus-overlay"
               onClick={(event) => {

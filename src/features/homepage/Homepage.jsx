@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Footer from '../../shared/components/Footer';
 import RoomCard from './components/RoomCard';
 import Sidebar from './components/Sidebar';
@@ -10,8 +11,9 @@ import { getApiErrorMessage } from '../../shared/utils/getApiErrorMessage';
 import './Homepage.css';
 
 const typeOptions = [
-  { value: 'Phòng trọ', label: 'Phòng trọ' },
-  { value: 'Chung cư mini', label: 'Chung cư mini' }
+  { value: 'phong_don', label: 'Phòng đơn' },
+  { value: 'ghep', label: 'Ở ghép' },
+  { value: 'can_ho', label: 'Căn hộ' }
 ];
 
 const priceOptions = [
@@ -82,6 +84,7 @@ const mapPostToRoom = (post) => ({
 });
 
 const Homepage = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useState({
     city: '',
     district: '',
@@ -149,9 +152,9 @@ const Homepage = () => {
   };
 
   const handleSearch = () => {
-    // Strip empty-string selections (the 'Tất cả' option has value '')
-    const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([, value]) => value !== ''));
-    setAppliedFilters(cleaned);
+    const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([_, v]) => v !== ''));
+    const query = new URLSearchParams(cleaned).toString();
+    navigate(`/find-room?${query}`);
   };
 
   const handleInputChange = (e) => {
@@ -235,7 +238,7 @@ const Homepage = () => {
               <section className="section">
                 <div className="section-header">
                   <h2 className="section-title">Phòng trọ mới đăng</h2>
-                  <a href="#posts" className="view-all">Xem tất cả &gt;</a>
+                  <Link to="/find-room" className="view-all">Xem tất cả &gt;</Link>
                 </div>
 
                 {isLoading ? (
@@ -268,11 +271,11 @@ const Homepage = () => {
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
                     <h2 className="section-title">Phòng trọ theo các tỉnh thành khác</h2>
                   </div>
-                  <a href="#" className="view-all">Xem tất cả</a>
+                  <Link to="/find-room" className="view-all">Xem tất cả</Link>
                 </div>
                 <div className="cities-grid">
                   {citiesData.map(city => (
-                    <div key={city.id} className="city-card">
+                    <div key={city.id} className="city-card" onClick={() => navigate(`/find-room?city=${encodeURIComponent(city.name)}`)} style={{ cursor: 'pointer' }}>
                       <img src={city.image} alt={city.name} className="city-image" />
                       <div className="city-card-overlay">
                         <h3 className="city-card-name">{city.name}</h3>

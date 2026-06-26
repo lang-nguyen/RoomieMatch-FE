@@ -15,6 +15,8 @@ import RoomPage from '../features/room/RoomPage';
 import RoomDetailPage from '../features/room/RoomDetailPage';
 import FindMatePage from '../pages/FindMatePage';
 import ContactPage from '../pages/ContactPage';
+import VnpayReturnPage from '../pages/VnpayReturnPage';
+import ProtectedRoute from '../shared/components/ProtectedRoute';
 import AdminPage from '../pages/AdminPage';
 import LandlordLayout from '../layouts/LandlordLayout';
 import LandlordHomePage from '../pages/landlord/LandlordHomePage';
@@ -25,7 +27,11 @@ import LandlordPackageManagementPage from '../pages/landlord/LandlordPackageMana
 import LandlordPackageDetailPage from '../pages/landlord/LandlordPackageDetailPage';
 import LandlordPackagePaymentPage from '../pages/landlord/LandlordPackagePaymentPage';
 import LandlordPostsPage from '../pages/landlord/LandlordPostsPage';
+import LandlordPostCreatePage from '../pages/landlord/LandlordPostCreatePage';
+import LandlordPostSuccessPage from '../pages/landlord/LandlordPostSuccessPage';
+import LandlordPostDetailPage from '../pages/landlord/LandlordPostDetailPage';
 import LandlordStatsPage from '../pages/landlord/LandlordStatsPage';
+import LandlordRentalRequestsPage from '../pages/landlord/LandlordRentalRequestsPage';
 import RequireAuth from '../shared/components/RequireAuth';
 import { ACCOUNT_TYPES } from '../shared/constants/roles';
 
@@ -54,8 +60,16 @@ export const router = createBrowserRouter([
         element: <ContactPage />,
       },
       {
+        path: '/payment/vnpay-return',
+        element: <VnpayReturnPage />,
+      },
+      {
         path: '/user',
-        element: <UserLayout />,
+        element: (
+          <ProtectedRoute>
+            <UserLayout />
+          </ProtectedRoute>
+        ),
         children: [
           {
             path: 'profile',
@@ -113,7 +127,12 @@ export const router = createBrowserRouter([
           { path: 'package-management', element: <LandlordPackageManagementPage /> },
           { path: 'package-management/:invoiceId', element: <LandlordPackageDetailPage /> },
           { path: 'posts', element: <LandlordPostsPage /> },
+          { path: 'posts/create', element: <LandlordPostCreatePage /> },
+          { path: 'posts/success', element: <LandlordPostSuccessPage /> },
+          { path: 'posts/:postId', element: <LandlordPostDetailPage /> },
           { path: 'stats', element: <LandlordStatsPage /> },
+          { path: 'rental-requests', element: <LandlordRentalRequestsPage /> },
+          { path: 'rooms/:roomId/edit', element: <LandlordAddRoomPage /> },
         ]
       }
     ]

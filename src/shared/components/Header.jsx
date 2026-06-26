@@ -3,6 +3,8 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsAuthenticated, logout } from '../../features/auth/slice';
 import { useGetUserProfileQuery } from '../../features/user/api/userApi';
+import { baseApi } from '../api/baseApi';
+import ConfirmModal from './ConfirmModal';
 import './Header.css';
 
 const navItems = [
@@ -26,28 +28,21 @@ const Header = ({ initialActiveId = 'home' }) => {
   const account = userProfileData?.account;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const toggleDropdown = () => {
-    setIsDropdownOpen((prev) => {
-      if (prev) {
-        setIsLogoutConfirmOpen(false);
-      }
-      return !prev;
-    });
+    setIsDropdownOpen((prev) => !prev);
   };
 
   const closeDropdown = () => {
     setIsDropdownOpen(false);
-    setIsLogoutConfirmOpen(false);
   };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
-        setIsLogoutConfirmOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -57,16 +52,14 @@ const Header = ({ initialActiveId = 'home' }) => {
   }, []);
 
   const handleLogoutClick = () => {
-    setIsLogoutConfirmOpen(true);
-  };
-
-  const handleCancelLogout = () => {
-    setIsLogoutConfirmOpen(false);
-  };
-
-  const handleConfirmLogout = () => {
-    dispatch(logout());
+    setIsLogoutModalOpen(true);
     closeDropdown();
+  };
+
+  const confirmLogout = () => {
+    dispatch(logout());
+    dispatch(baseApi.util.resetApiState());
+    setIsLogoutModalOpen(false);
     navigate('/login');
   };
 
@@ -234,20 +227,7 @@ const Header = ({ initialActiveId = 'home' }) => {
                       Đăng xuất
                     </button>
 
-                    {isLogoutConfirmOpen && (
-                      <div className="logout-confirm-popover" role="dialog" aria-modal="false">
-                        <p className="logout-confirm-title">Đăng xuất?</p>
-                        <p className="logout-confirm-text">Bạn sẽ cần đăng nhập lại để tiếp tục.</p>
-                        <div className="logout-confirm-actions">
-                          <button type="button" className="logout-confirm-cancel" onClick={handleCancelLogout}>
-                            Hủy
-                          </button>
-                          <button type="button" className="logout-confirm-submit" onClick={handleConfirmLogout}>
-                            Đăng xuất
-                          </button>
-                        </div>
-                      </div>
-                    )}
+
                   </div>
                 </div>
               )}
@@ -275,6 +255,17 @@ const Header = ({ initialActiveId = 'home' }) => {
           </NavLink>
         </div>
       </div>
+      
+      <ConfirmModal 
+        isOpen={isLogoutModalOpen}
+        title="Đăng xuất"
+        message="Bạn có chắc chắn muốn đăng xuất không?"
+        confirmText="Đăng xuất"
+        cancelText="Hủy"
+        onConfirm={confirmLogout}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        type="confirm"
+      />
     </header>
   );
 };

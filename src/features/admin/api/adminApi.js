@@ -51,6 +51,14 @@ export const adminApi = baseApi.injectEndpoints({
       query: (id) => ({ url: `/admin/users/${id}`, method: 'DELETE' }),
       invalidatesTags: ['AdminUsers', 'AdminUserStats'],
     }),
+    getLandlordVerifications: builder.query({
+      query: (params = {}) => ({ url: '/admin/landlord-verifications', params }),
+      providesTags: ['Verification'],
+    }),
+    updateLandlordVerification: builder.mutation({
+      query: ({ id, status, reason }) => ({ url: `/admin/landlord-verifications/${id}`, method: 'PATCH', body: { status, reason } }),
+      invalidatesTags: ['Verification'],
+    }),
 
     // ─── POSTS ───
     getPosts: builder.query({
@@ -58,7 +66,7 @@ export const adminApi = baseApi.injectEndpoints({
       providesTags: ['Posts'],
     }),
     updatePostStatus: builder.mutation({
-      query: ({ id, status }) => ({ url: `/admin/posts/${id}/status`, method: 'PATCH', body: { status } }),
+      query: ({ id, status, reason }) => ({ url: `/admin/posts/${id}/status`, method: 'PATCH', body: { status, reason } }),
       invalidatesTags: ['Posts'],
     }),
     deletePost: builder.mutation({
@@ -149,6 +157,8 @@ export const {
   useUpdateAdminUserMutation,
   useUpdateAdminUserStatusMutation,
   useDeleteAdminUserMutation,
+  useGetLandlordVerificationsQuery,
+  useUpdateLandlordVerificationMutation,
   useGetPostsQuery,
   useUpdatePostStatusMutation,
   useDeletePostMutation,

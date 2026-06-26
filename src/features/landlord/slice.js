@@ -51,7 +51,9 @@ const landlordSlice = createSlice({
       state.addRoomStep = payload;
     },
     setAddRoomDraft: (state, { payload }) => {
-      state.addRoomDraft = { ...(state.addRoomDraft || {}), ...payload };
+      const serializablePayload = { ...(payload || {}) };
+      delete serializablePayload.images;
+      state.addRoomDraft = { ...(state.addRoomDraft || {}), ...serializablePayload };
     },
     clearAddRoomDraft: (state) => {
       state.addRoomDraft = null;

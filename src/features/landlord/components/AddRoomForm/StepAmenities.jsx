@@ -1,23 +1,102 @@
-import { useAddRoomForm } from '../../hooks/useAddRoomForm';
+import { useEffect, useMemo, useState } from 'react';
 import { Upload } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { useAddRoomForm } from '../../hooks/useAddRoomForm';
+import { useDeleteLandlordRoomImageMutation } from '../../api/landlordApi';
+import { getAddRoomImageFiles, setAddRoomImageFiles } from '../../utils/addRoomImageFiles';
 import styles from './StepForm.module.css';
 
 const AMENITIES = [
-  'Máy lạnh', 'Quạt trần', 'Máy sưởi', 'Vòi sen', 'Bồn tắm',
-  'WC riêng', 'Nước nóng', 'Giường', 'Tủ quần áo', 'TV',
-  'Bếp nấu', 'Tủ lạnh', 'Máy giặt', 'Wifi', 'Camera an ninh'
+  'May lanh',
+  'Quat tran',
+  'May suoi',
+  'Voi sen',
+  'Bon tam',
+  'WC rieng',
+  'Nuoc nong',
+  'Giuong',
+  'Tu quan ao',
+  'TV',
+  'Bep nau',
+  'Tu lanh',
+  'May giat',
+  'Wifi',
+  'Camera an ninh',
 ];
 
 const StepAmenities = () => {
   const { draft, updateDraft, goNext, goBack } = useAddRoomForm();
-  
-  const selectedAmenities = draft.amenities || [];
+  const { roomId } = useParams();
+  const [deleteRoomImage, deleteImageState] = useDeleteLandlordRoomImageMutation();
+  const [imageError, setImageError] = useState('');
+
+  const selectedAmenities = useMemo(() => draft.amenities || [], [draft.amenities]);
+  const selectedImageMeta = useMemo(() => draft.image_files_meta || [], [draft.image_files_meta]);
+  const selectedImages = getAddRoomImageFiles();
+  const existingImages = draft.existing_images || [];
+  const previews = useMemo(
+    () => selectedImages.map((file) => ({ file, url: URL.createObjectURL(file) })),
+    // Metadata changes whenever the module-level file list changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedImageMeta],
+  );
+
+  useEffect(() => () => {
+    previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+  }, [previews]);
 
   const handleToggle = (item) => {
     const newSelected = selectedAmenities.includes(item)
       ? selectedAmenities.filter((a) => a !== item)
       : [...selectedAmenities, item];
     updateDraft({ amenities: newSelected });
+  };
+
+  const handleImageChange = (event) => {
+    const files = Array.from(event.target.files || []);
+    const validFiles = [];
+    const invalid = [];
+
+    files.forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        invalid.push(`${file.name}: khong phai file anh`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        invalid.push(`${file.name}: vuot qua 5MB`);
+        return;
+      }
+      validFiles.push(file);
+    });
+
+    const nextImages = [...selectedImages, ...validFiles].slice(0, 10);
+    setAddRoomImageFiles(nextImages);
+    updateDraft({
+      image_files_meta: nextImages.map((file) => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      })),
+    });
+    setImageError(invalid.join('. '));
+    event.target.value = '';
+  };
+
+  const handleRemoveImage = (index) => {
+    const nextImages = selectedImages.filter((_, itemIndex) => itemIndex !== index);
+    setAddRoomImageFiles(nextImages);
+    updateDraft({
+      image_files_meta: nextImages.map((file) => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      })),
+    });
+  };
+
+  const handleRemoveExistingImage = async (image) => {
+    await deleteRoomImage({ roomId, imageId: image.id }).unwrap();
+    updateDraft({ existing_images: existingImages.filter((item) => item.id !== image.id) });
   };
 
   const handleNext = (e) => {
@@ -27,21 +106,52 @@ const StepAmenities = () => {
 
   return (
     <form className={styles.formContainer} onSubmit={handleNext}>
-      <h2 className={styles.sectionTitle}>Hình ảnh phòng trọ</h2>
-      <div className={styles.uploadBox}>
+      <h2 className={styles.sectionTitle}>Hinh anh phong tro</h2>
+      <label className={styles.uploadBox}>
         <Upload className={styles.uploadIcon} size={28} />
         <div className={styles.uploadText}>
-          <span>Nhấn để tải ảnh lên</span> hoặc kéo thả vào đây
+          <span>Chon anh phong</span> de tai len Cloudinary khi luu
         </div>
-        <div style={{ fontSize: 11, color: '#aaa' }}>PNG, JPG, WEBP - Tối đa 10 ảnh, mỗi ảnh &lt; 5MB</div>
-      </div>
+        <div style={{ fontSize: 11, color: '#aaa' }}>PNG, JPG, WEBP - Toi da 10 anh, moi anh &lt; 5MB</div>
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          multiple
+          className={styles.fileInput}
+          onChange={handleImageChange}
+        />
+      </label>
 
-      <h2 className={styles.sectionTitle} style={{ marginTop: 16 }}>Tiện ích phòng</h2>
+      {imageError ? <div className={styles.errorText}>{imageError}</div> : null}
+
+      {previews.length > 0 ? (
+        <div className={styles.previewGrid}>
+          {previews.map((preview, index) => (
+            <div key={`${preview.file.name}-${preview.file.size}-${index}`} className={styles.previewItem}>
+              <img src={preview.url} alt={preview.file.name} />
+              <button type="button" onClick={() => handleRemoveImage(index)}>Xoa</button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {existingImages.length > 0 && (
+        <div className={styles.previewGrid}>
+          {existingImages.map((image) => (
+            <div key={image.id} className={styles.previewItem}>
+              <img src={image.image_url} alt="Ảnh phòng hiện có" />
+              <button type="button" disabled={deleteImageState.isLoading} onClick={() => handleRemoveExistingImage(image)}>Xóa</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <h2 className={styles.sectionTitle} style={{ marginTop: 16 }}>Tien ich phong</h2>
       <div className={styles.checkboxGrid}>
         {AMENITIES.map((item) => (
           <label key={item} className={styles.checkboxLabel}>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={selectedAmenities.includes(item)}
               onChange={() => handleToggle(item)}
             />
@@ -51,8 +161,8 @@ const StepAmenities = () => {
       </div>
 
       <div className={styles.footer}>
-        <button type="button" className={styles.backBtn} onClick={goBack}>Quay lại</button>
-        <button type="submit" className={styles.nextBtn}>Tiếp theo</button>
+        <button type="button" className={styles.backBtn} onClick={goBack}>Quay lai</button>
+        <button type="submit" className={styles.nextBtn}>Tiep theo</button>
       </div>
     </form>
   );

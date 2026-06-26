@@ -42,6 +42,12 @@
   border-color: #ffc4cf;
 }
 
+.closed {
+  color: #64748b;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
 .sub {
   color: #e55a2b;
   font-size: 10px;

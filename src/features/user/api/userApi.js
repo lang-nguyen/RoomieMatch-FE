@@ -17,13 +17,6 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
-    changePassword: builder.mutation({
-      query: (passwords) => ({
-        url: '/users/me/password',
-        method: 'PUT',
-        body: passwords,
-      }),
-    }),
     getSavedRooms: builder.query({
       query: () => ({
         url: '/posts/saved',
@@ -61,6 +54,7 @@ export const userApi = baseApi.injectEndpoints({
       query: () => ({
         url: '/packages/',
         method: 'GET',
+        params: { target_role: 'tenant' },
       }),
     }),
     purchasePackage: builder.mutation({
@@ -76,13 +70,35 @@ export const userApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
     }),
+    createVnpayPayment: builder.mutation({
+      query: (body) => ({
+        url: '/payments/vnpay/create_url',
+        method: 'POST',
+        body,
+      }),
+    }),
+    createRentalRequest: builder.mutation({
+      query: ({ postId, startDate, note }) => ({ url: `/posts/${postId}/rental-requests`, method: 'POST', body: { start_date: startDate, note } }),
+      invalidatesTags: ['RentalRequests'],
+    }),
+    getMyRentalRequests: builder.query({
+      query: () => '/users/me/rental-requests',
+      providesTags: ['RentalRequests'],
+    }),
+    cancelRentalRequest: builder.mutation({
+      query: ({ id }) => ({ url: `/users/me/rental-requests/${id}/cancel`, method: 'PATCH' }),
+      invalidatesTags: ['RentalRequests'],
+    }),
+    revealPostContact: builder.mutation({
+      query: ({ postId }) => ({ url: `/posts/${postId}/contact-view`, method: 'POST' }),
+      invalidatesTags: ['LandlordStats'],
+    }),
   }),
 });
 
 export const {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
-  useChangePasswordMutation,
   useGetSavedRoomsQuery,
   useSavePostMutation,
   useUnsavePostMutation,
@@ -91,4 +107,9 @@ export const {
   useGetAllPackagesQuery,
   usePurchasePackageMutation,
   useGetPackageEntitlementsQuery,
+  useCreateVnpayPaymentMutation,
+  useCreateRentalRequestMutation,
+  useGetMyRentalRequestsQuery,
+  useCancelRentalRequestMutation,
+  useRevealPostContactMutation,
 } = userApi;

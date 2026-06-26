@@ -175,3 +175,47 @@
   color: #c1440e;
   font-weight: 600;
 }
+
+.fileInput {
+  display: none;
+}
+
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.previewItem {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #ece7e2;
+  border-radius: 8px;
+  aspect-ratio: 4 / 3;
+  background: #f8f8f8;
+}
+
+.previewItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.previewItem button {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.58);
+  cursor: pointer;
+}
+
+.errorText {
+  color: #b42318;
+  font-size: 12px;
+}

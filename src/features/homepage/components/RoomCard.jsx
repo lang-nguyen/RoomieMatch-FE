@@ -1,7 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectIsAuthenticated } from '../../auth/slice';
+import { selectCurrentUser, selectIsAuthenticated } from '../../auth/slice';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import { useGetSavedRoomsQuery, useSavePostMutation, useUnsavePostMutation } from '../../user/api/userApi';
+import { ACCOUNT_TYPES } from '../../../shared/constants/roles';
 import '../Homepage.css';
 
 const DEFAULT_ROOM_IMAGE =
@@ -10,11 +13,16 @@ const DEFAULT_ROOM_IMAGE =
 const RoomCard = ({ room }) => {
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const currentUser = useSelector(selectCurrentUser);
+  const isTenant = currentUser?.account_type === ACCOUNT_TYPES.TENANT;
   const { data: savedRoomsData } = useGetSavedRoomsQuery(undefined, {
-    skip: !isAuthenticated,
+    skip: !isAuthenticated || !isTenant,
   });
   const [savePost, { isLoading: isSaving }] = useSavePostMutation();
   const [unsavePost, { isLoading: isUnsaving }] = useUnsavePostMutation();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, type: 'alert', message: '', title: 'Thông báo' });
+  const location = useLocation();
 
   const isSaved = savedRoomsData?.items?.some((item) => String(item.post_id) === String(room.id)) || false;
 
@@ -36,8 +44,12 @@ const RoomCard = ({ room }) => {
     e.preventDefault();
 
     if (!isAuthenticated) {
-      alert('Vui lòng đăng nhập để lưu bài viết!');
-      navigate('/login');
+      setShowLoginModal(true);
+      return;
+    }
+
+    if (!isTenant) {
+      alert('Chi tai khoan khach thue moi co the luu bai dang.');
       return;
     }
 
@@ -49,7 +61,7 @@ const RoomCard = ({ room }) => {
       }
     } catch (err) {
       console.error('Error toggling wishlist:', err);
-      alert('Đã xảy ra lỗi khi lưu bài viết. Vui lòng thử lại.');
+      setAlertModal({ isOpen: true, type: 'alert', message: 'Đã xảy ra lỗi khi lưu bài viết. Vui lòng thử lại.', title: 'Lỗi' });
     }
   };
 
@@ -59,10 +71,10 @@ const RoomCard = ({ room }) => {
         <img src={room.image || DEFAULT_ROOM_IMAGE} alt={room.title} className="room-image" onError={handleImageError} />
         <div className="image-gradient"></div>
 
-        {room.verified && (
+        {room.featured && (
           <div className="badge-verified">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Đã xác minh
+            Tin nổi bật{room.boostDaysLeft > 0 ? ` · còn ${room.boostDaysLeft} ngày` : ''}
           </div>
         )}
 
@@ -123,6 +135,26 @@ const RoomCard = ({ room }) => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showLoginModal}
+        title="Yêu cầu đăng nhập"
+        message="Vui lòng đăng nhập để lưu bài viết và xem lại sau!"
+        confirmText="Đăng nhập ngay"
+        cancelText="Đóng"
+        onConfirm={() => navigate('/login', { state: { from: location } })}
+        onCancel={() => setShowLoginModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={alertModal.isOpen}
+        title={alertModal.title}
+        message={alertModal.message}
+        confirmText="Đóng"
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, isOpen: false })}
+        onCancel={() => setAlertModal({ ...alertModal, isOpen: false })}
+      />
     </div>
   );
 };

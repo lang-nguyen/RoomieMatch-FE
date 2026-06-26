@@ -23,6 +23,7 @@ export const userApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: passwords,
       }),
+    }),
     uploadAvatar: builder.mutation({
       query: (file) => {
         const formData = new FormData();

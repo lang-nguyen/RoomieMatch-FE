@@ -34,7 +34,7 @@ const Profile = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ old_password: '', new_password: '', confirm_password: '' });
 
-  const fileInputRef = useRef(null);
+
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -105,9 +105,6 @@ const Profile = () => {
     setAvatarFile(null);
   };
 
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];

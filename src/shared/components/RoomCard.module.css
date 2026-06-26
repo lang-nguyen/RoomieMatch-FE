@@ -36,6 +36,7 @@
 }
 
 .title {
+    text-align: left;
   font-size: 1.15rem;
   font-weight: 600;
   color: #111827;
@@ -59,6 +60,7 @@
 .detailItem {
   display: flex;
   align-items: center;
+  text-align: left;
   gap: 6px;
 }
 

@@ -131,7 +131,11 @@ const AdminDashboardPage = () => {
     <>
       <section className={styles.statsGrid}>
         {dashboard.stats.map((stat) => (
-          <StatCard key={stat.id} stat={stat} />
+          <StatCard key={stat.id} stat={stat} onNavigate={(id) => {
+            const targetId = ['landlords', 'tenants'].includes(id) ? 'users' : id;
+            if (pageHeaders[targetId]) handleNavChange(targetId);
+            else if (id === 'revenue') handleNavChange('analytics');
+          }} />
         ))}
       </section>
 

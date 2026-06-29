@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useGetComplaintsQuery, useUpdateComplaintStatusMutation } from '../api/adminApiMock';
+import { useGetComplaintsQuery, useUpdateComplaintStatusMutation } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatNumber, paginate } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';

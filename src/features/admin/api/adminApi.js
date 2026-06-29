@@ -8,9 +8,8 @@ export const adminApi = baseApi.injectEndpoints({
       providesTags: ['AdminDashboard'],
     }),
 
-    // ─── ANALYTICS ───
     getAnalytics: builder.query({
-      query: (year) => ({ url: `/admin/analytics?year=${year}`, method: 'GET' }),
+      query: (year = 2026) => ({ url: `/admin/analytics?year=${year}`, method: 'GET' }),
       providesTags: ['Analytics'],
     }),
 

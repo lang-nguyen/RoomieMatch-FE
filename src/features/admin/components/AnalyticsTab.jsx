@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { useGetAnalyticsQuery } from '../api/adminApiMock';
-import { adminDashboardMockData } from '../api/adminMockData';
+import { useGetAnalyticsQuery } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatCurrency, formatNumber } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
@@ -157,8 +156,16 @@ const DistributionBlock = ({ title, items }) => (
   </div>
 );
 
+const emptyAnalytics = {
+  monthlyUsers: { labels: [], series: [{ points: [0] }, { points: [0] }, { points: [0] }] },
+  monthlyPosts: { labels: [], series: [{ points: [0] }, { points: [0] }, { points: [0] }] },
+  categoriesDistribution: { area: [], roomType: [], priceRange: [] },
+  revenue: { labels: [], total: 0, points: [0] },
+  complaints: { labels: [], points: [0], colors: [] },
+};
+
 export const AnalyticsTab = () => {
-  const { data = adminDashboardMockData.analytics, isLoading } = useGetAnalyticsQuery();
+  const { data = emptyAnalytics, isLoading, isError } = useGetAnalyticsQuery();
   const topMetrics = useMemo(
     () => [
       { label: 'Tổng doanh thu', value: formatCurrency(data.revenue.total), icon: 'dollar-sign' },
@@ -169,6 +176,7 @@ export const AnalyticsTab = () => {
   );
 
   if (isLoading) return <div className={styles.loadingState}>Đang tải báo cáo...</div>;
+  if (isError) return <div className={styles.emptyState}>Không thể lấy dữ liệu báo cáo từ máy chủ.</div>;
 
   return (
     <div className={styles.featureStack}>

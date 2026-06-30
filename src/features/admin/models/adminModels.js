@@ -14,7 +14,7 @@ export const ADMIN_NAV_SECTIONS = [
       { id: 'rooms', label: 'Phòng trọ', icon: 'building' },
       { id: 'packages', label: 'Gói dịch vụ', icon: 'package' },
       { id: 'role-features', label: 'Tính năng gói', icon: 'list' },
-      { id: 'categories', label: 'Danh mục', icon: 'tags' },
+      { id: 'categories', label: 'Quản lý danh mục', icon: 'tags' },
       { id: 'orders', label: 'Đơn hàng', icon: 'shopping-cart' },
       { id: 'complaints', label: 'Khiếu nại', icon: 'message-square-warning' },
     ],

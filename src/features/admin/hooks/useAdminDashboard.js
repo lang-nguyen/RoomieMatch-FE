@@ -53,8 +53,23 @@ export const useAdminDashboard = () => {
     setReadNotificationIds(data.notifications.map((notification) => notification.id));
   };
 
+  const navSections = useMemo(() => {
+    const postsStat = data.stats?.find(stat => stat.id === 'posts');
+    const pendingCount = postsStat?.value || 0;
+    
+    return ADMIN_NAV_SECTIONS.map(section => ({
+      ...section,
+      items: section.items.map(item => {
+        if (item.id === 'posts') {
+          return { ...item, badge: pendingCount > 0 ? pendingCount.toString() : null };
+        }
+        return item;
+      })
+    }));
+  }, [data.stats]);
+
   return {
-    navSections: ADMIN_NAV_SECTIONS,
+    navSections,
     activeNavId,
     setActiveNavId,
     selectedYear,

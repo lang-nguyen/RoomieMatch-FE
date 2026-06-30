@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useCreateCategoryMutation, useDeleteCategoryMutation, useGetCategoriesQuery } from '../api/adminApiMock';
+import { useCreateCategoryMutation, useDeleteCategoryMutation, useGetCategoriesQuery } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatNumber, normalizeText } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
@@ -15,6 +15,7 @@ const emptyCategory = {
   priceRange: 'N/A',
   creator: 'admin',
   quantity: 0,
+  icon: 'tags',
 };
 
 export const CategoriesTab = () => {
@@ -125,7 +126,7 @@ export const CategoriesTab = () => {
           {filteredItems.slice(0, 4).map((item) => (
             <article key={item.id} className={styles.categoryPreviewCard}>
               <span className={styles.categoryIcon}>
-                <AdminIcon name={categoryTabs.find((tab) => tab.id === activeTab)?.icon || 'tags'} size={18} />
+                <AdminIcon name={item.icon || categoryTabs.find((tab) => tab.id === activeTab)?.icon || 'tags'} size={18} />
               </span>
               <div>
                 <strong>{item.name}</strong>
@@ -144,6 +145,7 @@ export const CategoriesTab = () => {
             <thead>
               <tr>
                 <th>Tên danh mục</th>
+                <th>Icon</th>
                 <th>Khoảng giá</th>
                 <th>Người tạo</th>
                 <th>ID</th>
@@ -160,6 +162,7 @@ export const CategoriesTab = () => {
                 filteredItems.map((item) => (
                   <tr key={item.id}>
                     <td className={styles.strongCell}>{item.name}</td>
+                    <td><AdminIcon name={item.icon || 'tags'} size={16} /></td>
                     <td>{item.priceRange}</td>
                     <td>{item.creator}</td>
                     <td>{item.id}</td>
@@ -212,6 +215,10 @@ export const CategoriesTab = () => {
                   value={form.quantity}
                   onChange={(event) => setForm((value) => ({ ...value, quantity: event.target.value }))}
                 />
+              </label>
+              <label>
+                Tên Icon (Ví dụ: tags, home, wifi)
+                <input value={form.icon} onChange={(event) => setForm((value) => ({ ...value, icon: event.target.value }))} />
               </label>
             </div>
             <div className={styles.modalActions}>

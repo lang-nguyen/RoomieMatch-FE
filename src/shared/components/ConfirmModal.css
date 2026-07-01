@@ -70,6 +70,11 @@
   color: #B53F10; /* Orange for chatbot alert */
 }
 
+.modal-icon.success {
+  background-color: #f0fdf4;
+  color: #16a34a; /* Green for success */
+}
+
 .modal-title {
   margin: 0;
   font-size: 20px;
@@ -133,6 +138,10 @@
   color: #B53F10;
 }
 
+.modal-icon.success ~ .modal-title {
+  color: #16a34a;
+}
+
 /* For alert type, change confirm button to primary theme */
 .modal-btn-full {
   background-color: #B53F10;
@@ -141,6 +150,15 @@
 .modal-btn-full:hover {
   background-color: #98330c;
   box-shadow: 0 4px 12px rgba(181, 63, 16, 0.3);
+}
+
+.modal-icon.success ~ .modal-footer .modal-btn-full {
+  background-color: #16a34a;
+}
+
+.modal-icon.success ~ .modal-footer .modal-btn-full:hover {
+  background-color: #15803d;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
 }
 
 @keyframes fadeIn {

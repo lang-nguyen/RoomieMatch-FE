@@ -67,38 +67,7 @@ const UserSidebar = () => {
           Quản lý gói
         </NavLink>
       </nav>
-      
-      <div className={styles.footerMenu}>
-        <NavLink 
-          to="/user/settings" 
-          className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ''}`}
-        >
-          <Settings className={styles.icon} />
-          Cài đặt
-        </NavLink>
-        
-        <div className={styles.logoutConfirmAnchor}>
-          <button className={styles.logoutBtn} onClick={handleLogout} type="button">
-            <LogOut className={styles.logoutIcon} />
-            Đăng xuất
-          </button>
 
-          {isLogoutConfirmOpen && (
-            <div className={styles.logoutConfirmPopover} role="dialog" aria-modal="false">
-              <p className={styles.logoutConfirmTitle}>Đăng xuất?</p>
-              <p className={styles.logoutConfirmText}>Bạn sẽ cần đăng nhập lại để tiếp tục.</p>
-              <div className={styles.logoutConfirmActions}>
-                <button type="button" className={styles.logoutConfirmCancel} onClick={handleCancelLogout}>
-                  Hủy
-                </button>
-                <button type="button" className={styles.logoutConfirmSubmit} onClick={handleConfirmLogout}>
-                  Đăng xuất
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
     </aside>
   );
 };

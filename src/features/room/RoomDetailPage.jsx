@@ -40,13 +40,13 @@ const RoomDetailPage = () => {
   const createdAtLabel = createdAt && !Number.isNaN(createdAt.getTime())
     ? createdAt.toLocaleDateString('vi-VN')
     : 'Đang cập nhật';
-  const deterministicViews = ((Number(apiData.post_id || room.room_id || roomId) || 1) * 37) % 500 + 50;
+  const actualViews = apiData.views_count || 0;
 
   const detail = {
     breadcrumbs: ['Trang chủ', room.city || 'TP. Hồ Chí Minh', room.district || 'N/A', room.ward || 'N/A'],
     address: room.full_address || `${room.street || ''}, ${room.ward || ''}, ${room.district || ''}, ${room.city || ''}`,
     badges: [apiData.is_vip ? 'Tin nổi bật' : '', apiData.status === 'active' ? 'Còn phòng' : ''].filter(Boolean),
-    views: deterministicViews,
+    views: actualViews,
     updatedAt: createdAtLabel,
     gallery: apiData.images && apiData.images.length > 0
       ? apiData.images.map((img) => img.image_url)

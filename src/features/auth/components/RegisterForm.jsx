@@ -1,5 +1,12 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { useState } from 'react';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useRegisterForm } from '../hooks/useRegisterForm';
+import { useGoogleLoginMutation } from '../api/authApi';
+import { setCredentials, setError, clearError } from '../slice';
+import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import styles from './Auth.module.css';
 
 const GoogleIcon = () => (
@@ -12,7 +19,56 @@ const GoogleIcon = () => (
 );
 
 export const RegisterForm = () => {
-  const { formData, error, successMessage, isLoading, handleChange, handleSubmit } = useRegisterForm();
+  const { formData, error: registerError, successMessage, isLoading, handleChange, handleSubmit } = useRegisterForm();
+  
+  const [googleLoginMutate, { isLoading: isGoogleLoading }] = useGoogleLoginMutation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [pendingToken, setPendingToken] = useState(null);
+
+  const error = registerError; // alias for the template
+
+  const handleGoogleSuccess = async (tokenResponse) => {
+    const token = tokenResponse.access_token;
+    dispatch(clearError());
+    try {
+      const response = await googleLoginMutate({ access_token: token }).unwrap();
+      dispatch(setCredentials(response));
+      navigate('/');
+    } catch (err) {
+      if (err.status === 400 && err.data?.detail?.includes('Account type is required')) {
+        setPendingToken(token);
+        setIsRoleModalOpen(true);
+      } else {
+        dispatch(setError(getApiErrorMessage(err, 'Đăng nhập Google thất bại')));
+      }
+    }
+  };
+
+  const handleGoogleError = () => {
+    dispatch(setError('Lỗi kết nối với Google'));
+  };
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: handleGoogleError,
+  });
+
+  const handleRoleSelection = async (role) => {
+    if (!pendingToken) return;
+    setIsRoleModalOpen(false);
+    try {
+      const response = await googleLoginMutate({ access_token: pendingToken, account_type: role }).unwrap();
+      dispatch(setCredentials(response));
+      navigate('/');
+    } catch (err) {
+      dispatch(setError(getApiErrorMessage(err, 'Tạo tài khoản Google thất bại')));
+    }
+    setPendingToken(null);
+  };
+
 
   return (
     <div className={styles.formWrapper}>
@@ -103,10 +159,20 @@ export const RegisterForm = () => {
 
       <div className={styles.divider}>Hoặc</div>
 
-      <button type="button" className={styles.googleButton}>
+      <button type="button" className={styles.googleButton} onClick={() => loginWithGoogle()} disabled={isGoogleLoading}>
         <GoogleIcon />
-        Đăng nhập với Google
+        {isGoogleLoading ? 'Đang kết nối...' : 'Đăng nhập với Google'}
       </button>
+
+      <ConfirmModal
+        isOpen={isRoleModalOpen}
+        title="Chọn loại tài khoản"
+        message="Vui lòng chọn loại tài khoản bạn muốn tạo"
+        confirmText="Người thuê trọ"
+        cancelText="Chủ trọ"
+        onConfirm={() => handleRoleSelection('tenant')}
+        onCancel={() => handleRoleSelection('landlord')}
+      />
     </div>
   );
 };

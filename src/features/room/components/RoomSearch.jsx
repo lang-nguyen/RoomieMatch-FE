@@ -8,11 +8,12 @@ const RoomSearch = ({
   sortOptions,
   onChange,
   onSearch,
-  tags
+  tags,
+  className = "room-search-card",
+  hideSearchButton = false
 }) => {
   return (
-    <section className="room-search">
-      <div className="room-search-card">
+      <div className={className}>
         <div className="room-search-row">
           <div className="room-search-field">
             <label className="room-search-label" htmlFor="keyword">Từ khóa</label>
@@ -71,9 +72,11 @@ const RoomSearch = ({
             />
           </div>
 
-          <button type="button" className="room-search-button" onClick={onSearch}>
-            Tìm kiếm
-          </button>
+          {!hideSearchButton && (
+            <button type="button" className="room-search-button" onClick={onSearch}>
+              Tìm kiếm
+            </button>
+          )}
         </div>
 
         {tags.length > 0 && (
@@ -84,7 +87,6 @@ const RoomSearch = ({
           </div>
         )}
       </div>
-    </section>
   );
 };
 

@@ -4,6 +4,7 @@ import Footer from '../../shared/components/Footer';
 import RoomCard from './components/RoomCard';
 import Sidebar from './components/Sidebar';
 import CustomDropdown from './components/CustomDropdown';
+import RoomSearch from '../room/components/RoomSearch';
 import { citiesData, faqData } from './mockData';
 import { useGetPostsQuery } from './api/postsApi';
 import { useGetDistrictsByProvinceNameQuery, useGetProvincesQuery } from '../../shared/api/provincesApi';
@@ -154,7 +155,7 @@ const Homepage = () => {
   const handleSearch = () => {
     const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([_, v]) => v !== ''));
     const query = new URLSearchParams(cleaned).toString();
-    navigate(`/find-room?${query}`);
+    navigate(`/find-room?${query}#room-list`);
   };
 
   const handleInputChange = (e) => {
@@ -178,56 +179,18 @@ const Homepage = () => {
             <h1 className="hero-title">Tìm Phòng Trọ Ưng Ý Nhanh Chóng & Dễ Dàng</h1>
             <p className="hero-subtitle">SmartRoom kết nối người thuê với phòng đang trống theo thời<br />gian thực - không tin ảo - minh bạch chi phí</p>
 
-            <div className="search-filter-box">
-              <div className="search-grid">
-                <CustomDropdown
-                  name="city"
-                  value={searchParams.city}
-                  onChange={handleInputChange}
-                  options={provinceOptions.length > 0 ? provinceOptions : fallbackCityOptions}
-                  placeholder="Tỉnh/Thành phố"
-                  icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D45B13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}
-                />
-
-                <CustomDropdown
-                  name="district"
-                  value={searchParams.district}
-                  onChange={handleInputChange}
-                  options={districtOptions.length > 0 ? districtOptions : fallbackDistrictOptions}
-                  placeholder="Quận/Huyện"
-                />
-
-                <button className="search-btn pill-btn" onClick={handleSearch}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                  Tìm kiếm
-                </button>
-              </div>
-
-              <div className="search-grid bottom-row">
-                <CustomDropdown
-                  name="type"
-                  value={searchParams.type}
-                  onChange={handleInputChange}
-                  options={typeOptions}
-                  placeholder="Loại phòng"
-                />
-
-                <CustomDropdown
-                  name="price"
-                  value={searchParams.price}
-                  onChange={handleInputChange}
-                  options={priceOptions}
-                  placeholder="Khoảng giá"
-                />
-
-                <CustomDropdown
-                  name="amenity"
-                  value=""
-                  onChange={() => { }}
-                  options={amenityOptions}
-                  placeholder="Tiện ích"
-                />
-              </div>
+            <div className="home-search-wrapper" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+              <RoomSearch
+                searchParams={searchParams}
+                cityOptions={provinceOptions.length > 0 ? provinceOptions : fallbackCityOptions}
+                districtOptions={districtOptions.length > 0 ? districtOptions : fallbackDistrictOptions}
+                typeOptions={typeOptions}
+                sortOptions={[{ value: 'newest', label: 'Mới nhất' }, { value: 'price_asc', label: 'Giá thấp đến cao' }, { value: 'price_desc', label: 'Giá cao đến thấp' }]}
+                onChange={handleInputChange}
+                onSearch={handleSearch}
+                tags={[]}
+                className="room-search-card"
+              />
             </div>
           </div>
         </section>

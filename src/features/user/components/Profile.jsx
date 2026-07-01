@@ -90,7 +90,7 @@ const Profile = () => {
       await updateUserProfile(updateData).unwrap();
       setIsEditing(false);
       setAvatarFile(null);
-      setAlertModal({ isOpen: true, type: 'confirm', message: 'Cập nhật thành công!', title: 'Thành công' });
+      setAlertModal({ isOpen: true, type: 'success', message: 'Cập nhật thành công!', title: 'Thành công' });
     } catch (error) {
       console.error('Lỗi khi cập nhật:', error);
       setAlertModal({ isOpen: true, type: 'alert', message: 'Cập nhật thất bại. Vui lòng thử lại.', title: 'Lỗi' });
@@ -131,7 +131,7 @@ const Profile = () => {
       }).unwrap();
       setShowPasswordModal(false);
       setPasswordForm({ old_password: '', new_password: '', confirm_password: '' });
-      setAlertModal({ isOpen: true, type: 'confirm', message: 'Đổi mật khẩu thành công!', title: 'Thành công' });
+      setAlertModal({ isOpen: true, type: 'success', message: 'Đổi mật khẩu thành công!', title: 'Thành công' });
     } catch (error) {
       console.error('Lỗi khi đổi mật khẩu:', error);
       setAlertModal({ isOpen: true, type: 'alert', message: error?.data?.detail || 'Đổi mật khẩu thất bại. Vui lòng thử lại.', title: 'Lỗi' });
@@ -148,7 +148,7 @@ const Profile = () => {
 
     try {
       await uploadAvatar(file).unwrap();
-      setAlertModal({ isOpen: true, type: 'confirm', message: 'Cập nhật ảnh đại diện thành công!', title: 'Thành công' });
+      setAlertModal({ isOpen: true, type: 'success', message: 'Cập nhật ảnh đại diện thành công!', title: 'Thành công' });
     } catch (error) {
       console.error('Lỗi khi upload avatar:', error);
       setAlertModal({ isOpen: true, type: 'alert', message: 'Lỗi khi tải ảnh lên. Vui lòng thử lại.', title: 'Lỗi' });
@@ -174,7 +174,7 @@ const Profile = () => {
         <div className={styles.leftSidebar}>
           <div className={styles.avatarWrapper}>
             <img
-              src={avatarPreview || profile.avatar_url || profile.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"}
+              src={avatarPreview || profile.avatar_url || profile.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${profile.full_name || account.username || 'U'}&backgroundColor=e5e7eb&textColor=4b5563`}
               alt="Avatar"
               className={styles.avatar}
             />

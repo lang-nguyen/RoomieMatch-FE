@@ -5,15 +5,15 @@ const fallbackAvatar =
 
 export const currentUserContact = {
   id: 'current-user',
-  name: 'FanCoChau',
-  joinedAt: '15/01/2024',
+  name: 'Người dùng',
+  joinedAt: 'Chưa cập nhật',
   avatar: fallbackAvatar,
-  email: 'fancochau@gmail.com',
-  phone: '0369645270',
+  email: '',
+  phone: '',
   socials: {
-    facebook: 'https://facebook.com/fancochau',
-    instagram: 'https://instagram.com/fancochau',
-    twitter: 'https://x.com/fancochau',
+    facebook: '',
+    instagram: '',
+    twitter: '',
   },
 };
 

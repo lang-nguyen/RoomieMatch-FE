@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertCircle, AlertTriangle, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import './ConfirmModal.css';
 
 const ConfirmModal = ({ 
@@ -12,7 +12,7 @@ const ConfirmModal = ({
   onClose,
   confirmText = 'Xác nhận', 
   cancelText = 'Hủy',
-  type = 'confirm' // 'confirm' or 'alert'
+  type = 'confirm' // 'confirm', 'alert', or 'success'
 }) => {
   const handleClose = onClose || onCancel;
   useEffect(() => {
@@ -29,6 +29,7 @@ const ConfirmModal = ({
   if (!isOpen) return null;
 
   const isAlert = type === 'alert';
+  const isSuccess = type === 'success';
 
   return createPortal(
     <div className="modal-overlay" onClick={handleClose}>
@@ -38,8 +39,10 @@ const ConfirmModal = ({
         </button>
         
         <div className="modal-header">
-          <div className={`modal-icon ${isAlert ? 'alert' : 'confirm'}`}>
-            {isAlert ? <AlertCircle size={28} /> : <AlertTriangle size={28} />}
+          <div className={`modal-icon ${type}`}>
+            {isAlert && <AlertCircle size={28} />}
+            {isSuccess && <CheckCircle size={28} />}
+            {type === 'confirm' && <AlertTriangle size={28} />}
           </div>
           <h3 className="modal-title">{title}</h3>
         </div>
@@ -49,13 +52,13 @@ const ConfirmModal = ({
         </div>
         
         <div className="modal-footer">
-          {!isAlert && (
+          {type === 'confirm' && (
             <button className="modal-btn modal-btn-cancel" onClick={onCancel}>
               {cancelText}
             </button>
           )}
           <button 
-            className={`modal-btn modal-btn-confirm ${isAlert ? 'modal-btn-full' : ''}`} 
+            className={`modal-btn modal-btn-confirm ${(isAlert || isSuccess) ? 'modal-btn-full' : ''}`} 
             onClick={onConfirm || onCancel}
           >
             {confirmText}

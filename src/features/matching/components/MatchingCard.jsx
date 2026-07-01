@@ -7,26 +7,29 @@ const MatchingCard = ({ user, isSkipping, onSkip, onShowContact }) => {
     <article className={`matching-user-card ${isSkipping ? 'is-skipping' : ''}`}>
       <div className="matching-card-deck">
         <div className="matching-user-card-inner">
-          <img className="matching-user-image" src={user.avatar} alt={user.name} />
+          <img className="matching-user-image" src={user.avatar || user.avatar_url} alt={user.name || user.full_name} />
 
           <div className="matching-user-body">
-            <h2>{user.name}</h2>
-            <p className="matching-user-location">
-              <MapPin size={15} />
-              {user.area}
-            </p>
-            <p className="matching-user-description">{user.description}</p>
+            <h2>{user.name || user.full_name}</h2>
+            {user.area && (
+              <p className="matching-user-location">
+                <MapPin size={15} />
+                {user.area}
+              </p>
+            )}
+            {user.description && <p className="matching-user-description">{user.description}</p>}
 
-            <div className="matching-user-meta">
-              <span>
-                <CircleCheck size={14} />
-                Thói quen: {user.habits}.
-              </span>
-              <span>
-                <CircleCheck size={14} />
-                Ngân sách: {user.budget}.
-              </span>
-            </div>
+            {user.matched_criteria && user.matched_criteria.length > 0 && (
+              <div className="matching-user-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <strong style={{ fontSize: '12px', marginBottom: '4px' }}>Tiêu chí phù hợp:</strong>
+                {user.matched_criteria.map((item, idx) => (
+                  <span key={idx} style={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}>
+                    <CircleCheck size={14} style={{ marginRight: '6px' }} />
+                    {item}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="matching-user-actions">
               <button className="matching-skip-button" type="button" onClick={onSkip} aria-label="Bỏ qua">

@@ -1,39 +1,25 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Star, X } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Search, Star, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useCancelRentalRequestMutation, useGetMyRentalRequestsQuery, useGetRentalHistoryQuery } from '../api/userApi';
-import { useAddRoomReviewMutation } from '../../homepage/api/postsApi';
 import styles from './RentalHistory.module.css';
-import temptImage from '../../../assets/tempt.jpg';
+
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80';
 
 const RentalHistory = () => {
   const navigate = useNavigate();
-  const { data, isLoading, isError, refetch } = useGetRentalHistoryQuery();
+  const { data, isLoading, isError } = useGetRentalHistoryQuery();
   const { data: requestData } = useGetMyRentalRequestsQuery();
   const [cancelRequest, cancelState] = useCancelRentalRequestMutation();
-  const [addReview, reviewState] = useAddRoomReviewMutation();
-  const [reviewModal, setReviewModal] = useState({ isOpen: false, roomId: null, rating: 5, comment: '', error: '' });
 
   const rentals = data?.items || [];
-  const handleReview = (rental) => {
-    setReviewModal({ isOpen: true, roomId: rental.room_id, rating: 5, comment: '', error: '' });
-  };
 
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    setReviewModal(prev => ({ ...prev, error: '' }));
-    try {
-      await addReview({ roomId: reviewModal.roomId, rating: reviewModal.rating, comment: reviewModal.comment }).unwrap();
-      setReviewModal({ isOpen: false, roomId: null, rating: 5, comment: '', error: '' });
-      refetch();
-    } catch (err) {
-      const status = err?.status;
-      const detail = err?.data?.detail || '';
-      if (status === 409 || detail.toLowerCase().includes('already')) {
-        setReviewModal(prev => ({ ...prev, error: 'Bạn đã đánh giá phòng này rồi.' }));
-      } else {
-        setReviewModal(prev => ({ ...prev, error: detail || 'Có lỗi xảy ra khi gửi đánh giá.' }));
-      }
+  // Navigate đến trang chi tiết bài đăng, scroll xuống phần đánh giá
+  const handleReview = (rental) => {
+    const postId = rental.post_id;
+    if (postId) {
+      navigate(`/room/${postId}#reviews`);
     }
   };
 
@@ -47,9 +33,10 @@ const RentalHistory = () => {
     }
     if (statusFilter !== 'all') {
       result = result.filter(r => {
-        const isCurrentlyActive = r.status === 'Đang thuê' || r.rental_status === 'Đang thuê';
-        if (statusFilter === 'active') return isCurrentlyActive;
-        if (statusFilter === 'completed') return !isCurrentlyActive;
+        const status = (r.rental_status || r.status || '').toLowerCase();
+        const isActive = status.includes('active') || status.includes('đang thuê');
+        if (statusFilter === 'active') return isActive;
+        if (statusFilter === 'completed') return !isActive;
         return true;
       });
     }
@@ -62,18 +49,32 @@ const RentalHistory = () => {
         <h1 className={styles.pageTitle}>Lịch sử thuê phòng</h1>
       </div>
 
+      {/* Pending rental requests */}
       {(requestData?.items || []).some((item) => item.status === 'pending') && (
         <div className={styles.rentalsList}>
           <h2>Yêu cầu đang chờ chủ trọ xác nhận</h2>
           {requestData.items.filter((item) => item.status === 'pending').map((request) => (
             <div key={request.id} className={styles.card}>
-              <div className={styles.content}><h3 className={styles.title}>{request.room_title}</h3><p>Ngày bắt đầu: {request.start_date}</p><p>{request.note || 'Không có ghi chú'}</p></div>
-              <div className={styles.actions}><button className={`${styles.btn} ${styles.btnSecondary}`} disabled={cancelState.isLoading} onClick={() => cancelRequest({ id: request.id })}>Hủy yêu cầu</button></div>
+              <div className={styles.content}>
+                <h3 className={styles.title}>{request.room_title}</h3>
+                <p>Ngày bắt đầu: {request.start_date}</p>
+                <p>{request.note || 'Không có ghi chú'}</p>
+              </div>
+              <div className={styles.actions}>
+                <button
+                  className={`${styles.btn} ${styles.btnSecondary}`}
+                  disabled={cancelState.isLoading}
+                  onClick={() => cancelRequest({ id: request.id })}
+                >
+                  Hủy yêu cầu
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* Search + filter bar */}
       <div className={styles.searchBar}>
         <div className={styles.searchInputWrapper}>
           <Search className={styles.searchIcon} />
@@ -85,7 +86,6 @@ const RentalHistory = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
         <select className={styles.filterSelect} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="all">Tất cả</option>
           <option value="active">Đang thuê</option>
@@ -99,104 +99,86 @@ const RentalHistory = () => {
         <div>Đã có lỗi xảy ra khi tải dữ liệu.</div>
       ) : (
         <div className={styles.rentalsList}>
-          {filteredRentals.map(rental => (
-            <div key={rental.rental_id} className={styles.card}>
-              <div className={styles.imageWrapper}>
-                <img
-                  src={rental.image || temptImage}
-                  alt={rental.title}
-                  className={styles.image}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = temptImage;
-                  }}
-                />
-              </div>
+          {filteredRentals.map(rental => {
+            // Lấy ảnh từ API hoặc fallback
+            const thumbUrl = rental.thumbnail || rental.image || FALLBACK_IMAGE;
+            const rentalStatus = rental.rental_status || rental.status || '';
+            const isActive = rentalStatus.toLowerCase().includes('active') || rentalStatus.includes('Đang thuê');
 
-              <div className={styles.content}>
-                <h3 className={styles.title}>{rental.title}</h3>
-
-                <div className={styles.details}>
-                  <div className={styles.timeLabel}>Thời gian thuê:</div>
-                  <div className={styles.timeValue}>
-                    {rental.start_date} - {rental.end_date}
-                  </div>
+            return (
+              <div key={rental.rental_id || rental.id} className={styles.card}>
+                <div className={styles.imageWrapper}>
+                  <img
+                    src={thumbUrl}
+                    alt={rental.title}
+                    className={styles.image}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = FALLBACK_IMAGE;
+                    }}
+                  />
                 </div>
 
-                <div className={`${styles.statusTag} ${rental.status === 'Đang thuê' ? styles.statusActive : styles.statusCompleted}`}>
-                  {rental.rental_status}
-                </div>
-              </div>
+                <div className={styles.content}>
+                  <h3 className={styles.title}>{rental.title}</h3>
 
-              <div className={styles.actions}>
-                {rental.my_rating ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '500' }}>Đánh giá của bạn</div>
-                    <div style={{ display: 'flex', gap: '2px' }}>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} style={{ color: star <= rental.my_rating ? '#fbbf24' : '#e5e7eb', fontSize: '20px', lineHeight: '1' }}>★</span>
-                      ))}
+                  <div className={styles.details}>
+                    <div className={styles.timeLabel}>Thời gian thuê:</div>
+                    <div className={styles.timeValue}>
+                      {rental.start_date} {rental.end_date ? `- ${rental.end_date}` : '(đang thuê)'}
                     </div>
                   </div>
-                ) : (
-                  <button className={`${styles.btn} ${styles.btnPrimary}`} disabled={!rental.can_review || reviewState.isLoading} onClick={() => handleReview(rental)}>
-                    <Star className={styles.btnIcon} />
-                    Đánh giá
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-          {filteredRentals.length === 0 && <div>Không tìm thấy lịch sử thuê phòng phù hợp.</div>}
-          {rentals.length === 0 && <div>Chưa có lịch sử thuê phòng.</div>}
-        </div>
-      )}
 
-      {reviewModal.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setReviewModal(prev => ({ ...prev, isOpen: false }))}>
-          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '500px', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setReviewModal(prev => ({ ...prev, isOpen: false }))} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
-            <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '18px', color: '#1e293b' }}>Đánh giá phòng trọ</h2>
-            <form onSubmit={handleSubmitReview}>
-              <div style={{ marginBottom: '24px', textAlign: 'center' }}>
-                <label style={{ display: 'block', marginBottom: '12px', fontWeight: '600', color: '#475569', fontSize: '15px' }}>Chất lượng phòng</label>
-                <div style={{ display: 'flex', gap: '8px', cursor: 'pointer', justifyContent: 'center' }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      onClick={() => setReviewModal(prev => ({ ...prev, rating: star }))}
-                      style={{ color: star <= reviewModal.rating ? '#fbbf24' : '#e5e7eb', fontSize: '48px', userSelect: 'none', transition: 'transform 0.1s', lineHeight: '1' }}
-                      onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
-                      onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  <div className={`${styles.statusTag} ${isActive ? styles.statusActive : styles.statusCompleted}`}>
+                    {rentalStatus || (isActive ? 'Đang thuê' : 'Đã trả phòng')}
+                  </div>
+                </div>
+
+                <div className={styles.actions}>
+                  {rental.my_rating ? (
+                    /* Đã đánh giá rồi – hiển thị sao */
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '500' }}>Đánh giá của bạn</div>
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span key={star} style={{ color: star <= rental.my_rating ? '#fbbf24' : '#e5e7eb', fontSize: '20px', lineHeight: '1' }}>★</span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Chưa đánh giá – navigate sang trang chi tiết */
+                    <button
+                      className={`${styles.btn} ${styles.btnPrimary}`}
+                      disabled={!rental.can_review}
+                      onClick={() => handleReview(rental)}
+                      title={rental.can_review ? 'Đánh giá phòng này' : 'Chỉ có thể đánh giá phòng đã xác nhận thuê'}
                     >
-                      ★
-                    </span>
-                  ))}
+                      <Star className={styles.btnIcon} />
+                      Đánh giá
+                      <ExternalLink size={13} style={{ marginLeft: 4 }} />
+                    </button>
+                  )}
+
+                  {/* Nút xem chi tiết */}
+                  {rental.post_id && (
+                    <button
+                      className={`${styles.btn} ${styles.btnSecondary}`}
+                      onClick={() => navigate(`/room/${rental.post_id}`)}
+                    >
+                      Xem bài đăng
+                    </button>
+                  )}
                 </div>
               </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '14px' }}>Nhận xét</label>
-                <textarea
-                  required
-                  value={reviewModal.comment}
-                  onChange={(e) => setReviewModal(prev => ({ ...prev, comment: e.target.value }))}
-                  placeholder="Chia sẻ trải nghiệm của bạn..."
-                  style={{ width: '100%', minHeight: '100px', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', resize: 'vertical' }}
-                />
-              </div>
-              {reviewModal.error && (
-                <div style={{ padding: '12px', backgroundColor: '#fef2f2', color: '#dc2626', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>
-                  {reviewModal.error}
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button type="button" onClick={() => setReviewModal(prev => ({ ...prev, isOpen: false }))} style={{ padding: '10px 16px', border: '1px solid #cbd5e1', backgroundColor: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#475569' }}>Hủy</button>
-                <button type="submit" disabled={reviewState.isLoading} style={{ padding: '10px 16px', border: 'none', backgroundColor: '#c1440e', color: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-                  {reviewState.isLoading ? 'Đang gửi...' : 'Gửi đánh giá'}
-                </button>
-              </div>
-            </form>
-          </div>
+            );
+          })}
+
+          {filteredRentals.length === 0 && rentals.length > 0 && (
+            <div>Không tìm thấy lịch sử phù hợp với bộ lọc.</div>
+          )}
+          {rentals.length === 0 && (
+            <div>Chưa có lịch sử thuê phòng.</div>
+          )}
         </div>
       )}
     </div>

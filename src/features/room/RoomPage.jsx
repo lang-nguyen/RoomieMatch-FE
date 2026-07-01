@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import Footer from '../../shared/components/Footer';
 import RoomHero from './components/RoomHero';
 import RoomRecommended from './components/RoomRecommended';
@@ -58,6 +58,8 @@ const mapPostToRoom = (post) => ({
 
 const RoomPage = () => {
   const [urlSearchParams, setUrlSearchParams] = useSearchParams();
+  const { hash } = useLocation();
+  const roomListRef = useRef(null);
 
   const initialSearchParams = useMemo(() => {
     return {
@@ -76,7 +78,20 @@ const RoomPage = () => {
   const [currentPage, setCurrentPage] = useState(parseInt(urlSearchParams.get('page')) || 1);
 
   useEffect(() => {
-  }, []);
+    // Debounce keyword search
+    const timer = setTimeout(() => {
+      setAppliedFilters(prev => ({
+        ...prev,
+        keyword: searchParams.keyword
+      }));
+      setCurrentPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchParams.keyword]);
+
+
+
   const { data: provinceOptions = [] } = useGetProvincesQuery();
   const { data: districtOptions = [] } = useGetDistrictsByProvinceNameQuery(searchParams.city, {
     skip: !searchParams.city,
@@ -94,30 +109,46 @@ const RoomPage = () => {
 
   const { data, isLoading } = useGetPostsQuery(queryParams);
 
+  useEffect(() => {
+    if (hash === '#room-list' && !isLoading && data) {
+      if (roomListRef.current) {
+        roomListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [hash, isLoading, data]);
+
   const rooms = useMemo(() => (data?.items || []).map(mapPostToRoom), [data]);
   const totalRooms = data?.total ?? 0;
   const totalPages = data?.total_pages ?? 0;
   const recommendedRooms = useMemo(() => rooms.slice(0, 3), [rooms]);
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setSearchParams((prev) => ({
-      ...prev,
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    const newParams = {
+      ...searchParams,
       [name]: value,
-      ...(name === 'city' ? { district: '' } : {}),
-    }));
+      ...(name === 'city' ? { district: '' } : {})
+    };
+    
+    setSearchParams(newParams);
+    
+    // Auto search for dropdowns immediately
+    if (name !== 'keyword') {
+      setAppliedFilters(newParams);
+      setCurrentPage(1);
+    }
   };
 
-  const handleSearch = () => {
-    setAppliedFilters(searchParams);
-    setCurrentPage(1);
-
-    const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([_, v]) => v !== ''));
-    cleaned.page = 1;
-    setUrlSearchParams(cleaned);
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      const cleaned = Object.fromEntries(Object.entries(searchParams).filter(([_, v]) => v !== ''));
+      cleaned.page = page;
+      setUrlSearchParams(cleaned);
+      setCurrentPage(page);
+    }
   };
 
-  const searchTags = useMemo(() => {
+  const activeTags = useMemo(() => {
     const tags = [];
     if (appliedFilters.keyword) tags.push(`"${appliedFilters.keyword}"`);
     if (appliedFilters.city) tags.push(appliedFilters.city);
@@ -125,16 +156,6 @@ const RoomPage = () => {
     if (appliedFilters.type) tags.push(appliedFilters.type);
     return tags;
   }, [appliedFilters]);
-
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-
-      const cleaned = Object.fromEntries(Object.entries(appliedFilters).filter(([_, v]) => v !== ''));
-      cleaned.page = page;
-      setUrlSearchParams(cleaned);
-    }
-  };
 
   return (
     <div className="room-page">
@@ -149,25 +170,29 @@ const RoomPage = () => {
 
       <RoomRecommended rooms={recommendedRooms} />
 
-      <RoomSearch
-        searchParams={searchParams}
-        cityOptions={provinceOptions.length > 0 ? provinceOptions : fallbackCityOptions}
-        districtOptions={districtOptions.length > 0 ? districtOptions : fallbackDistrictOptions}
-        typeOptions={typeOptions}
-        sortOptions={sortOptions}
-        onChange={handleInputChange}
-        onSearch={handleSearch}
-        tags={searchTags}
-      />
+      <section className="room-search" style={{ position: 'sticky', top: '70px', zIndex: 100 }}>
+        <RoomSearch
+          searchParams={searchParams}
+          cityOptions={provinceOptions.length > 0 ? provinceOptions : fallbackCityOptions}
+          districtOptions={districtOptions.length > 0 ? districtOptions : fallbackDistrictOptions}
+          typeOptions={typeOptions}
+          sortOptions={sortOptions}
+          onChange={handleInputChange}
+          tags={activeTags}
+          hideSearchButton={true}
+        />
+      </section>
 
-      <RoomList
-        rooms={rooms}
-        totalRooms={totalRooms}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={goToPage}
-        isLoading={isLoading}
-      />
+      <div id="room-list" ref={roomListRef} style={{ scrollMarginTop: '180px' }}>
+        <RoomList
+          rooms={rooms}
+          totalRooms={totalRooms}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          isLoading={isLoading}
+        />
+      </div>
 
       <Footer />
     </div>

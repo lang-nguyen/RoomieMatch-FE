@@ -78,8 +78,8 @@ const ContactInfoForm = ({ currentUser, onSubmit }) => {
 
       <div className="matching-contact-person">
         <img src={currentUser?.avatar} alt={currentUser?.name || 'Người dùng'} />
-        <strong>{currentUser?.name || 'FanCoChau'}</strong>
-        <span>Tham gia ngày: {currentUser?.joinedAt || '15/01/2024'}</span>
+        <strong>{currentUser?.name || 'Người dùng'}</strong>
+        <span>Tham gia ngày: {currentUser?.joinedAt || 'Chưa cập nhật'}</span>
       </div>
 
       <div className="matching-contact-row">

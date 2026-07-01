@@ -5,6 +5,30 @@
   margin-bottom: 16px;
 }
 
+.searchBox {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #958b84;
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid #e7e1dd;
+  background: #fff;
+  color: #2c241f;
+  padding: 0 14px 0 42px;
+  font-size: 14px;
+}
+
 .filterChip {
   height: 34px;
   border-radius: 999px;

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useDeletePostMutation, useGetPostsQuery, useUpdatePostStatusMutation } from '../api/adminApi';
+import { useEffect, useMemo, useState } from 'react';
+import { useDeletePostMutation, useLazyGetPostsQuery, useUpdatePostStatusMutation } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatNumber, normalizeText, paginate, toArray } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
@@ -16,6 +16,7 @@ const statusLabel = {
   approved: 'Đã duyệt',
   pending: 'Chờ duyệt',
   rejected: 'Bị từ chối',
+  closed: 'Đã đóng',
 };
 
 const getPostScore = (post) => (post.views || 0) + (post.likes || 0) * 5 + (post.comments || 0) * 8;
@@ -25,8 +26,6 @@ const formatPostDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('vi-VN').format(date);
 };
-
-const fallbackAuthors = ['hoang_long', 'lan_anh', 'quoc_bao', 'thu_hang', 'minh_quan', 'viet_anh'];
 
 const fallbackDate = (index) => {
   const day = String(Math.max(1, 12 - index)).padStart(2, '0');
@@ -48,6 +47,10 @@ const normalizePostStatus = (value) => {
     return 'rejected';
   }
 
+  if (['closed', 'archived'].includes(status) || status.includes('đóng')) {
+    return 'closed';
+  }
+
   return 'pending';
 };
 
@@ -59,7 +62,7 @@ const readNumber = (...values) => {
 
 const hasValue = (...values) => values.some((item) => item !== undefined && item !== null && item !== '');
 
-const readAuthor = (post, index) =>
+const readAuthor = (post) =>
   post.author ||
   post.authorName ||
   post.owner ||
@@ -73,7 +76,7 @@ const readAuthor = (post, index) =>
   post.user?.fullName ||
   post.account?.username ||
   post.account?.email ||
-  fallbackAuthors[index % fallbackAuthors.length];
+  `Chưa có tác giả`;
 
 const normalizePost = (post, index) => {
   const status = normalizePostStatus(
@@ -87,7 +90,10 @@ const normalizePost = (post, index) => {
     ...post,
     id: post.id || post.postId || post.post_id || post.code || `P${String(index + 1).padStart(3, '0')}`,
     title: post.title || post.postTitle || post.name || post.roomTitle || 'Bài đăng chưa có tiêu đề',
-    author: readAuthor(post, index),
+    author: readAuthor(post),
+    authorUsername: post.author_username || post.authorUsername || post.username || null,
+    authorEmail: post.author_email || post.authorEmail || post.email || null,
+    authorAccountId: post.author_account_id || post.authorAccountId || post.account_id || null,
     date: formatPostDate(post.date || post.createdAt || post.created_at || post.postedAt || post.posted_at || post.publishedAt || post.updatedAt || fallbackDate(index)),
     status,
     statusLabel: post.statusLabel || post.status_label || statusLabel[status],
@@ -104,25 +110,33 @@ export const PostsTab = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [viewingPost, setViewingPost] = useState(null);
-  const { data: allPostsResponse = [], isLoading, refetch } = useGetPostsQuery({ status: 'all' });
+  const visibleStatus = activeTab === 'all' ? 'all' : activeTab;
+  const [loadAllPosts, allPostsQuery] = useLazyGetPostsQuery();
+  const [loadVisiblePosts, visiblePostsQuery] = useLazyGetPostsQuery();
   const [updatePostStatus] = useUpdatePostStatusMutation();
   const [deletePost] = useDeletePostMutation();
-  const allPosts = useMemo(() => toArray(allPostsResponse).map(normalizePost), [allPostsResponse]);
+  const allPosts = useMemo(() => toArray(allPostsQuery.data).map(normalizePost), [allPostsQuery.data]);
+  const visiblePosts = useMemo(() => toArray(visiblePostsQuery.data).map(normalizePost), [visiblePostsQuery.data]);
+  const isLoading = allPostsQuery.isLoading || allPostsQuery.isFetching || visiblePostsQuery.isLoading || visiblePostsQuery.isFetching;
 
-  const posts = useMemo(() => {
-    if (activeTab === 'all') return allPosts;
-    if (activeTab === 'featured') return allPosts.filter((post) => post.isFeatured);
-    return allPosts.filter((post) => post.status === activeTab);
-  }, [activeTab, allPosts]);
+  useEffect(() => {
+    loadAllPosts({ status: 'all' }, true);
+  }, [loadAllPosts]);
+
+  useEffect(() => {
+    loadVisiblePosts({ status: visibleStatus }, true);
+  }, [loadVisiblePosts, visibleStatus]);
 
   const filteredPosts = useMemo(() => {
     const keyword = normalizeText(search);
-    if (!keyword) return posts;
+    if (!keyword) return visiblePosts;
 
-    return posts.filter((post) =>
-      [post.title, post.author, post.id, post.statusLabel].some((value) => normalizeText(value).includes(keyword))
+    return visiblePosts.filter((post) =>
+      [post.title, post.author, post.authorUsername, post.authorEmail, post.authorAccountId, post.id, post.statusLabel].some((value) =>
+        normalizeText(value).includes(keyword)
+      )
     );
-  }, [posts, search]);
+  }, [visiblePosts, search]);
   const paged = paginate(filteredPosts, page, 5);
 
   const stats = useMemo(
@@ -142,12 +156,14 @@ export const PostsTab = () => {
     const reason = changes.status === 'rejected' ? window.prompt('Nhập lý do từ chối bài đăng:') : null;
     if (changes.status === 'rejected' && !reason) return;
     await updatePostStatus({ id, ...changes, reason }).unwrap();
-    refetch();
+    await loadAllPosts({ status: 'all' }, false);
+    await loadVisiblePosts({ status: visibleStatus }, false);
   };
 
   const handleDelete = async (id) => {
-    await deletePost(id);
-    refetch();
+    await deletePost(id).unwrap();
+    await loadAllPosts({ status: 'all' }, false);
+    await loadVisiblePosts({ status: visibleStatus }, false);
   };
 
   return (
@@ -226,7 +242,7 @@ export const PostsTab = () => {
             />
           </label>
           <span className={styles.toolbarHint}>
-            Hiển thị {formatNumber(filteredPosts.length)} / {formatNumber(posts.length)} bài
+            Hiển thị {formatNumber(filteredPosts.length)} / {formatNumber(visiblePosts.length)} bài
           </span>
         </div>
 
@@ -247,6 +263,10 @@ export const PostsTab = () => {
                 <tr>
                   <td colSpan="6">Đang tải bài đăng...</td>
                 </tr>
+              ) : !paged.items.length ? (
+                <tr>
+                  <td colSpan="6">Không có bài đăng phù hợp trong tab này.</td>
+                </tr>
               ) : (
                 paged.items.map((post) => (
                   <tr key={post.id}>
@@ -259,7 +279,14 @@ export const PostsTab = () => {
                         </div>
                       </div>
                     </td>
-                    <td>{post.author}</td>
+                    <td>
+                      <strong>{post.author}</strong>
+                      {(post.authorUsername || post.authorEmail || post.authorAccountId) && (
+                        <span className={styles.subText}>
+                          {post.authorUsername || post.authorEmail || `ID ${post.authorAccountId}`}
+                        </span>
+                      )}
+                    </td>
                     <td>{post.date}</td>
                     <td>
                       <span
@@ -349,6 +376,11 @@ export const PostsTab = () => {
               <article>
                 <span>Tác giả</span>
                 <strong>{viewingPost.author}</strong>
+                <p style={{ fontSize: '12px', color: 'var(--admin-text-3)', lineHeight: '1.5', margin: '6px 0 0' }}>
+                  {[viewingPost.authorUsername, viewingPost.authorEmail, viewingPost.authorAccountId ? `ID ${viewingPost.authorAccountId}` : null]
+                    .filter(Boolean)
+                    .join(' - ') || 'Không có thêm thông tin tài khoản'}
+                </p>
               </article>
               <article>
                 <span>Ngày đăng</span>

@@ -91,9 +91,19 @@ export const DonutChart = ({ data = [], total = 0 }) => {
 
 export const BarChart = ({ data = [] }) => {
   const max = Math.max(...data.map((item) => item.value), 1);
+  const columnCount = Math.max(data.length, 1);
+  const desktopGap = data.length <= 3 ? 34 : data.length <= 5 ? 24 : 16;
+  const mobileGap = data.length <= 3 ? 14 : 10;
 
   return (
-    <div className={styles.barChart}>
+    <div
+      className={styles.barChart}
+      style={{
+        '--bar-columns': columnCount,
+        '--bar-gap': `${desktopGap}px`,
+        '--bar-gap-mobile': `${mobileGap}px`,
+      }}
+    >
       {data.map((item) => (
         <div key={item.label} className={styles.barCol}>
           <div className={styles.barTrack}>

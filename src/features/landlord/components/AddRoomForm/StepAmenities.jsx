@@ -3,6 +3,7 @@ import { Upload } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useAddRoomForm } from '../../hooks/useAddRoomForm';
 import { useDeleteLandlordRoomImageMutation } from '../../api/landlordApi';
+import ConfirmModal from '../../../../shared/components/ConfirmModal';
 import { getAddRoomImageFiles, setAddRoomImageFiles } from '../../utils/addRoomImageFiles';
 import styles from './StepForm.module.css';
 
@@ -29,6 +30,7 @@ const StepAmenities = () => {
   const { roomId } = useParams();
   const [deleteRoomImage, deleteImageState] = useDeleteLandlordRoomImageMutation();
   const [imageError, setImageError] = useState('');
+  const [pendingRemoval, setPendingRemoval] = useState(null);
 
   const selectedAmenities = useMemo(() => draft.amenities || [], [draft.amenities]);
   const selectedImageMeta = useMemo(() => draft.image_files_meta || [], [draft.image_files_meta]);
@@ -36,7 +38,6 @@ const StepAmenities = () => {
   const existingImages = draft.existing_images || [];
   const previews = useMemo(
     () => selectedImages.map((file) => ({ file, url: URL.createObjectURL(file) })),
-    // Metadata changes whenever the module-level file list changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedImageMeta],
   );
@@ -82,7 +83,7 @@ const StepAmenities = () => {
     event.target.value = '';
   };
 
-  const handleRemoveImage = (index) => {
+  const removeLocalImage = (index) => {
     const nextImages = selectedImages.filter((_, itemIndex) => itemIndex !== index);
     setAddRoomImageFiles(nextImages);
     updateDraft({
@@ -94,7 +95,7 @@ const StepAmenities = () => {
     });
   };
 
-  const handleRemoveExistingImage = async (image) => {
+  const removeExistingImage = async (image) => {
     await deleteRoomImage({ roomId, imageId: image.id }).unwrap();
     updateDraft({ existing_images: existingImages.filter((item) => item.id !== image.id) });
   };
@@ -129,7 +130,7 @@ const StepAmenities = () => {
           {previews.map((preview, index) => (
             <div key={`${preview.file.name}-${preview.file.size}-${index}`} className={styles.previewItem}>
               <img src={preview.url} alt={preview.file.name} />
-              <button type="button" onClick={() => handleRemoveImage(index)}>Xoa</button>
+              <button type="button" onClick={() => setPendingRemoval({ type: 'local', index })}>Xoa</button>
             </div>
           ))}
         </div>
@@ -139,8 +140,14 @@ const StepAmenities = () => {
         <div className={styles.previewGrid}>
           {existingImages.map((image) => (
             <div key={image.id} className={styles.previewItem}>
-              <img src={image.image_url} alt="Ảnh phòng hiện có" />
-              <button type="button" disabled={deleteImageState.isLoading} onClick={() => handleRemoveExistingImage(image)}>Xóa</button>
+              <img src={image.image_url} alt="Anh phong hien co" />
+              <button
+                type="button"
+                disabled={deleteImageState.isLoading}
+                onClick={() => setPendingRemoval({ type: 'existing', image })}
+              >
+                Xoa
+              </button>
             </div>
           ))}
         </div>
@@ -164,6 +171,25 @@ const StepAmenities = () => {
         <button type="button" className={styles.backBtn} onClick={goBack}>Quay lai</button>
         <button type="submit" className={styles.nextBtn}>Tiep theo</button>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(pendingRemoval)}
+        title="Xac nhan xoa anh phong"
+        message="Ban co chac muon xoa anh nay khoi phong tro?"
+        confirmText="Xoa anh"
+        cancelText="Huy"
+        onCancel={() => setPendingRemoval(null)}
+        onClose={() => setPendingRemoval(null)}
+        onConfirm={async () => {
+          if (pendingRemoval?.type === 'local') {
+            removeLocalImage(pendingRemoval.index);
+          }
+          if (pendingRemoval?.type === 'existing') {
+            await removeExistingImage(pendingRemoval.image);
+          }
+          setPendingRemoval(null);
+        }}
+      />
     </form>
   );
 };

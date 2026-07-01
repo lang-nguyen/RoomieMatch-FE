@@ -189,6 +189,12 @@
 
 .roomTableWrap {
   overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.roomTableWrap::-webkit-scrollbar {
+  display: none;
 }
 
 .roomTableWrap table {

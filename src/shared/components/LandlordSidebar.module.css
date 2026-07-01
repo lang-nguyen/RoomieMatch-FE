@@ -2,15 +2,20 @@
 .sidebar {
   width: 220px;
   min-width: 220px;
-  height: 100vh;
+  min-height: 100vh;
   background: #fff;
   border-right: 1px solid #f0f0f0;
   display: flex;
   flex-direction: column;
   padding: 20px 0;
-  overflow-y: auto;
   position: sticky;
   top: 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Logo */

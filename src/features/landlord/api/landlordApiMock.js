@@ -18,6 +18,29 @@ import {
 export const landlordApiMock = baseApi.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({
+    getPublicCategories: builder.query({
+      queryFn: async () => {
+        await delay(200);
+        return {
+          data: {
+            room_types: [
+              { id: 'CAT_RT01', name: 'Phòng trọ', icon: 'home' },
+              { id: 'CAT_RT02', name: 'Chung cư mini', icon: 'building' },
+              { id: 'CAT_RT03', name: 'Ký túc xá', icon: 'users' },
+              { id: 'CAT_RT04', name: 'Nhà nguyên căn', icon: 'home' },
+              { id: 'CAT_RT05', name: 'Studio', icon: 'layout-dashboard' }
+            ],
+            amenities: [
+              { id: 'CAT_UT01', name: 'Wifi', icon: 'wifi' },
+              { id: 'CAT_UT02', name: 'Máy lạnh', icon: 'thermometer' },
+              { id: 'CAT_UT03', name: 'Chỗ để xe', icon: 'truck' },
+              { id: 'CAT_UT04', name: 'Ban công', icon: 'maximize' },
+              { id: 'CAT_UT05', name: 'Thang máy', icon: 'arrow-up' }
+            ]
+          }
+        };
+      },
+    }),
 
     // ── Rooms ──────────────────────────────────────────────────────────────
     getLandlordRooms: builder.query({
@@ -388,4 +411,5 @@ export const {
   useGetLandlordNotificationsQuery,
   useGetLandlordProfileQuery,
   useUpdateLandlordProfileMutation,
+  useGetPublicCategoriesQuery,
 } = landlordApiMock;

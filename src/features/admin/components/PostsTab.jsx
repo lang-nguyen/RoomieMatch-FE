@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useDeletePostMutation, useLazyGetPostsQuery, useUpdatePostStatusMutation } from '../api/adminApi';
+import { useDeletePostMutation, useLazyGetAdminPostsQuery, useUpdatePostStatusMutation } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatNumber, normalizeText, paginate, toArray } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
@@ -111,8 +111,8 @@ export const PostsTab = () => {
   const [page, setPage] = useState(1);
   const [viewingPost, setViewingPost] = useState(null);
   const visibleStatus = activeTab === 'all' ? 'all' : activeTab;
-  const [loadAllPosts, allPostsQuery] = useLazyGetPostsQuery();
-  const [loadVisiblePosts, visiblePostsQuery] = useLazyGetPostsQuery();
+  const [loadAllPosts, allPostsQuery] = useLazyGetAdminPostsQuery();
+  const [loadVisiblePosts, visiblePostsQuery] = useLazyGetAdminPostsQuery();
   const [updatePostStatus] = useUpdatePostStatusMutation();
   const [deletePost] = useDeletePostMutation();
   const allPosts = useMemo(() => toArray(allPostsQuery.data).map(normalizePost), [allPostsQuery.data]);

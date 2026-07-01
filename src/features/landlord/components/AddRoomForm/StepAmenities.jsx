@@ -2,35 +2,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { Upload } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useAddRoomForm } from '../../hooks/useAddRoomForm';
-import { useDeleteLandlordRoomImageMutation } from '../../api/landlordApi';
+import { useDeleteLandlordRoomImageMutation, useGetPublicCategoriesQuery } from '../../api/landlordApi';
 import ConfirmModal from '../../../../shared/components/ConfirmModal';
 import { getAddRoomImageFiles, setAddRoomImageFiles } from '../../utils/addRoomImageFiles';
 import styles from './StepForm.module.css';
 
-const AMENITIES = [
-  'May lanh',
-  'Quat tran',
-  'May suoi',
-  'Voi sen',
-  'Bon tam',
-  'WC rieng',
-  'Nuoc nong',
-  'Giuong',
-  'Tu quan ao',
-  'TV',
-  'Bep nau',
-  'Tu lanh',
-  'May giat',
-  'Wifi',
-  'Camera an ninh',
-];
+
 
 const StepAmenities = () => {
   const { draft, updateDraft, goNext, goBack } = useAddRoomForm();
   const { roomId } = useParams();
   const [deleteRoomImage, deleteImageState] = useDeleteLandlordRoomImageMutation();
+  const { data } = useGetPublicCategoriesQuery();
   const [imageError, setImageError] = useState('');
   const [pendingRemoval, setPendingRemoval] = useState(null);
+  
+  const availableAmenities = data?.amenities?.map(a => a.name) || [];
 
   const selectedAmenities = useMemo(() => draft.amenities || [], [draft.amenities]);
   const selectedImageMeta = useMemo(() => draft.image_files_meta || [], [draft.image_files_meta]);
@@ -154,18 +141,19 @@ const StepAmenities = () => {
       )}
 
       <h2 className={styles.sectionTitle} style={{ marginTop: 16 }}>Tien ich phong</h2>
-      <div className={styles.checkboxGrid}>
-        {AMENITIES.map((item) => (
-          <label key={item} className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={selectedAmenities.includes(item)}
-              onChange={() => handleToggle(item)}
-            />
-            {item}
-          </label>
-        ))}
-      </div>
+        <div className={styles.checkboxGrid}>
+          {availableAmenities.map((item) => (
+            <label key={item} className={styles.checkboxLabel}>
+              <input 
+                type="checkbox"
+                checked={selectedAmenities.includes(item)}
+                onChange={() => handleToggle(item)}
+                className={styles.checkbox}
+              />
+              <span className={styles.checkboxText}>{item}</span>
+            </label>
+          ))}
+        </div>
 
       <div className={styles.footer}>
         <button type="button" className={styles.backBtn} onClick={goBack}>Quay lai</button>

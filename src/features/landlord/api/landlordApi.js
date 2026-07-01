@@ -248,6 +248,9 @@ export const landlordApi = baseApi.injectEndpoints({
       query: ({ id }) => ({ url: `/landlord/notifications/${id}`, method: 'PATCH' }),
       invalidatesTags: ['LandlordNotifications'],
     }),
+    getPublicCategories: builder.query({
+      query: () => '/metadata/categories',
+    }),
     getLandlordVerification: builder.query({
       query: () => '/landlord/verification',
       providesTags: ['Verification'],
@@ -316,6 +319,7 @@ export const {
   useGetLandlordRentalRequestsQuery,
   useDecideLandlordRentalRequestMutation,
   useCreateLandlordVnpayPaymentMutation,
+  useGetPublicCategoriesQuery,
 } = landlordApi;
 
 const tierBySlug = {

@@ -1,8 +1,11 @@
 import { useAddRoomForm } from '../../hooks/useAddRoomForm';
+import { useGetPublicCategoriesQuery } from '../../api/landlordApi';
 import styles from './StepForm.module.css';
 
 const StepBasicInfo = () => {
   const { draft, updateDraft, goNext } = useAddRoomForm();
+  const { data } = useGetPublicCategoriesQuery();
+  const roomTypes = data?.room_types || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,10 +44,9 @@ const StepBasicInfo = () => {
             className={styles.select}
           >
             <option value="">Chọn loại phòng</option>
-            <option value="Phòng trọ">Phòng trọ</option>
-            <option value="Chung cư mini">Chung cư mini</option>
-            <option value="Ký túc xá">Ký túc xá</option>
-            <option value="Nhà nguyên căn">Nhà nguyên căn</option>
+            {roomTypes.map((rt) => (
+              <option key={rt.id} value={rt.name}>{rt.name}</option>
+            ))}
           </select>
         </div>
         <div className={styles.formGroup}>

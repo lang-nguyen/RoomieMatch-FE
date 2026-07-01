@@ -84,7 +84,7 @@ export const adminApiMock = baseApi.injectEndpoints({
     }),
 
     // ─── POSTS ───
-    getPosts: builder.query({
+    getAdminPosts: builder.query({
       queryFn: async ({ status = '' } = {}) => {
         let result = [...mockPosts];
         if (status && status !== 'all') result = result.filter(p => {
@@ -226,7 +226,7 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
-  useGetPostsQuery,
+  useGetAdminPostsQuery,
   useUpdatePostStatusMutation,
   useDeletePostMutation,
   useGetRoomsQuery,

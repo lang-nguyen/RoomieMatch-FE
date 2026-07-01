@@ -38,6 +38,16 @@ import {
   Waves,
   X,
   XCircle,
+  Wifi,
+  Tv,
+  Snowflake,
+  Thermometer,
+  Bath,
+  Bed,
+  Coffee,
+  Refrigerator,
+  Shirt,
+  Video,
 } from 'lucide-react';
 
 const icons = {
@@ -80,7 +90,19 @@ const icons = {
   waves: Waves,
   close: X,
   'x-circle': XCircle,
+  wifi: Wifi,
+  tv: Tv,
+  snowflake: Snowflake,
+  thermometer: Thermometer,
+  bath: Bath,
+  bed: Bed,
+  coffee: Coffee,
+  refrigerator: Refrigerator,
+  shirt: Shirt,
+  video: Video,
 };
+
+export const AVAILABLE_ICONS = Object.keys(icons);
 
 export const AdminIcon = ({ name, size = 18, strokeWidth = 2, ...props }) => {
   const Icon = icons[name] || LayoutDashboard;

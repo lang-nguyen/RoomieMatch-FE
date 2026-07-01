@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useCreateCategoryMutation, useDeleteCategoryMutation, useGetCategoriesQuery } from '../api/adminApi';
-import { AdminIcon } from './adminIconMap';
+import { AdminIcon, AVAILABLE_ICONS } from './adminIconMap';
 import { formatNumber, normalizeText } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
 
 const categoryTabs = [
-  { id: 'area', label: 'Khu vực', icon: 'map-pin' },
   { id: 'roomType', label: 'Loại phòng', icon: 'building' },
   { id: 'utility', label: 'Tiện ích', icon: 'tags' },
 ];
@@ -19,7 +18,7 @@ const emptyCategory = {
 };
 
 export const CategoriesTab = () => {
-  const [activeTab, setActiveTab] = useState('area');
+  const [activeTab, setActiveTab] = useState('roomType');
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState(emptyCategory);
@@ -195,30 +194,25 @@ export const CategoriesTab = () => {
               </button>
             </div>
             <div className={styles.formGrid}>
-              <label>
-                Tên danh mục
+              <label className={styles.formWide}>
+                Tên {activeTab === 'roomType' ? 'loại phòng' : 'tiện ích'}
                 <input value={form.name} onChange={(event) => setForm((value) => ({ ...value, name: event.target.value }))} required />
               </label>
-              <label>
-                Khoảng giá
-                <input value={form.priceRange} onChange={(event) => setForm((value) => ({ ...value, priceRange: event.target.value }))} />
-              </label>
-              <label>
-                Người tạo
-                <input value={form.creator} onChange={(event) => setForm((value) => ({ ...value, creator: event.target.value }))} />
-              </label>
-              <label>
-                Số phòng
-                <input
-                  type="number"
-                  min="0"
-                  value={form.quantity}
-                  onChange={(event) => setForm((value) => ({ ...value, quantity: event.target.value }))}
-                />
-              </label>
-              <label>
-                Tên Icon (Ví dụ: tags, home, wifi)
-                <input value={form.icon} onChange={(event) => setForm((value) => ({ ...value, icon: event.target.value }))} />
+              <label className={styles.formWide}>
+                Chọn Icon
+                <div className={styles.iconGrid}>
+                  {AVAILABLE_ICONS.map(iconName => (
+                    <button
+                      key={iconName}
+                      type="button"
+                      className={`${styles.iconButton} ${form.icon === iconName ? styles.iconButtonSelected : ''}`}
+                      onClick={() => setForm((value) => ({ ...value, icon: iconName }))}
+                      title={iconName}
+                    >
+                      <AdminIcon name={iconName} size={20} />
+                    </button>
+                  ))}
+                </div>
               </label>
             </div>
             <div className={styles.modalActions}>

@@ -60,7 +60,7 @@ export const adminApi = baseApi.injectEndpoints({
     }),
 
     // ─── POSTS ───
-    getPosts: builder.query({
+    getAdminPosts: builder.query({
       query: (params) => ({ url: '/admin/posts', method: 'GET', params }),
       providesTags: ['Posts'],
     }),
@@ -180,8 +180,8 @@ export const {
   useDeleteAdminUserMutation,
   useGetLandlordVerificationsQuery,
   useUpdateLandlordVerificationMutation,
-  useGetPostsQuery,
-  useLazyGetPostsQuery,
+  useGetAdminPostsQuery,
+  useLazyGetAdminPostsQuery,
   useUpdatePostStatusMutation,
   useDeletePostMutation,
   useGetRoomsQuery,

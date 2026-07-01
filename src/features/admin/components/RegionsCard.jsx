@@ -2,7 +2,7 @@ import { AdminIcon } from './adminIconMap';
 import { DashboardCard } from './DashboardCard';
 import styles from './AdminDashboard.module.css';
 
-export const RegionsCard = ({ regions, searchValue, onSearchChange, onRefresh }) => {
+export const RegionsCard = ({ regions, searchValue, onSearchChange, onRefresh, onRegionClick }) => {
   const action = (
     <button type="button" className={styles.buttonSmall} onClick={onRefresh}>
       <AdminIcon name="refresh" size={13} />
@@ -25,14 +25,14 @@ export const RegionsCard = ({ regions, searchValue, onSearchChange, onRefresh })
       <div className={styles.regionList}>
         {regions.length > 0 ? (
           regions.map((region) => (
-            <button key={region.id} type="button" className={styles.regionItem}>
+            <button key={region.id} type="button" className={styles.regionItem} onClick={() => onRegionClick && onRegionClick(region.name)}>
               <span className={styles.regionIcon}>
                 <AdminIcon name={region.icon} size={17} />
               </span>
               <span className={styles.regionInfo}>
                 <span className={styles.regionName}>{region.name}</span>
-                <span className={styles.regionCount}>{region.count} bài đăng</span>
               </span>
+              <span className={styles.regionCount}>{region.count} phòng trọ</span>
               <span className={styles.regionArrow}>
                 <AdminIcon name="chevron" size={13} />
               </span>

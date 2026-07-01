@@ -120,41 +120,46 @@ const AreaChart = ({ data }) => (
   </div>
 );
 
-const DistributionBlock = ({ title, items }) => (
-  <div className={styles.distributionBlock}>
-    <h3>{title}</h3>
-    {items.map((item, index) => {
-      const radius = 28;
-      const circumference = 2 * Math.PI * radius;
-      const dash = (item.value / 100) * circumference;
+const DistributionBlock = ({ title, items }) => {
+  const total = items.reduce((sum, item) => sum + (item.value || 0), 0);
 
-      return (
-        <div key={item.name} className={styles.distributionRow}>
-          <svg width="72" height="72" viewBox="0 0 72 72">
-            <circle cx="36" cy="36" r={radius} className={styles.ringTrack} />
-            <circle
-              cx="36"
-              cy="36"
-              r={radius}
-              className={styles.ringValue}
-              style={{
-                strokeDasharray: `${dash} ${circumference - dash}`,
-                stroke: ['#D45B13', '#4F6EF7', '#22c55e', '#f59e0b'][index % 4],
-              }}
-            />
-            <text x="36" y="40" textAnchor="middle" className={styles.ringText}>
-              {item.value}%
-            </text>
-          </svg>
-          <div>
-            <strong>{item.name}</strong>
-            <span>{item.value}% tổng phòng</span>
+  return (
+    <div className={styles.distributionBlock}>
+      <h3>{title}</h3>
+      {items.map((item, index) => {
+        const radius = 28;
+        const circumference = 2 * Math.PI * radius;
+        const percentage = total > 0 ? Math.round((item.value / total) * 100) : 0;
+        const dash = (percentage / 100) * circumference;
+
+        return (
+          <div key={item.name} className={styles.distributionRow}>
+            <svg width="72" height="72" viewBox="0 0 72 72">
+              <circle cx="36" cy="36" r={radius} className={styles.ringTrack} />
+              <circle
+                cx="36"
+                cy="36"
+                r={radius}
+                className={styles.ringValue}
+                style={{
+                  strokeDasharray: `${dash} ${circumference - dash}`,
+                  stroke: ['#D45B13', '#4F6EF7', '#22c55e', '#f59e0b'][index % 4],
+                }}
+              />
+              <text x="36" y="40" textAnchor="middle" className={styles.ringText}>
+                {percentage}%
+              </text>
+            </svg>
+            <div>
+              <strong>{item.name}</strong>
+              <span>{item.value} phòng ({percentage}%)</span>
+            </div>
           </div>
-        </div>
-      );
-    })}
-  </div>
-);
+        );
+      })}
+    </div>
+  );
+};
 
 const emptyAnalytics = {
   monthlyUsers: { labels: [], series: [{ points: [0] }, { points: [0] }, { points: [0] }] },
@@ -169,6 +174,7 @@ export const AnalyticsTab = () => {
   const topMetrics = useMemo(
     () => [
       { label: 'Tổng doanh thu', value: formatCurrency(data.revenue.total), icon: 'dollar-sign' },
+      { label: 'Tổng số phòng', value: formatNumber(data.totalRooms || 0), icon: 'home' },
       { label: 'Người dùng hiện tại', value: formatNumber(data.monthlyUsers.series[0].points.at(-1)), icon: 'users' },
       { label: 'Tỷ lệ xử lý khiếu nại', value: `${data.complaints.points[0]}%`, icon: 'check' },
     ],
@@ -241,8 +247,8 @@ export const AnalyticsTab = () => {
             </div>
           </div>
           <div className={styles.distributionGrid}>
-            <DistributionBlock title="Khu vực" items={data.categoriesDistribution.area} />
-            <DistributionBlock title="Loại phòng" items={data.categoriesDistribution.roomType} />
+            <DistributionBlock title="Khu vực" items={[...(data.categoriesDistribution.area || [])].sort((a,b)=>b.value-a.value).slice(0,3)} />
+            <DistributionBlock title="Loại phòng" items={[...(data.categoriesDistribution.roomType || [])].sort((a,b)=>b.value-a.value).slice(0,3)} />
             <DistributionBlock title="Mức giá" items={data.categoriesDistribution.priceRange} />
           </div>
         </article>

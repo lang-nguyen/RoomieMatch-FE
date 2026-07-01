@@ -7,7 +7,7 @@ import {
   useUpdatePackageMutation,
   useUpdatePackageStatusMutation,
 } from '../api/adminApi';
-import { AdminIcon } from './adminIconMap';
+import { AdminIcon, AVAILABLE_ICONS } from './adminIconMap';
 import { formatCurrency, formatNumber, labelFromOptions, normalizeText } from './adminFeatureUtils';
 import styles from './AdminDashboard.module.css';
 
@@ -389,15 +389,21 @@ export const PackagesTab = () => {
                 Tên gói
                 <input value={form.name} onChange={(event) => setForm((value) => ({ ...value, name: event.target.value }))} required />
               </label>
-              <label>
+              <label className={styles.formWide}>
                 Icon
-                <select value={form.icon} onChange={(event) => setForm((value) => ({ ...value, icon: event.target.value }))}>
-                  {['package', 'file-text', 'activity', 'users', 'shield'].map((icon) => (
-                    <option key={icon} value={icon}>
-                      {icon}
-                    </option>
+                <div className={styles.iconGrid}>
+                  {AVAILABLE_ICONS.map(iconName => (
+                    <button
+                      key={iconName}
+                      type="button"
+                      className={`${styles.iconButton} ${form.icon === iconName ? styles.iconButtonSelected : ''}`}
+                      onClick={() => setForm((value) => ({ ...value, icon: iconName }))}
+                      title={iconName}
+                    >
+                      <AdminIcon name={iconName} size={20} />
+                    </button>
                   ))}
-                </select>
+                </div>
               </label>
               <label>
                 Khách hàng

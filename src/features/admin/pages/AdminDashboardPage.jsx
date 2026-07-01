@@ -7,9 +7,6 @@ import { AdminSidebar } from '../components/AdminSidebar';
 import { AdminTopbar } from '../components/AdminTopbar';
 import { AdminPageHeader } from '../components/AdminPageHeader';
 import { StatCard } from '../components/StatCard';
-import { PerformanceChart } from '../components/PerformanceChart';
-import { StaffTable } from '../components/StaffTable';
-import { RegionsCard } from '../components/RegionsCard';
 import { NotificationsCard } from '../components/NotificationsCard';
 import { AnalyticsTab } from '../components/AnalyticsTab';
 import { UsersTab } from '../components/UsersTab';
@@ -19,7 +16,7 @@ import { PackagesTab } from '../components/PackagesTab';
 import { RoleFeaturesTab } from '../components/RoleFeaturesTab';
 import { CategoriesTab } from '../components/CategoriesTab';
 import { OrdersTab } from '../components/OrdersTab';
-import { ComplaintsTab } from '../components/ComplaintsTab';
+import { RegionsCard } from '../components/RegionsCard';
 import { useGetLandlordVerificationsQuery } from '../api/adminApi';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
 import styles from '../components/AdminDashboard.module.css';
@@ -70,16 +67,6 @@ const pageHeaders = {
     highlight: 'hàng',
     subtitle: 'Theo dõi giao dịch, doanh thu và trạng thái thanh toán',
   },
-  complaints: {
-    title: 'Khiếu nại',
-    highlight: 'nại',
-    subtitle: 'Ưu tiên xử lý phản ánh và cập nhật tiến độ hỗ trợ khách hàng',
-  },
-  settings: {
-    title: 'Cài đặt',
-    highlight: 'đặt',
-    subtitle: 'Các thiết lập hệ thống sẽ được bổ sung trong giai đoạn tiếp theo',
-  },
 };
 
 const AdminDashboardPage = () => {
@@ -89,16 +76,15 @@ const AdminDashboardPage = () => {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isVerificationMenuOpen, setIsVerificationMenuOpen] = useState(false);
   const [verificationFocusId, setVerificationFocusId] = useState(null);
+  const [roomsFocusArea, setRoomsFocusArea] = useState('');
   const {
     navSections,
     activeNavId,
     setActiveNavId,
-    selectedYear,
-    setSelectedYear,
-    regionSearch,
-    setRegionSearch,
     dashboard,
     regions,
+    regionSearch,
+    setRegionSearch,
     notifications,
     unreadCount,
     markAllNotificationsRead,
@@ -141,15 +127,18 @@ const AdminDashboardPage = () => {
 
       <section className={styles.bottomGrid}>
         <div className={styles.leftCol}>
-          <PerformanceChart
-            performance={dashboard.performance}
-            selectedYear={selectedYear}
-            onYearChange={setSelectedYear}
+          <RegionsCard
+            regions={regions}
+            searchValue={regionSearch}
+            onSearchChange={setRegionSearch}
+            onRefresh={refetch}
+            onRegionClick={(regionName) => {
+              setRoomsFocusArea(regionName);
+              handleNavChange('rooms');
+            }}
           />
-          <StaffTable staff={dashboard.staff} />
         </div>
         <div className={styles.rightCol}>
-          <RegionsCard regions={regions} searchValue={regionSearch} onSearchChange={setRegionSearch} onRefresh={refetch} />
           <NotificationsCard
             notifications={notifications}
             unreadCount={unreadCount}
@@ -174,7 +163,12 @@ const AdminDashboardPage = () => {
       case 'posts':
         return <PostsTab />;
       case 'rooms':
-        return <RoomsTab />;
+        return (
+          <RoomsTab
+            initialArea={roomsFocusArea}
+            onInitialAreaHandled={() => setRoomsFocusArea('')}
+          />
+        );
       case 'packages':
         return <PackagesTab />;
       case 'role-features':
@@ -183,8 +177,6 @@ const AdminDashboardPage = () => {
         return <CategoriesTab />;
       case 'orders':
         return <OrdersTab />;
-      case 'complaints':
-        return <ComplaintsTab />;
       case 'dashboard':
         return renderDashboardHome();
       default:

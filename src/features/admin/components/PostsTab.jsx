@@ -89,7 +89,7 @@ const normalizePost = (post, index) => {
   return {
     ...post,
     id: post.id || post.postId || post.post_id || post.code || `P${String(index + 1).padStart(3, '0')}`,
-    title: post.title || post.postTitle || post.name || post.roomTitle || 'Bài đăng chưa có tiêu đề',
+    title: post.roomTitle || post.title || post.postTitle || post.name || 'Bài đăng chưa có tiêu đề',
     author: readAuthor(post),
     authorUsername: post.author_username || post.authorUsername || post.username || null,
     authorEmail: post.author_email || post.authorEmail || post.email || null,
@@ -108,8 +108,11 @@ const normalizePost = (post, index) => {
 export const PostsTab = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
+  const [searchDate, setSearchDate] = useState('');
   const [page, setPage] = useState(1);
   const [viewingPost, setViewingPost] = useState(null);
+  const [rejectingPostId, setRejectingPostId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
   const visibleStatus = activeTab === 'all' ? 'all' : activeTab;
   const [loadAllPosts, allPostsQuery] = useLazyGetAdminPostsQuery();
   const [loadVisiblePosts, visiblePostsQuery] = useLazyGetAdminPostsQuery();
@@ -128,15 +131,23 @@ export const PostsTab = () => {
   }, [loadVisiblePosts, visibleStatus]);
 
   const filteredPosts = useMemo(() => {
+    let result = visiblePosts;
     const keyword = normalizeText(search);
-    if (!keyword) return visiblePosts;
-
-    return visiblePosts.filter((post) =>
-      [post.title, post.author, post.authorUsername, post.authorEmail, post.authorAccountId, post.id, post.statusLabel].some((value) =>
-        normalizeText(value).includes(keyword)
-      )
-    );
-  }, [visiblePosts, search]);
+    if (keyword) {
+      result = result.filter((post) =>
+        [post.title, post.author, post.authorUsername, post.authorEmail, post.authorAccountId, post.id, post.statusLabel].some((value) =>
+          normalizeText(value).includes(keyword)
+        )
+      );
+    }
+    if (searchDate) {
+      // searchDate is YYYY-MM-DD. post.date is typically DD/MM/YYYY
+      const [year, month, day] = searchDate.split('-');
+      const formattedSearchDate = `${day}/${month}/${year}`;
+      result = result.filter(post => post.date === formattedSearchDate);
+    }
+    return result;
+  }, [visiblePosts, search, searchDate]);
   const paged = paginate(filteredPosts, page, 5);
 
   const stats = useMemo(
@@ -152,15 +163,25 @@ export const PostsTab = () => {
   const topPost = useMemo(() => [...allPosts].sort((first, second) => getPostScore(second) - getPostScore(first))[0], [allPosts]);
 
   const handlePostChange = async (id, changes) => {
-    if (!changes.status) return;
-    const reason = changes.status === 'rejected' ? window.prompt('Nhập lý do từ chối bài đăng:') : null;
-    if (changes.status === 'rejected' && !reason) return;
-    await updatePostStatus({ id, ...changes, reason }).unwrap();
+    if (!changes.status && changes.isFeatured === undefined) return;
+    if (changes.status === 'rejected' && !changes.reason) {
+      setRejectingPostId(id);
+      setRejectReason('');
+      return;
+    }
+    await updatePostStatus({ id, ...changes }).unwrap();
     await loadAllPosts({ status: 'all' }, false);
     await loadVisiblePosts({ status: visibleStatus }, false);
   };
 
+  const submitReject = async () => {
+    if (!rejectReason.trim()) return;
+    await handlePostChange(rejectingPostId, { status: 'rejected', reason: rejectReason });
+    setRejectingPostId(null);
+  };
+
   const handleDelete = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xoá bài đăng này?')) return;
     await deletePost(id).unwrap();
     await loadAllPosts({ status: 'all' }, false);
     await loadVisiblePosts({ status: visibleStatus }, false);
@@ -241,6 +262,16 @@ export const PostsTab = () => {
               }}
             />
           </label>
+          <label className={styles.controlWithIcon}>
+            <input
+              type="date"
+              value={searchDate}
+              onChange={(event) => {
+                setSearchDate(event.target.value);
+                setPage(1);
+              }}
+            />
+          </label>
           <span className={styles.toolbarHint}>
             Hiển thị {formatNumber(filteredPosts.length)} / {formatNumber(visiblePosts.length)} bài
           </span>
@@ -303,9 +334,9 @@ export const PostsTab = () => {
                       </span>
                     </td>
                     <td>
-                      <span className={styles.metricInline}>{formatNumber(post.views)} xem</span>
-                      <span className={styles.metricInline}>{formatNumber(post.likes)} thích</span>
-                      <span className={styles.metricInline}>{formatNumber(post.comments)} BL</span>
+                      <button type="button" className={styles.metricInline} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit' }} onClick={() => alert('Tính năng đang được phát triển')}>{formatNumber(post.views)} xem</button>
+                      <button type="button" className={styles.metricInline} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit' }} onClick={() => alert('Tính năng đang được phát triển')}>{formatNumber(post.likes)} thích</button>
+                      <button type="button" className={styles.metricInline} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit' }} onClick={() => alert('Tính năng đang được phát triển')}>{formatNumber(post.comments)} BL</button>
                       <div className={styles.scoreBar} title="Mức độ tương tác">
                         <span style={{ width: `${Math.min(100, Math.round(getPostScore(post) / 8))}%` }} />
                       </div>
@@ -315,9 +346,11 @@ export const PostsTab = () => {
                         <button type="button" className={styles.actionButton} title="Xem chi tiết" onClick={() => setViewingPost(post)}>
                           <AdminIcon name="eye" size={14} />
                         </button>
-                        <button type="button" className={styles.actionButton} title="Duyệt" onClick={() => handlePostChange(post.id, { status: 'approved' })}>
-                          <AdminIcon name="check" size={14} />
-                        </button>
+                        {post.status !== 'approved' && (
+                          <button type="button" className={styles.actionButton} title="Duyệt" onClick={() => handlePostChange(post.id, { status: 'approved' })}>
+                            <AdminIcon name="check" size={14} />
+                          </button>
+                        )}
                         <button type="button" className={styles.actionButton} title="Từ chối" onClick={() => handlePostChange(post.id, { status: 'rejected' })}>
                           <AdminIcon name="x-circle" size={14} />
                         </button>
@@ -439,6 +472,40 @@ export const PostsTab = () => {
               >
                 <AdminIcon name="check" size={13} />
                 Duyệt bài đăng
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {rejectingPostId && (
+        <div className={styles.modalOverlay} role="presentation" onMouseDown={() => setRejectingPostId(null)}>
+          <section className={styles.modalCard} onMouseDown={(event) => event.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Từ chối bài đăng</h2>
+              </div>
+              <button type="button" className={styles.actionButton} onClick={() => setRejectingPostId(null)}>
+                <AdminIcon name="close" size={15} />
+              </button>
+            </div>
+            <div className={styles.detailGrid}>
+              <article className={styles.formWide}>
+                <span>Lý do từ chối</span>
+                <textarea 
+                  value={rejectReason} 
+                  onChange={(e) => setRejectReason(e.target.value)} 
+                  placeholder="Nhập lý do từ chối..."
+                  style={{ width: '100%', padding: '8px', minHeight: '80px', marginTop: '8px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
+                />
+              </article>
+            </div>
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.buttonSmall} onClick={() => setRejectingPostId(null)}>
+                Hủy
+              </button>
+              <button type="button" className={`${styles.buttonSmall} ${styles.buttonDanger}`} onClick={submitReject} disabled={!rejectReason.trim()}>
+                Xác nhận từ chối
               </button>
             </div>
           </section>

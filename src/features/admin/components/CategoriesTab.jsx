@@ -59,8 +59,14 @@ export const CategoriesTab = () => {
   };
 
   const handleDelete = async (id) => {
-    await deleteCategory({ tab: activeTab, id });
-    refetch();
+    if (!window.confirm('Bạn có chắc chắn muốn xóa mục này?')) return;
+    try {
+      await deleteCategory(id).unwrap();
+      refetch();
+    } catch (error) {
+      console.error(error);
+      alert('Không thể xóa danh mục. Vui lòng thử lại sau.');
+    }
   };
 
   return (
@@ -123,14 +129,13 @@ export const CategoriesTab = () => {
 
         <div className={styles.categoryPreviewGrid}>
           {filteredItems.slice(0, 4).map((item) => (
-            <article key={item.id} className={styles.categoryPreviewCard}>
+            <article key={item.id} className={styles.categoryPreviewCard} style={{ border: 'none', boxShadow: 'none' }}>
               <span className={styles.categoryIcon}>
                 <AdminIcon name={item.icon || categoryTabs.find((tab) => tab.id === activeTab)?.icon || 'tags'} size={18} />
               </span>
               <div>
                 <strong>{item.name}</strong>
-                <p>{item.priceRange}</p>
-                <div className={styles.scoreBar}>
+                <div className={styles.scoreBar} style={{ marginTop: '8px' }}>
                   <span style={{ width: `${Math.max(8, Math.round((item.quantity / maxQuantity) * 100))}%` }} />
                 </div>
               </div>
@@ -145,7 +150,6 @@ export const CategoriesTab = () => {
               <tr>
                 <th>Tên danh mục</th>
                 <th>Icon</th>
-                <th>Khoảng giá</th>
                 <th>Người tạo</th>
                 <th>ID</th>
                 <th>Số phòng</th>
@@ -162,7 +166,6 @@ export const CategoriesTab = () => {
                   <tr key={item.id}>
                     <td className={styles.strongCell}>{item.name}</td>
                     <td><AdminIcon name={item.icon || 'tags'} size={16} /></td>
-                    <td>{item.priceRange}</td>
                     <td>{item.creator}</td>
                     <td>{item.id}</td>
                     <td>

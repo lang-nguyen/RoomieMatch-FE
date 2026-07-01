@@ -172,12 +172,16 @@ export const adminApiMock = baseApi.injectEndpoints({
         mockCategories[tab] = [...(mockCategories[tab] || []), newCat];
         return { data: await wait(newCat) };
       },
+      invalidatesTags: ['Categories'],
     }),
     deleteCategory: builder.mutation({
-      queryFn: async ({ tab, id }) => {
-        mockCategories[tab] = mockCategories[tab].filter(c => c.id !== id);
+      queryFn: async (id) => {
+        for (const tab of Object.keys(mockCategories)) {
+          mockCategories[tab] = mockCategories[tab].filter(c => c.id !== id);
+        }
         return { data: await wait({ id }) };
       },
+      invalidatesTags: ['Categories'],
     }),
 
     // ─── ORDERS ───

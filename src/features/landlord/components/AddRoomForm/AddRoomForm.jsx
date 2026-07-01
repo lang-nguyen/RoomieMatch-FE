@@ -16,7 +16,7 @@ const STEPS = [
 
 const AddRoomForm = () => {
   const navigate = useNavigate();
-  const { currentStep, goToStep, isEditing } = useAddRoomForm();
+  const { currentStep, goToStep, isEditing, handleSubmit, isSubmitting } = useAddRoomForm();
 
   const renderStep = () => {
     switch (currentStep) {
@@ -40,7 +40,7 @@ const AddRoomForm = () => {
           <button className={styles.backBtn} onClick={() => navigate('/landlord/rooms')}>
             <ChevronLeft size={16} /> Quay lại
           </button>
-          <button className={styles.saveBtn}>Lưu phòng trọ</button>
+          <button className={styles.saveBtn} onClick={handleSubmit} disabled={isSubmitting}>Lưu phòng trọ</button>
         </div>
       </div>
 
@@ -50,8 +50,8 @@ const AddRoomForm = () => {
           <div key={step.id} className={styles.stepWrapper}>
             <button
               className={`${styles.stepIndicator} ${currentStep === step.id ? styles.stepActive : ''} ${currentStep > step.id ? styles.stepCompleted : ''}`}
-              onClick={() => currentStep > step.id && goToStep(step.id)}
-              disabled={currentStep < step.id}
+              onClick={() => (isEditing || currentStep > step.id) && goToStep(step.id)}
+              disabled={!isEditing && currentStep < step.id}
             >
               <div className={styles.stepCircle}>
                 {currentStep > step.id ? '✓' : step.id + 1}

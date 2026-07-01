@@ -377,12 +377,12 @@ export const adminDashboardMockData = {
     },
   ],
   rooms: [
-    { id: 'R001', area: 'Quận 7, TP. HCM', owner: 'hoang_long', status: 'available', statusLabel: 'Trống', capacity: 2, roomType: 'phong_don', roomTypeLabel: 'Phòng đơn', totalRooms: 5 },
-    { id: 'R002', area: 'Bình Thạnh, TP. HCM', owner: 'lan_anh', status: 'renting', statusLabel: 'Đang thuê', capacity: 3, roomType: 'ghep', roomTypeLabel: 'Ở ghép', totalRooms: 1 },
-    { id: 'R003', area: 'Cầu Giấy, Hà Nội', owner: 'quoc_bao', status: 'available', statusLabel: 'Trống', capacity: 2, roomType: 'can_ho', roomTypeLabel: 'Căn hộ', totalRooms: 8 },
-    { id: 'R004', area: 'Hai Bà Trưng, Hà Nội', owner: 'viet_anh', status: 'inactive', statusLabel: 'Tạm ngưng', capacity: 1, roomType: 'phong_don', roomTypeLabel: 'Phòng đơn', totalRooms: 3 },
-    { id: 'R005', area: 'Quận 9, TP. HCM', owner: 'hoang_long', status: 'renting', statusLabel: 'Đang thuê', capacity: 4, roomType: 'can_ho', roomTypeLabel: 'Căn hộ', totalRooms: 2 },
-    { id: 'R006', area: 'Gò Vấp, TP. HCM', owner: 'thu_hang', status: 'pending', statusLabel: 'Chờ duyệt', capacity: 2, roomType: 'ghep', roomTypeLabel: 'Ở ghép', totalRooms: 1 },
+    { id: 'R001', title: 'Phòng trọ khép kín Lotte', area: 'Quận 7, TP. HCM', owner: 'hoang_long', status: 'available', statusLabel: 'Trống', capacity: 2, roomType: 'phong_don', roomTypeLabel: 'Phòng đơn', totalRooms: 5 },
+    { id: 'R002', title: 'Căn hộ chung cư Vinhomes', area: 'Bình Thạnh, TP. HCM', owner: 'lan_anh', status: 'renting', statusLabel: 'Đang thuê', capacity: 3, roomType: 'ghep', roomTypeLabel: 'Ở ghép', totalRooms: 1 },
+    { id: 'R003', title: 'Studio cao cấp ngõ 68', area: 'Cầu Giấy, Hà Nội', owner: 'quoc_bao', status: 'available', statusLabel: 'Trống', capacity: 2, roomType: 'can_ho', roomTypeLabel: 'Căn hộ', totalRooms: 8 },
+    { id: 'R004', title: 'Phòng đơn cho người đi làm', area: 'Hai Bà Trưng, Hà Nội', owner: 'viet_anh', status: 'inactive', statusLabel: 'Tạm ngưng', capacity: 1, roomType: 'phong_don', roomTypeLabel: 'Phòng đơn', totalRooms: 3 },
+    { id: 'R005', title: 'Nhà nguyên căn hẻm ô tô', area: 'Quận 9, TP. HCM', owner: 'hoang_long', status: 'renting', statusLabel: 'Đang thuê', capacity: 4, roomType: 'can_ho', roomTypeLabel: 'Căn hộ', totalRooms: 2 },
+    { id: 'R006', title: 'Phòng trọ sinh viên giá rẻ', area: 'Gò Vấp, TP. HCM', owner: 'thu_hang', status: 'pending', statusLabel: 'Chờ duyệt', capacity: 2, roomType: 'ghep', roomTypeLabel: 'Ở ghép', totalRooms: 1 },
   ],
   packages: [
     { id: 'PKG001', name: 'Gói Đăng Tin VIP 1', icon: 'file-text', targetCustomer: 'owner', targetCustomerLabel: 'Chủ trọ', pricePerMonth: 299000, duration: '30 ngày', features: ['Đăng tin nổi bật', 'Hiển thị ưu tiên đầu trang', 'Hỗ trợ duyệt nhanh trong 1h', 'Thống kê lượt xem chi tiết'], totalPurchased: 245, status: 'active', statusLabel: 'Đang bán' },

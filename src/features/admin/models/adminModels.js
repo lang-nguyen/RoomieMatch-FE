@@ -16,13 +16,6 @@ export const ADMIN_NAV_SECTIONS = [
       { id: 'role-features', label: 'Tính năng gói', icon: 'list' },
       { id: 'categories', label: 'Quản lý danh mục', icon: 'tags' },
       { id: 'orders', label: 'Đơn hàng', icon: 'shopping-cart' },
-      { id: 'complaints', label: 'Khiếu nại', icon: 'message-square-warning' },
-    ],
-  },
-  {
-    title: 'Hệ thống',
-    items: [
-      { id: 'settings', label: 'Cài đặt', icon: 'settings' },
     ],
   },
 ];

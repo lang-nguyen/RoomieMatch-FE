@@ -22,6 +22,7 @@ const flowSteps = ['pending', 'success'];
 export const OrdersTab = () => {
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
+  const [searchDate, setSearchDate] = useState('');
   const [page, setPage] = useState(1);
   const { data: orders = [], isLoading, refetch } = useGetOrdersQuery({ status });
   const { data: allOrders = [] } = useGetOrdersQuery({});
@@ -29,13 +30,20 @@ export const OrdersTab = () => {
   const [deleteOrder] = useDeleteOrderMutation();
 
   const filteredOrders = useMemo(() => {
+    let result = orders;
     const keyword = normalizeText(search);
-    if (!keyword) return orders;
-
-    return orders.filter((order) =>
-      [order.id, order.username, order.email, order.packageName].some((value) => normalizeText(value).includes(keyword))
-    );
-  }, [orders, search]);
+    if (keyword) {
+      result = result.filter((order) =>
+        [order.id, order.username, order.email, order.packageName].some((value) => normalizeText(value).includes(keyword))
+      );
+    }
+    if (searchDate) {
+      const [year, month, day] = searchDate.split('-');
+      const formattedSearchDate = `${day}/${month}/${year}`;
+      result = result.filter(order => order.date === formattedSearchDate);
+    }
+    return result;
+  }, [orders, search, searchDate]);
   const paged = paginate(filteredOrders, page, 6);
 
   const stats = useMemo(
@@ -139,6 +147,16 @@ export const OrdersTab = () => {
               }}
             />
           </label>
+          <label className={styles.controlWithIcon}>
+            <input
+              type="date"
+              value={searchDate}
+              onChange={(event) => {
+                setSearchDate(event.target.value);
+                setPage(1);
+              }}
+            />
+          </label>
           <span className={styles.toolbarHint}>{formatNumber(filteredOrders.length)} giao dịch phù hợp</span>
         </div>
 
@@ -196,6 +214,9 @@ export const OrdersTab = () => {
                     <td>{order.date}</td>
                     <td>
                       <div className={styles.actionGroup}>
+                        <button type="button" className={styles.actionButton} title="Xem chi tiết" onClick={() => alert('Tính năng quản lý chi tiết đơn hàng đang được cập nhật')}>
+                          <AdminIcon name="eye" size={14} />
+                        </button>
                         <button type="button" className={styles.actionButton} title="Thành công" onClick={() => handleStatus(order.id, 'success')}>
                           <AdminIcon name="check" size={14} />
                         </button>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useGetRoomsQuery, useUpdateRoomStatusMutation } from '../api/adminApi';
 import { AdminIcon } from './adminIconMap';
 import { formatNumber, normalizeText, paginate, toArray } from './adminFeatureUtils';
@@ -18,15 +18,23 @@ const roomTypeOptions = [
   { value: 'can_ho', label: 'Căn hộ' },
 ];
 
-export const RoomsTab = () => {
-  const [area, setArea] = useState('');
+export const RoomsTab = ({ initialArea, onInitialAreaHandled }) => {
+  const [area, setArea] = useState(initialArea || '');
   const [roomType, setRoomType] = useState('');
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [viewingRoom, setViewingRoom] = useState(null);
   const { data: roomsResponse = [], isLoading, refetch } = useGetRoomsQuery({ area, roomType, status });
   const { data: allRoomsResponse = [] } = useGetRoomsQuery({});
   const [updateRoomStatus] = useUpdateRoomStatusMutation();
+
+  useEffect(() => {
+    if (initialArea) {
+      setArea(initialArea);
+      if (onInitialAreaHandled) onInitialAreaHandled();
+    }
+  }, [initialArea, onInitialAreaHandled]);
   const rooms = useMemo(() => toArray(roomsResponse), [roomsResponse]);
   const allRooms = useMemo(() => toArray(allRoomsResponse), [allRoomsResponse]);
 
@@ -158,8 +166,9 @@ export const RoomsTab = () => {
           <table className={styles.adminTable}>
             <thead>
               <tr>
+                <th>Phòng trọ</th>
                 <th>Khu vực</th>
-                <th>Chủ phòng</th>
+                <th style={{ width: '200px' }}>Chủ phòng</th>
                 <th>Trạng thái</th>
                 <th>Sức chứa</th>
                 <th>Loại phòng</th>
@@ -176,8 +185,11 @@ export const RoomsTab = () => {
                 paged.items.map((room) => (
                   <tr key={room.id}>
                     <td>
-                      <strong>{room.area}</strong>
-                      <span className={styles.subText}>{room.id}</span>
+                      <strong>{room.name || room.title || 'Phòng chưa có tên'}</strong>
+                      <div className={styles.subText}>{room.id}</div>
+                    </td>
+                    <td>
+                      <strong>{String(room.area || '').split(',').pop().trim()}</strong>
                     </td>
                     <td>{room.owner}</td>
                     <td>
@@ -202,19 +214,25 @@ export const RoomsTab = () => {
                     <td>{room.capacity} người</td>
                     <td>{room.roomTypeLabel}</td>
                     <td>
-                      <span className={styles.metricInline}>{room.totalRooms} phòng</span>
+                      <span className={styles.metricInline} style={{ borderBottom: 'none' }}>{room.totalRooms} phòng</span>
                       <div className={styles.scoreBar} title="Quy mô cụm phòng">
                         <span style={{ width: `${Math.min(100, room.totalRooms * 14)}%` }} />
                       </div>
                     </td>
                     <td>
                       <div className={styles.actionGroup}>
-                        <button type="button" className={styles.actionButton} title="Cho hiển thị" onClick={() => handleStatus(room.id, 'available')}>
-                          <AdminIcon name="check" size={14} />
+                        <button type="button" className={styles.actionButton} title="Xem chi tiết" onClick={() => setViewingRoom(room)}>
+                          <AdminIcon name="eye" size={14} />
                         </button>
-                        <button type="button" className={styles.actionButton} title="Tạm ngưng" onClick={() => handleStatus(room.id, 'archived')}>
-                          <AdminIcon name="x-circle" size={14} />
-                        </button>
+                        {room.status === 'archived' ? (
+                          <button type="button" className={styles.actionButton} title="Cho hiển thị" onClick={() => handleStatus(room.id, 'available')}>
+                            <AdminIcon name="check" size={14} />
+                          </button>
+                        ) : (
+                          <button type="button" className={styles.actionButton} title="Tạm ngưng" onClick={() => handleStatus(room.id, 'archived')}>
+                            <AdminIcon name="x-circle" size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -242,6 +260,44 @@ export const RoomsTab = () => {
           </div>
         </div>
       </section>
+
+      {viewingRoom && (
+        <div className={styles.modalOverlay} role="presentation" onMouseDown={() => setViewingRoom(null)}>
+          <section className={styles.modalCard} onMouseDown={(event) => event.stopPropagation()}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Chi tiết phòng trọ</h2>
+                <p>Mã phòng: {viewingRoom.id}</p>
+              </div>
+              <button type="button" className={styles.actionButton} onClick={() => setViewingRoom(null)}>
+                <AdminIcon name="close" size={15} />
+              </button>
+            </div>
+            <div className={styles.detailGrid}>
+              <article className={styles.formWide}>
+                <span>Tên phòng</span>
+                <strong>{viewingRoom.name || viewingRoom.title || 'Phòng chưa có tên'}</strong>
+              </article>
+              <article>
+                <span>Chủ phòng</span>
+                <strong>{viewingRoom.owner}</strong>
+              </article>
+              <article>
+                <span>Khu vực</span>
+                <strong>{viewingRoom.area}</strong>
+              </article>
+              <article>
+                <span>Loại phòng</span>
+                <strong>{viewingRoom.roomTypeLabel}</strong>
+              </article>
+              <article>
+                <span>Sức chứa</span>
+                <strong>{viewingRoom.capacity} người</strong>
+              </article>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 };

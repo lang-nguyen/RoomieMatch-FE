@@ -334,47 +334,23 @@ const tierBySlug = {
   'landlord-vip': 'vip',
 };
 
-const labelByFeature = {
-  posts_limit: 'Lượt đăng bài',
-  photo_limit: 'Lượt upload ảnh',
-  boost_limit: 'Lượt đẩy tin nổi bật',
-  matching: 'Lượt matching',
-  chatbot: 'Tư vấn chatbot',
-  priority_match: 'Ưu tiên matching',
-  vip_listing: 'Hiển thị nổi bật',
-};
+
 
 const mapPackageFromApi = (pkg) => {
   const tier = tierBySlug[pkg.slug] || tierBySlug[String(pkg.name || '').toLowerCase()] || 'basic';
   const rawFeatures = pkg.features || {};
-  const featureKeys = (Array.isArray(rawFeatures) ? rawFeatures : Object.keys(rawFeatures))
-    .filter((key) => key !== 'boost_duration_days');
-  const features = featureKeys.map((key) => ({
-    label: labelByFeature[key] || key,
+  
+  let displayList = [];
+  if (Array.isArray(rawFeatures)) {
+    displayList = rawFeatures;
+  } else if (rawFeatures.list && Array.isArray(rawFeatures.list)) {
+    displayList = rawFeatures.list;
+  }
+
+  const features = displayList.map((label) => ({
+    label,
     included: true,
   }));
-
-  if (!Array.isArray(rawFeatures)) {
-    if (Number.isInteger(rawFeatures.posts_limit)) {
-      features.unshift({ label: `${rawFeatures.posts_limit} bài đăng / tháng`, included: true });
-    }
-    if (Number.isInteger(rawFeatures.photo_limit)) {
-      features.unshift({ label: `${rawFeatures.photo_limit} ảnh upload / tháng`, included: true });
-    }
-    if (Number.isInteger(rawFeatures.boost_limit)) {
-      features.unshift({ label: `${rawFeatures.boost_limit} lượt đẩy tin nổi bật`, included: true });
-    }
-    if (rawFeatures.boost_limit > 0 && Number.isInteger(rawFeatures.boost_duration_days)) {
-      features.unshift({ label: `${rawFeatures.boost_duration_days} ngày nổi bật / lượt`, included: true });
-    }
-  }
-
-  if (pkg.credits_match) {
-    features.unshift({ label: `${pkg.credits_match} lượt matching`, included: true });
-  }
-  if (pkg.credits_chatbot) {
-    features.unshift({ label: `${pkg.credits_chatbot} lượt chatbot`, included: true });
-  }
 
   return {
     id: pkg.id,
@@ -388,7 +364,7 @@ const mapPackageFromApi = (pkg) => {
     isFeatured: tier === 'pro',
     badge: tier === 'vip' ? 'VIP' : tier === 'pro' ? 'hot' : null,
     features,
-    ctaLabel: 'Chon goi',
+    ctaLabel: 'Chọn gói',
     raw: pkg,
   };
 };

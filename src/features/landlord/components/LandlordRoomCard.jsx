@@ -12,7 +12,7 @@ const CARD_GRADIENTS = [
 
 const getGradient = (id) => CARD_GRADIENTS[(id - 1) % CARD_GRADIENTS.length];
 
-const LandlordRoomCard = ({ room, onEdit, onDelete, onTogglePost }) => {
+const LandlordRoomCard = ({ room, onView, onEdit, onDelete, onTogglePost }) => {
   const {
     id,
     code,
@@ -85,7 +85,7 @@ const LandlordRoomCard = ({ room, onEdit, onDelete, onTogglePost }) => {
       </div>
 
       <div className={styles.actions}>
-        <button className={`${styles.actionButton} ${styles.actionButtonGhost}`} onClick={() => onEdit?.(room)}>
+        <button className={`${styles.actionButton} ${styles.actionButtonGhost}`} onClick={() => onView?.(room)}>
           Chi tiết
         </button>
         <button className={`${styles.actionButton} ${styles.actionButtonGhost}`} onClick={() => onEdit?.(room)}>

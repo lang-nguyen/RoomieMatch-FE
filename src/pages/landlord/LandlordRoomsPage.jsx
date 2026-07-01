@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Home, Plus, Search, Info } from 'lucide-react';
 import { useLandlordRooms } from '../../features/landlord/hooks/useLandlordRooms';
 import LandlordRoomCard from '../../features/landlord/components/LandlordRoomCard';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 import styles from './LandlordRoomsPage.module.css';
 import sharedStyles from './LandlordPageShared.module.css';
 
@@ -34,6 +36,7 @@ const AddRoomEmptyCard = ({ onClick }) => (
 
 const LandlordRoomsPage = () => {
   const navigate = useNavigate();
+  const [roomToDelete, setRoomToDelete] = useState(null);
   const {
     rooms,
     total,
@@ -111,8 +114,9 @@ const LandlordRoomsPage = () => {
               <LandlordRoomCard
                 key={room.id}
                 room={room}
+                onView={(r) => navigate(`/landlord/rooms/${r.id}`)}
                 onEdit={(r) => navigate(`/landlord/rooms/${r.id}/edit`)}
-                onDelete={(r) => handleDelete(r.id)}
+                onDelete={(r) => setRoomToDelete(r)}
                 onTogglePost={handleTogglePost}
               />
             ))}
@@ -150,6 +154,20 @@ const LandlordRoomsPage = () => {
           </button>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={Boolean(roomToDelete)}
+        title="Xac nhan xoa phong tro"
+        message={roomToDelete ? `Ban co chac muon xoa phong "${roomToDelete.name || roomToDelete.title}"?` : ''}
+        confirmText="Xoa phong"
+        cancelText="Huy"
+        onCancel={() => setRoomToDelete(null)}
+        onClose={() => setRoomToDelete(null)}
+        onConfirm={async () => {
+          await handleDelete(roomToDelete.id);
+          setRoomToDelete(null);
+        }}
+      />
     </div>
   );
 };

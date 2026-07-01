@@ -95,11 +95,11 @@
 .barChart {
   height: 260px;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(var(--bar-columns, 1), minmax(0, 1fr));
   align-items: end;
-  gap: 40px;
+  gap: var(--bar-gap, 24px);
   border-top: 1px solid #eee8e4;
-  padding: 12px 34px 0;
+  padding: 12px clamp(12px, 3vw, 28px) 0;
   background-image: linear-gradient(to bottom, transparent calc(20% - 1px), #eee8e4 20%, transparent calc(20% + 1px), transparent);
   background-size: 100% 44px;
 }
@@ -135,7 +135,7 @@
 
 @media (max-width: 900px) {
   .barChart {
-    gap: 14px;
+    gap: var(--bar-gap-mobile, 10px);
     padding-inline: 10px;
   }
 }

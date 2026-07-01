@@ -4,9 +4,9 @@ import {
   Flame,
   Grid2X2,
   List,
+  MessageSquare,
   Plus,
   RefreshCcw,
-  Search,
   SlidersHorizontal,
   Trash2,
   X,
@@ -20,17 +20,17 @@ import {
 } from '../../features/landlord/api/landlordApi';
 import LandlordMiniHeader from '../../features/landlord/components/LandlordMiniHeader';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
-
 import PostStatusBadge from '../../features/landlord/components/PostStatusBadge';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 import styles from './LandlordPostsPage.module.css';
 
 const STATUS_FILTERS = [
-  { value: '', label: 'Tất cả', countKey: 'total' },
-  { value: 'pending', label: 'Chờ duyệt', countKey: 'pending' },
-  { value: 'approved', label: 'Đã duyệt', countKey: 'approved' },
-  { value: 'boosted', label: 'Đang đẩy nổi bật', countKey: 'boosted' },
-  { value: 'rejected', label: 'Từ chối', countKey: 'rejected' },
-  { value: 'closed', label: 'Đã đóng', countKey: 'closed' },
+  { value: '', label: 'Tat ca', countKey: 'total' },
+  { value: 'pending', label: 'Cho duyet', countKey: 'pending' },
+  { value: 'approved', label: 'Da duyet', countKey: 'approved' },
+  { value: 'boosted', label: 'Dang noi bat', countKey: 'boosted' },
+  { value: 'rejected', label: 'Tu choi', countKey: 'rejected' },
+  { value: 'closed', label: 'Da dong', countKey: 'closed' },
 ];
 
 const formatCompact = (value = 0) => {
@@ -45,151 +45,81 @@ const formatDate = (date) => {
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
 };
 
-const MetricCard = ({ tone, icon, value, label }) => (
-  <div className={`${styles.metricCard} ${styles[tone] || ''}`}>
-    <span className={styles.metricIcon}>{icon}</span>
-    <div>
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
-  </div>
-);
-
-const BoostTrend = ({ data }) => {
-  const max = Math.max(...data.map((item) => item.likes || item.views || 0), 1);
-
-  return (
-    <div className={styles.trendCard}>
-      <div className={styles.trendHead}>
-        <strong>Tăng trưởng lượt xem và lượt lưu trong 7 ngày</strong>
-        <div>
-          <span className={styles.legendViews}>Lượt xem</span>
-          <span className={styles.legendLikes}>Lượt lưu</span>
-        </div>
-      </div>
-      <div className={styles.trendBars}>
-        {data.map((item) => (
-          <div key={item.label} className={styles.trendCol}>
-            <span className={styles.viewLine} style={{ width: `${Math.max(18, ((item.views || 0) / max) * 100)}%` }} />
-            <span className={styles.likeLine} style={{ width: `${Math.max(14, ((item.likes || 0) / max) * 100)}%` }} />
-            <small>{item.label}</small>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const BoostedList = ({ posts, onBoost, onCancel }) => (
-  <div className={styles.boostList}>
-    {posts.length === 0 ? (
-      <div className={styles.empty}>Chưa có bài viết nào đang đẩy nổi bật.</div>
-    ) : posts.map((post, index) => {
-      const percent = post.boostTotalDays > 0
-        ? ((post.boostTotalDays - post.boostDaysLeft) / post.boostTotalDays) * 100
-        : 0;
-
-      return (
-        <article key={post.id} className={styles.boostItem}>
-          <div className={styles.rank}>{index + 1}</div>
-          <div className={styles.boostBody}>
-            <h3>{post.title}</h3>
-            <div className={styles.postMeta}>
-              <span>{post.room_code || post.code}</span>
-              <span>{formatCompact(post.views)} lượt xem</span>
-              <span>{formatCompact(post.likes)} lượt lưu</span>
-              <span>{formatCompact(post.comments)} bình luận</span>
-            </div>
-            <div className={styles.tags}>
-              {(post.badges || []).map((badge) => <span key={badge}>{badge}</span>)}
-            </div>
-            <div className={styles.progressRow}>
-              <span>Thời gian còn lại</span>
-              <strong>{post.boostDaysLeft} / {post.boostTotalDays} ngày</strong>
-            </div>
-            <div className={styles.progressTrack}>
-              <span style={{ width: `${Math.max(8, 100 - percent)}%` }} />
-            </div>
-          </div>
-          <div className={styles.boostActions}>
-            <button onClick={() => onBoost(post.id)}>
-              <RefreshCcw size={12} />
-              Gia hạn
-            </button>
-            <button className={styles.ghostDanger} onClick={() => onCancel(post.id)}>
-              <X size={12} />
-              Hủy nổi bật
-            </button>
-          </div>
-        </article>
-      );
-    })}
-  </div>
-);
-
 const PostThumbnail = ({ post }) => (
   <div className={styles.thumb}>
-    {post.thumbnail ? <img src={post.thumbnail} alt="" /> : <Search size={13} />}
+    {post.thumbnail ? <img src={post.thumbnail} alt="" /> : <List size={13} />}
   </div>
+);
+
+const PostCard = ({ post, onBoost, onCancelBoost, onView, onDelete }) => (
+  <article className={styles.postCard}>
+    <div className={styles.postCardThumb}>
+      {post.thumbnail ? <img src={post.thumbnail} alt={post.title} /> : <List size={18} />}
+    </div>
+    <div className={styles.postCardBody}>
+      <div className={styles.postCardHead}>
+        <div>
+          <strong>{post.title}</strong>
+          <span>{post.room_code || post.code}</span>
+        </div>
+        <PostStatusBadge
+          status={post.status}
+          subText={post.status === 'boosted' ? `Con ${post.boostDaysLeft} ngay` : ''}
+        />
+      </div>
+      <div className={styles.postCardStats}>
+        <span><Eye size={13} /> {formatCompact(post.views)} xem</span>
+        <span><Flame size={13} /> {formatCompact(post.likes)} luu</span>
+        <span><MessageSquare size={13} /> {formatCompact(post.comments)} binh luan</span>
+      </div>
+      <div className={styles.postCardFooter}>
+        <small>{formatDate(post.publishedAt || post.created_at)}</small>
+        <div className={styles.actions}>
+          {post.status !== 'boosted' ? (
+            <button title="Day noi bat" onClick={() => onBoost(post)}><Flame size={13} /></button>
+          ) : (
+            <button title="Huy noi bat" className={styles.dangerIcon} onClick={() => onCancelBoost(post)}><X size={13} /></button>
+          )}
+          <button title="Xem" onClick={() => onView(post)}><Eye size={13} /></button>
+          <button title="Xoa" onClick={() => onDelete(post)}><Trash2 size={13} /></button>
+        </div>
+      </div>
+    </div>
+  </article>
 );
 
 const LandlordPostsPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState('grid');
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [boostTarget, setBoostTarget] = useState(null);
+  const [cancelBoostTarget, setCancelBoostTarget] = useState(null);
 
-
-  const boostedOnly = activeTab === 'boosted';
   const { data, isLoading, isFetching, isError, refetch } = useGetLandlordPostsQuery({
     page,
     pageSize: 8,
     search,
-    status: boostedOnly ? '' : status,
-    boostedOnly,
+    status,
   });
   const [deletePost] = useDeleteLandlordPostMutation();
   const [boostPost] = useBoostLandlordPostMutation();
   const [cancelBoost] = useCancelPostBoostMutation();
 
-  const posts = useMemo(() => data?.items ?? [], [data?.items]);
+  const posts = useMemo(() => {
+    const items = [...(data?.items ?? [])];
+    items.sort((first, second) => {
+      const firstDate = new Date(first.publishedAt || first.created_at || 0).getTime();
+      const secondDate = new Date(second.publishedAt || second.created_at || 0).getTime();
+      return sortOrder === 'newest' ? secondDate - firstDate : firstDate - secondDate;
+    });
+    return items;
+  }, [data?.items, sortOrder]);
   const counts = data?.counts ?? {};
-  const boostedCount = counts.boosted ?? 0;
   const totalPages = data?.total_pages ?? 1;
-
-  const metrics = useMemo(() => {
-    const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0);
-    const totalLikes = posts.reduce((sum, post) => sum + (post.likes || 0), 0);
-    const totalDays = posts.reduce((sum, post) => sum + (post.boostDaysLeft || 0), 0);
-    return { totalViews, totalLikes, totalDays };
-  }, [posts]);
-
-  const handleDelete = async (id) => {
-    await deletePost({ id }).unwrap();
-    refetch();
-  };
-
-  const handleBoost = async (id) => {
-    try {
-      await boostPost({ id }).unwrap();
-      refetch();
-    } catch (error) {
-      const message = error?.data?.detail || 'Không thể đẩy nổi bật bài đăng. Vui lòng kiểm tra gói đang sử dụng.';
-      alert(message);
-    }
-  };
-
-  const handleCancel = async (id) => {
-    await cancelBoost({ id }).unwrap();
-    refetch();
-  };
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setStatus('');
-    setPage(1);
-  };
 
   return (
     <div className={styles.page}>
@@ -199,153 +129,212 @@ const LandlordPostsPage = () => {
           setSearch(value);
           setPage(1);
         }}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        boostedCount={boostedCount}
       />
 
-      {boostedOnly ? (
-        <>
-          <LandlordPageHeader
-            icon={Flame}
-            title="Bài viết đang đẩy nổi bật"
-            subtitle="Theo dõi vị trí hiển thị và quản lý thời gian boost"
-          />
-          <div className={styles.metricGridBoost}>
-            <MetricCard tone="hot" icon="3" value={boostedCount} label="Bài đang nổi bật" />
-            <MetricCard value={formatCompact(metrics.totalViews)} label="Tổng lượt xem" />
-            <MetricCard value={formatCompact(metrics.totalLikes)} label="Tổng lượt lưu" />
-            <MetricCard value={metrics.totalDays} label="Tổng ngày còn lại" />
-          </div>
-          <BoostTrend data={data?.engagement ?? []} />
-          {isLoading ? <div className={styles.empty}>Đang tải bài nổi bật...</div> : (
-            <BoostedList posts={posts} onBoost={handleBoost} onCancel={handleCancel} />
-          )}
-        </>
-      ) : (
-        <>
-          <LandlordPageHeader
-            icon={List}
-            title="Quản lý bài đăng"
-            subtitle="Quản lý trạng thái và đẩy nổi bật bài viết"
-            actions={(
-              <>
-                <button className={styles.primaryBtn} onClick={() => navigate('/landlord/rooms?mode=select-for-post')}>
-                  <Plus size={15} />
-                  Thêm bài đăng
-                </button>
-                <button className={styles.lightBtn} onClick={refetch}>
-                  <RefreshCcw size={13} />
-                  Làm mới
-                </button>
-              </>
-            )}
-          />
+      <LandlordPageHeader
+        icon={List}
+        title="Quan ly bai dang"
+        subtitle="Quan ly trang thai, luot xem va thao tac boost tren bai dang"
+        actions={(
+          <>
+            <button className={styles.primaryBtn} onClick={() => navigate('/landlord/rooms?mode=select-for-post')}>
+              <Plus size={15} />
+              Them bai dang
+            </button>
+            <button className={styles.lightBtn} onClick={refetch}>
+              <RefreshCcw size={13} />
+              Lam moi
+            </button>
+          </>
+        )}
+      />
 
-          <div className={styles.metricGrid}>
-            <MetricCard icon="B" value={counts.total ?? 0} label="Tổng bài viết" />
-            <MetricCard icon="C" value={counts.pending ?? 0} label="Chờ duyệt" />
-            <MetricCard tone="green" icon="D" value={counts.approved ?? 0} label="Đã duyệt" />
-            <MetricCard tone="hot" icon="N" value={counts.boosted ?? 0} label="Đang nổi bật" />
-            <MetricCard tone="red" icon="T" value={counts.rejected ?? 0} label="Từ chối" />
-          </div>
+      <div className={styles.filters}>
+        {STATUS_FILTERS.map((item) => (
+          <button
+            type="button"
+            key={item.value}
+            className={`${styles.filterChip} ${status === item.value ? styles.filterActive : ''}`}
+            onClick={() => {
+              setStatus(item.value);
+              setPage(1);
+            }}
+          >
+            {item.label}
+            <span>{counts[item.countKey] ?? 0}</span>
+          </button>
+        ))}
+        <div className={styles.viewTools}>
+          <button
+            type="button"
+            className={viewMode === 'grid' ? styles.squareActive : ''}
+            onClick={() => setViewMode('grid')}
+            aria-pressed={viewMode === 'grid'}
+            title="Xem dang the"
+          >
+            <Grid2X2 size={14} />
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'list' ? styles.squareActive : ''}
+            onClick={() => setViewMode('list')}
+            aria-pressed={viewMode === 'list'}
+            title="Xem dang bang"
+          >
+            <List size={14} />
+          </button>
+          <button
+            type="button"
+            className={sortOrder === 'oldest' ? styles.sortActive : ''}
+            onClick={() => setSortOrder((value) => (value === 'newest' ? 'oldest' : 'newest'))}
+          >
+            <SlidersHorizontal size={14} />
+            {sortOrder === 'newest' ? 'Moi nhat' : 'Cu nhat'}
+          </button>
+        </div>
+      </div>
 
-          <div className={styles.filters}>
-            {STATUS_FILTERS.map((item) => (
-              <button
-                key={item.value}
-                className={`${styles.filterChip} ${status === item.value ? styles.filterActive : ''}`}
-                onClick={() => {
-                  setStatus(item.value);
-                  setPage(1);
-                }}
-              >
-                {item.label}
-                <span>{counts[item.countKey] ?? 0}</span>
-              </button>
-            ))}
-            <button className={styles.filterChip}>Tất cả thời gian</button>
-            <div className={styles.viewTools}>
-              <button className={styles.squareActive}><Grid2X2 size={14} /></button>
-              <button><List size={14} /></button>
-              <button><SlidersHorizontal size={14} /> Mới nhất</button>
-            </div>
-          </div>
-
-          <div className={`${styles.tableWrap} ${isFetching ? styles.fetching : ''}`}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th><input type="checkbox" /></th>
-                  <th>Bài viết</th>
-                  <th>Ngày đăng</th>
-                  <th>Trạng thái</th>
-                  <th>Chỉ số</th>
-                  <th>Thao tác</th>
+      {viewMode === 'list' ? (
+        <div className={`${styles.tableWrap} ${isFetching ? styles.fetching : ''}`}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th><input type="checkbox" /></th>
+                <th>Bai viet</th>
+                <th>Ngay dang</th>
+                <th>Trang thai</th>
+                <th>Chi so</th>
+                <th>Thao tac</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr><td colSpan="6" className={styles.empty}>Dang tai danh sach bai dang...</td></tr>
+              ) : isError ? (
+                <tr><td colSpan="6" className={styles.empty}>Khong tai duoc danh sach bai dang.</td></tr>
+              ) : posts.length === 0 ? (
+                <tr><td colSpan="6" className={styles.empty}>Khong co bai dang phu hop.</td></tr>
+              ) : posts.map((post) => (
+                <tr key={post.id}>
+                  <td><input type="checkbox" /></td>
+                  <td>
+                    <div className={styles.postCell}>
+                      <PostThumbnail post={post} />
+                      <div>
+                        <strong>{post.title}</strong>
+                        <span>{post.room_code || post.code}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{formatDate(post.publishedAt || post.created_at)}</td>
+                  <td>
+                    <PostStatusBadge
+                      status={post.status}
+                      subText={post.status === 'boosted' ? `Con ${post.boostDaysLeft} ngay` : ''}
+                    />
+                  </td>
+                  <td>
+                    <div className={styles.inlineStats}>
+                      <span>{formatCompact(post.views)} xem</span>
+                      <span>{formatCompact(post.likes)} luu</span>
+                      <span>{formatCompact(post.comments)} binh luan</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className={styles.actions}>
+                      {post.status !== 'boosted' ? (
+                        <button type="button" title="Day noi bat" onClick={() => setBoostTarget(post)}><Flame size={13} /></button>
+                      ) : (
+                        <button type="button" title="Huy noi bat" className={styles.dangerIcon} onClick={() => setCancelBoostTarget(post)}><X size={13} /></button>
+                      )}
+                      <button type="button" title="Xem" onClick={() => navigate(`/landlord/posts/${post.id}`)}><Eye size={13} /></button>
+                      <button type="button" title="Xoa" onClick={() => setDeleteTarget(post)}><Trash2 size={13} /></button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  <tr><td colSpan="6" className={styles.empty}>Đang tải danh sách bài đăng...</td></tr>
-                ) : isError ? (
-                  <tr><td colSpan="6" className={styles.empty}>Không tải được danh sách bài đăng.</td></tr>
-                ) : posts.length === 0 ? (
-                  <tr><td colSpan="6" className={styles.empty}>Không có bài đăng phù hợp.</td></tr>
-                ) : posts.map((post) => (
-                  <tr key={post.id}>
-                    <td><input type="checkbox" /></td>
-                    <td>
-                      <div className={styles.postCell}>
-                        <PostThumbnail post={post} />
-                        <div>
-                          <strong>{post.title}</strong>
-                          <span>{post.room_code || post.code}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{formatDate(post.publishedAt || post.created_at)}</td>
-                    <td>
-                      <PostStatusBadge
-                        status={post.status}
-                        subText={post.status === 'boosted' ? `Còn ${post.boostDaysLeft} ngày` : ''}
-                      />
-                    </td>
-                    <td>
-                      <div className={styles.inlineStats}>
-                        <span>{formatCompact(post.views)} xem</span>
-                        <span>{formatCompact(post.likes)} lưu</span>
-                        <span>{formatCompact(post.comments)} bình luận</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        {post.status !== 'boosted' ? (
-                          <button title="Đẩy nổi bật" onClick={() => handleBoost(post.id)}><Flame size={13} /></button>
-                        ) : (
-                          <button title="Hủy nổi bật" className={styles.dangerIcon} onClick={() => handleCancel(post.id)}><X size={13} /></button>
-                        )}
-                        <button title="Xem" onClick={() => navigate(`/landlord/posts/${post.id}`)}><Eye size={13} /></button>
-                        <button title="Xóa" onClick={() => handleDelete(post.id)}><Trash2 size={13} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className={styles.pagination}>
-            <span>Hiển thị {posts.length} / {data?.total ?? 0} bài</span>
-            <div>
-              <button disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>‹</button>
-              <button className={styles.pageActive}>{page}</button>
-              <button disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)}>›</button>
-            </div>
-          </div>
-        </>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className={`${styles.cardGrid} ${isFetching ? styles.fetching : ''}`}>
+          {isLoading ? (
+            <div className={styles.empty}>Dang tai danh sach bai dang...</div>
+          ) : isError ? (
+            <div className={styles.empty}>Khong tai duoc danh sach bai dang.</div>
+          ) : posts.length === 0 ? (
+            <div className={styles.empty}>Khong co bai dang phu hop.</div>
+          ) : posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onBoost={setBoostTarget}
+              onCancelBoost={setCancelBoostTarget}
+              onView={(item) => navigate(`/landlord/posts/${item.id}`)}
+              onDelete={setDeleteTarget}
+            />
+          ))}
+        </div>
       )}
 
+      <div className={styles.pagination}>
+        <span>Hien thi {posts.length} / {data?.total ?? 0} bai</span>
+        <div>
+          <button disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>‹</button>
+          <button className={styles.pageActive}>{page}</button>
+          <button disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)}>›</button>
+        </div>
+      </div>
 
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Xac nhan xoa bai dang"
+        message={deleteTarget ? `Ban co chac muon xoa bai dang "${deleteTarget.title}"?` : ''}
+        confirmText="Xoa bai"
+        cancelText="Huy"
+        onCancel={() => setDeleteTarget(null)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          await deletePost({ id: deleteTarget.id }).unwrap();
+          setDeleteTarget(null);
+          refetch();
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(boostTarget)}
+        title="Xac nhan day noi bat"
+        message={boostTarget ? `Ban muon day noi bat bai dang "${boostTarget.title}"?` : ''}
+        confirmText="Day noi bat"
+        cancelText="Huy"
+        onCancel={() => setBoostTarget(null)}
+        onClose={() => setBoostTarget(null)}
+        onConfirm={async () => {
+          try {
+            await boostPost({ id: boostTarget.id }).unwrap();
+            setBoostTarget(null);
+            refetch();
+          } catch (error) {
+            setBoostTarget(null);
+            window.alert(error?.data?.detail || 'Khong the day noi bat bai dang. Vui long kiem tra goi dang su dung.');
+          }
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(cancelBoostTarget)}
+        title="Xac nhan huy noi bat"
+        message={cancelBoostTarget ? `Ban co chac muon huy noi bat bai dang "${cancelBoostTarget.title}"?` : ''}
+        confirmText="Huy noi bat"
+        cancelText="Quay lai"
+        onCancel={() => setCancelBoostTarget(null)}
+        onClose={() => setCancelBoostTarget(null)}
+        onConfirm={async () => {
+          await cancelBoost({ id: cancelBoostTarget.id }).unwrap();
+          setCancelBoostTarget(null);
+          refetch();
+        }}
+      />
     </div>
   );
 };

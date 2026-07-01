@@ -181,6 +181,7 @@ export const {
   useGetLandlordVerificationsQuery,
   useUpdateLandlordVerificationMutation,
   useGetPostsQuery,
+  useLazyGetPostsQuery,
   useUpdatePostStatusMutation,
   useDeletePostMutation,
   useGetRoomsQuery,

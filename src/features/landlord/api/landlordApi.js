@@ -266,7 +266,13 @@ export const landlordApi = baseApi.injectEndpoints({
       invalidatesTags: ['Verification', 'LandlordNotifications'],
     }),
     getLandlordRentalRequests: builder.query({
-      query: ({ status = '' } = {}) => ({ url: '/landlord/rental-requests', params: status ? { status } : {} }),
+      query: ({ status = '', search = '' } = {}) => ({
+        url: '/landlord/rental-requests',
+        params: {
+          ...(status ? { status } : {}),
+          ...(search ? { search } : {}),
+        },
+      }),
       providesTags: ['RentalRequests'],
     }),
     decideLandlordRentalRequest: builder.mutation({

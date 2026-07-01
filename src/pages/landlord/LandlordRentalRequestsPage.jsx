@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CalendarDays, Check, Clock3, Mail, MapPin, Phone, User, X } from 'lucide-react';
+import { CalendarDays, Check, Clock3, Mail, MapPin, Phone, Search, User, X } from 'lucide-react';
 import { useDecideLandlordRentalRequestMutation, useGetLandlordRentalRequestsQuery } from '../../features/landlord/api/landlordApi';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import { getApiErrorMessage } from '../../shared/utils/getApiErrorMessage';
@@ -8,56 +8,57 @@ import styles from './LandlordRentalRequestsPage.module.css';
 
 const LandlordRentalRequestsPage = () => {
   const [status, setStatus] = useState('pending');
-  const { data, isLoading } = useGetLandlordRentalRequestsQuery({ status });
+  const [search, setSearch] = useState('');
+  const { data, isLoading } = useGetLandlordRentalRequestsQuery({ status, search });
   const [decide, decisionState] = useDecideLandlordRentalRequestMutation();
   const [message, setMessage] = useState('');
   const items = data?.items || [];
 
   const statusOptions = [
-    { value: 'pending', label: 'Chờ xử lý' },
-    { value: 'accepted', label: 'Đã chấp nhận' },
-    { value: 'rejected', label: 'Đã từ chối' },
-    { value: 'cancelled', label: 'Đã hủy' },
+    { value: 'pending', label: 'Cho xu ly' },
+    { value: 'accepted', label: 'Da chap nhan' },
+    { value: 'rejected', label: 'Da tu choi' },
+    { value: 'cancelled', label: 'Da huy' },
   ];
 
   const statusLabels = {
-    pending: 'Chờ xử lý',
-    accepted: 'Đã chấp nhận',
-    rejected: 'Đã từ chối',
-    cancelled: 'Đã hủy',
+    pending: 'Cho xu ly',
+    accepted: 'Da chap nhan',
+    rejected: 'Da tu choi',
+    cancelled: 'Da huy',
   };
 
   const formatDate = (value) => {
-    if (!value) return 'Chưa cập nhật';
+    if (!value) return 'Chua cap nhat';
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? 'Chưa cập nhật' : date.toLocaleDateString('vi-VN');
+    return Number.isNaN(date.getTime()) ? 'Chua cap nhat' : date.toLocaleDateString('vi-VN');
   };
 
   const profileFacts = (request) => ([
-    { label: 'Điện thoại', value: request.tenant_phone, icon: Phone },
+    { label: 'Dien thoai', value: request.tenant_phone, icon: Phone },
     { label: 'Email', value: request.tenant_email, icon: Mail },
-    { label: 'Giới tính', value: request.tenant_gender, icon: User },
-    { label: 'Ngày sinh', value: request.tenant_date_of_birth ? formatDate(request.tenant_date_of_birth) : null, icon: CalendarDays },
-    { label: 'Địa chỉ', value: request.tenant_address, icon: MapPin },
-    { label: 'Quê quán', value: request.tenant_hometown, icon: MapPin },
+    { label: 'Gioi tinh', value: request.tenant_gender, icon: User },
+    { label: 'Ngay sinh', value: request.tenant_date_of_birth ? formatDate(request.tenant_date_of_birth) : null, icon: CalendarDays },
+    { label: 'Dia chi', value: request.tenant_address, icon: MapPin },
+    { label: 'Que quan', value: request.tenant_hometown, icon: MapPin },
     { label: 'Facebook', value: request.tenant_facebook, icon: Mail },
     { label: 'Instagram', value: request.tenant_instagram, icon: Mail },
     { label: 'Twitter', value: request.tenant_twitter, icon: Mail },
   ].filter((item) => item.value));
 
   const handleDecision = async (request, decision) => {
-    const reason = decision === 'rejected' ? window.prompt('Lý do từ chối (không bắt buộc):') : null;
+    const reason = decision === 'rejected' ? window.prompt('Ly do tu choi (khong bat buoc):') : null;
     try {
       await decide({ id: request.id, decision, reason }).unwrap();
-      setMessage(decision === 'accepted' ? 'Đã xác nhận thuê. Bài đăng đã tự động đóng.' : 'Đã từ chối yêu cầu.');
+      setMessage(decision === 'accepted' ? 'Da xac nhan thue. Bai dang da tu dong dong.' : 'Da tu choi yeu cau.');
     } catch (error) {
-      setMessage(getApiErrorMessage(error, 'Không thể xử lý yêu cầu.'));
+      setMessage(getApiErrorMessage(error, 'Khong the xu ly yeu cau.'));
     }
   };
 
   return (
     <div className={sharedStyles.page}>
-      <LandlordPageHeader title="Yêu cầu xác nhận thuê" subtitle="Đối chiếu thông tin khách và xác nhận người đang thuê phòng" />
+      <LandlordPageHeader title="Yeu cau xac nhan thue" subtitle="Doi chieu thong tin khach va xac nhan nguoi dang thue phong" />
 
       <div className={styles.toolbar}>
         {statusOptions.map((item) => (
@@ -73,10 +74,20 @@ const LandlordRentalRequestsPage = () => {
         ))}
       </div>
 
+      <div className={styles.searchBox}>
+        <Search size={16} className={styles.searchIcon} />
+        <input
+          className={styles.searchInput}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Tim theo ten khach, so dien thoai, ten phong, ma phong hoac ma bai..."
+        />
+      </div>
+
       {message && <div className={styles.notice}>{message}</div>}
 
       {isLoading ? (
-        <div className={styles.emptyState}>Đang tải yêu cầu thuê...</div>
+        <div className={styles.emptyState}>Dang tai yeu cau thue...</div>
       ) : (
         <div className={styles.requestList}>
           {items.map((request) => (
@@ -92,7 +103,11 @@ const LandlordRentalRequestsPage = () => {
                   </div>
                   <div>
                     <h3>{request.tenant_name}</h3>
-                    <p>{request.room_title || `Bài đăng #${request.post_id}`}</p>
+                    <p>
+                      {request.room_title || `Bai dang #${request.post_id}`}
+                      {' · '}
+                      {request.room_code || `Phong #${request.room_id}`}
+                    </p>
                   </div>
                 </div>
                 <span className={`${styles.statusBadge} ${styles[`status_${request.status}`] || ''}`}>
@@ -103,39 +118,39 @@ const LandlordRentalRequestsPage = () => {
 
               <div className={styles.contentGrid}>
                 <section className={styles.panel}>
-                  <h4>Thông tin thuê</h4>
+                  <h4>Thong tin thue</h4>
                   <div className={styles.factGrid}>
                     <div className={styles.factItem}>
-                      <span>Ngày bắt đầu</span>
+                      <span>Ngay bat dau</span>
                       <strong>{formatDate(request.start_date)}</strong>
                     </div>
                     <div className={styles.factItem}>
-                      <span>Mã bài đăng</span>
-                      <strong>#{request.post_id}</strong>
+                      <span>Ma bai dang</span>
+                      <strong>{request.post_code || `#${request.post_id}`}</strong>
                     </div>
                     <div className={styles.factItem}>
-                      <span>Mã phòng</span>
-                      <strong>#{request.room_id}</strong>
+                      <span>Ma phong</span>
+                      <strong>{request.room_code || `#${request.room_id}`}</strong>
                     </div>
                     <div className={styles.factItem}>
-                      <span>Thời điểm gửi</span>
+                      <span>Thoi diem gui</span>
                       <strong>{formatDate(request.created_at)}</strong>
                     </div>
                   </div>
                   <div className={styles.noteBox}>
-                    <span>Ghi chú từ khách thuê</span>
-                    <p>{request.note || 'Khách thuê chưa để lại ghi chú.'}</p>
+                    <span>Ghi chu tu khach thue</span>
+                    <p>{request.note || 'Khach thue chua de lai ghi chu.'}</p>
                   </div>
                   {request.decision_reason && (
                     <div className={styles.noteBox}>
-                      <span>Lý do xử lý</span>
+                      <span>Ly do xu ly</span>
                       <p>{request.decision_reason}</p>
                     </div>
                   )}
                 </section>
 
                 <section className={styles.panel}>
-                  <h4>Hồ sơ khách thuê</h4>
+                  <h4>Ho so khach thue</h4>
                   {profileFacts(request).length ? (
                     <div className={styles.profileGrid}>
                       {profileFacts(request).map((item) => {
@@ -152,16 +167,16 @@ const LandlordRentalRequestsPage = () => {
                       })}
                     </div>
                   ) : (
-                    <div className={styles.placeholderCard}>Khách thuê chưa cập nhật thêm hồ sơ cá nhân.</div>
+                    <div className={styles.placeholderCard}>Khach thue chua cap nhat them ho so ca nhan.</div>
                   )}
 
                   <div className={styles.noteBox}>
-                    <span>Giới thiệu</span>
-                    <p>{request.tenant_bio || 'Chưa có mô tả cá nhân.'}</p>
+                    <span>Gioi thieu</span>
+                    <p>{request.tenant_bio || 'Chua co mo ta ca nhan.'}</p>
                   </div>
 
                   <div className={styles.helperText}>
-                    CCCD hiện chỉ hiển thị khi hệ thống có lưu trường này trong hồ sơ tenant.
+                    Tim kiem ho tro ten, so dien thoai, ten phong va ma phong/ma bai neu co.
                   </div>
                 </section>
               </div>
@@ -170,11 +185,11 @@ const LandlordRentalRequestsPage = () => {
                 <div className={styles.actions}>
                   <button className={styles.primaryBtn} disabled={decisionState.isLoading} onClick={() => handleDecision(request, 'accepted')}>
                     <Check size={16} />
-                    Xác nhận thuê
+                    Xac nhan thue
                   </button>
                   <button className={styles.secondaryBtn} disabled={decisionState.isLoading} onClick={() => handleDecision(request, 'rejected')}>
                     <X size={16} />
-                    Từ chối
+                    Tu choi
                   </button>
                 </div>
               )}
@@ -185,7 +200,11 @@ const LandlordRentalRequestsPage = () => {
 
       {!isLoading && !items.length && (
         <div className={styles.emptyState}>
-          {status === 'pending' ? 'Chưa có yêu cầu thuê nào đang chờ xử lý.' : 'Không có yêu cầu phù hợp với bộ lọc hiện tại.'}
+          {search
+            ? 'Khong tim thay yeu cau nao phu hop voi tu khoa hien tai.'
+            : status === 'pending'
+              ? 'Chua co yeu cau thue nao dang cho xu ly.'
+              : 'Khong co yeu cau phu hop voi bo loc hien tai.'}
         </div>
       )}
     </div>

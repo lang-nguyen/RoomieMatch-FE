@@ -22,6 +22,7 @@ import LandlordLayout from '../layouts/LandlordLayout';
 import LandlordHomePage from '../pages/landlord/LandlordHomePage';
 import LandlordRoomsPage from '../pages/landlord/LandlordRoomsPage';
 import LandlordAddRoomPage from '../pages/landlord/LandlordAddRoomPage';
+import LandlordRoomDetailPage from '../pages/landlord/LandlordRoomDetailPage';
 import LandlordPackagesPage from '../pages/landlord/LandlordPackagesPage';
 import LandlordPackageManagementPage from '../pages/landlord/LandlordPackageManagementPage';
 import LandlordPackageDetailPage from '../pages/landlord/LandlordPackageDetailPage';
@@ -122,6 +123,7 @@ export const router = createBrowserRouter([
           { index: true, element: <LandlordHomePage /> },
           { path: 'rooms', element: <LandlordRoomsPage /> },
           { path: 'rooms/add', element: <LandlordAddRoomPage /> },
+          { path: 'rooms/:roomId', element: <LandlordRoomDetailPage /> },
           { path: 'packages', element: <LandlordPackagesPage /> },
           { path: 'packages/:packageId/payment', element: <LandlordPackagePaymentPage /> },
           { path: 'package-management', element: <LandlordPackageManagementPage /> },

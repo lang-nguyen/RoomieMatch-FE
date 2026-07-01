@@ -4,16 +4,20 @@
   min-height: 100vh;
   background: #f7f8fc;
   font-family: 'Be Vietnam Pro', 'Be Vietnam', 'Segoe UI', sans-serif;
+  align-items: flex-start;
 }
 
 .main {
   flex: 1;
   min-width: 0;
   padding: 32px 36px;
-  overflow-y: auto;
   min-height: 100vh;
-  max-height: 100vh;
-  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.main::-webkit-scrollbar {
+  display: none;
 }
 
 .wrapperWide .main {

@@ -25,6 +25,12 @@
 .tableWrap {
   background: #fff;
   overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.tableWrap::-webkit-scrollbar {
+  display: none;
 }
 
 .tableWrap table {

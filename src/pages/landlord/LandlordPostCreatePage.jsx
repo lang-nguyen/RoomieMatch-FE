@@ -3,9 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, ChevronLeft, Maximize2, Upload } from 'lucide-react';
 import {
   useCreateLandlordPostMutation,
+  useGetLandlordProfileQuery,
   useGetLandlordRoomByIdQuery,
 } from '../../features/landlord/api/landlordApi';
 import sharedStyles from './LandlordPageShared.module.css';
+import { getApiErrorMessage } from '../../shared/utils/getApiErrorMessage';
 
 const styles = {
   container: {
@@ -142,6 +144,7 @@ const LandlordPostCreatePage = () => {
   const roomId = searchParams.get('roomId');
 
   const { data: room, isLoading } = useGetLandlordRoomByIdQuery({ id: roomId }, { skip: !roomId });
+  const { data: profileData, isError: isProfileError } = useGetLandlordProfileQuery();
   const [createPost, { isLoading: isCreating }] = useCreateLandlordPostMutation();
   const [title, setTitle] = useState(null);
   const [description, setDescription] = useState(null);
@@ -154,8 +157,11 @@ const LandlordPostCreatePage = () => {
     return <div className={sharedStyles.page}>Đang tải thông tin phòng...</div>;
   }
 
+  const profile = profileData?.profile || null;
+  const isProfileReady = Boolean((profile?.full_name || profile?.display_name || '').trim() && (profile?.phone || '').trim());
+
   const handleCreatePost = async () => {
-    if (isCreating) return;
+    if (isCreating || !isProfileReady) return;
     try {
       const titleValue = title ?? room?.title ?? room?.name ?? '';
       const descriptionValue = description ?? room?.description ?? '';
@@ -167,7 +173,7 @@ const LandlordPostCreatePage = () => {
       navigate('/landlord/posts/success');
     } catch (err) {
       console.error('Failed to create post:', err);
-      alert('Đã có lỗi xảy ra khi tạo bài đăng. Vui lòng thử lại!');
+      alert(getApiErrorMessage(err, 'Đã có lỗi xảy ra khi tạo bài đăng. Vui lòng thử lại!'));
     }
   };
 
@@ -210,6 +216,14 @@ const LandlordPostCreatePage = () => {
           Thông tin cơ bản
         </div>
 
+        {!isProfileReady && (
+          <div style={{ marginBottom: '24px', padding: '14px 16px', borderRadius: '10px', backgroundColor: '#fff7ed', border: '1px solid #fdba74', color: '#9a3412', fontSize: '14px', lineHeight: '1.6' }}>
+            {isProfileError
+              ? 'Không tải được hồ sơ cá nhân. Vui lòng cập nhật họ tên và số điện thoại trước khi đăng bài.'
+              : 'Vui lòng cập nhật họ tên và số điện thoại trong hồ sơ cá nhân trước khi đăng bài.'}
+          </div>
+        )}
+
         <div style={styles.fieldGroup}>
           <label style={styles.label}>Phòng trọ đã chọn: <span style={{ color: '#ef4444' }}>*</span></label>
           <div style={styles.imagePreview}>
@@ -248,7 +262,7 @@ const LandlordPostCreatePage = () => {
             <ChevronLeft size={16} />
             Quay lại chọn phòng
           </button>
-          <button style={styles.btnPrimary} onClick={handleCreatePost} disabled={isCreating}>
+          <button style={styles.btnPrimary} onClick={handleCreatePost} disabled={isCreating || !isProfileReady}>
             <Upload size={16} />
             {isCreating ? 'Đang tạo...' : 'Đăng bài ngay'}
           </button>

@@ -2,7 +2,14 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAddRoomMutation, useGetLandlordRoomByIdQuery, useUpdateRoomMutation } from '../api/landlordApi';
-import { setAddRoomStep, setAddRoomDraft, clearAddRoomDraft, selectAddRoomStep, selectAddRoomDraft } from '../slice';
+import {
+  setAddRoomStep,
+  setAddRoomDraft,
+  replaceAddRoomDraft,
+  clearAddRoomDraft,
+  selectAddRoomStep,
+  selectAddRoomDraft,
+} from '../slice';
 import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
 import { clearAddRoomImageFiles, getAddRoomImageFiles } from '../utils/addRoomImageFiles';
 
@@ -35,9 +42,42 @@ export const useAddRoomForm = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    if (!roomId || !editRoom || draft) return;
-    dispatch(setAddRoomDraft({ name: editRoom.title, room_type: editRoom.room_type, area: editRoom.area, capacity: editRoom.max_people, current_people: editRoom.current_people, bedroom_count: editRoom.bedroom_count, description: editRoom.description, city: editRoom.city, district: editRoom.district, ward: editRoom.ward, street: editRoom.street, address: editRoom.street, latitude: editRoom.latitude, longitude: editRoom.longitude, price: editRoom.price, deposit: editRoom.deposit, electricity_price: editRoom.electricity_price, water_price: editRoom.water_price, internet_price: editRoom.internet_price, parking_price: editRoom.parking_price, status: editRoom.status, contact_name: editRoom.contact_name, contact_phone: editRoom.contact_phone, contact_social: editRoom.contact_social, amenities: editRoom.amenities || [], existing_images: editRoom.image_items || [] }));
-  }, [dispatch, draft, editRoom, roomId]);
+    if (!roomId || !editRoom) return;
+    if (draft?.__sourceRoomId === String(roomId)) return;
+
+    dispatch(setAddRoomStep(0));
+    dispatch(replaceAddRoomDraft({
+      __sourceRoomId: String(roomId),
+      name: editRoom.title,
+      room_type: editRoom.room_type,
+      area: editRoom.area,
+      capacity: editRoom.max_people,
+      current_people: editRoom.current_people,
+      bedroom_count: editRoom.bedroom_count,
+      description: editRoom.description,
+      city: editRoom.city,
+      district: editRoom.district,
+      ward: editRoom.ward,
+      street: editRoom.street,
+      address: editRoom.street,
+      latitude: editRoom.latitude,
+      longitude: editRoom.longitude,
+      price: editRoom.price,
+      deposit: editRoom.deposit,
+      electricity_price: editRoom.electricity_price,
+      water_price: editRoom.water_price,
+      internet_price: editRoom.internet_price,
+      parking_price: editRoom.parking_price,
+      status: editRoom.status,
+      contact_name: editRoom.contact_name,
+      contact_phone: editRoom.contact_phone,
+      contact_social: editRoom.contact_social,
+      amenities: editRoom.amenities || [],
+      existing_images: editRoom.image_items || [],
+      image_files_meta: [],
+    }));
+    clearAddRoomImageFiles();
+  }, [dispatch, draft?.__sourceRoomId, editRoom, roomId]);
 
   const updateDraft = (data) => dispatch(setAddRoomDraft(data));
   const goNext = () => currentStep < TOTAL_STEPS - 1 && dispatch(setAddRoomStep(currentStep + 1));

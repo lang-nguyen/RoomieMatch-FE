@@ -11,9 +11,18 @@ const MatchingProfileForm = ({ initialData, onSubmit }) => {
   const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadAvatarMutation();
 
   const errors = useMemo(() => {
+    const errorMessages = {
+      avatar: 'Vui lòng tải lên ảnh đại diện',
+      intro: 'Vui lòng nhập thông tin giới thiệu',
+      habits: 'Vui lòng nhập thói quen',
+      target_city: 'Vui lòng nhập tỉnh/thành phố',
+      target_district: 'Vui lòng nhập quận/huyện',
+      budget: 'Vui lòng nhập ngân sách',
+    };
+
     return requiredFields.reduce((result, field) => {
       if (!String(formValues[field] || '').trim()) {
-        result[field] = 'Vui lòng nhập đầy đủ thông tin';
+        result[field] = errorMessages[field] || 'Vui lòng nhập đầy đủ thông tin';
       } else if (field === 'budget') {
         const budgetRegex = /^\d+-\d+$/;
         if (!budgetRegex.test(formValues.budget.trim())) {

@@ -132,11 +132,9 @@ const PackageManagement = () => {
                   <div className={styles.entIcon}><Check size={16} /></div>
                   <div className={styles.entDetails}>
                     <span className={styles.entName}>{translateFeatureKey(ent.feature_key)}</span>
-                    {ent.quantity != null && (
-                      <span className={styles.entQty}>
-                        {ent.quantity > 1000 ? 'Không giới hạn' : `Còn lại: ${ent.quantity} lượt`}
-                      </span>
-                    )}
+                    <span className={styles.entQty}>
+                      {ent.quantity == null || ent.quantity > 1000 ? 'Không giới hạn' : `Còn lại: ${ent.quantity} lượt`}
+                    </span>
                   </div>
                 </div>
               ))}

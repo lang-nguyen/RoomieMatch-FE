@@ -24,6 +24,7 @@ const ChatbotWidget = () => {
     const navigate = useNavigate();
     const isAuthenticated = useSelector(selectIsAuthenticated);
     const [isLoginAlertOpen, setIsLoginAlertOpen] = useState(false);
+    const [isPackageLimitAlertOpen, setIsPackageLimitAlertOpen] = useState(false);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -142,6 +143,8 @@ const ChatbotWidget = () => {
                         rooms: data.rooms_data || []
                     },
                 ]);
+            } else if (response.status === 402) {
+                setIsPackageLimitAlertOpen(true);
             } else {
                 throw new Error('Lỗi từ server');
             }
@@ -278,6 +281,22 @@ const ChatbotWidget = () => {
                     navigate('/login');
                 }}
                 onCancel={() => setIsLoginAlertOpen(false)}
+                type="alert"
+            />
+
+            <ConfirmModal
+                isOpen={isPackageLimitAlertOpen}
+                title="Hết lượt sử dụng"
+                message="Bạn đã hết lượt sử dụng Chatbot AI. Vui lòng nâng cấp gói dịch vụ để tiếp tục."
+                confirmText="Xem gói dịch vụ"
+                cancelText="Đóng"
+                onConfirm={() => {
+                    setIsPackageLimitAlertOpen(false);
+                    const user = (() => { try { return JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch { return null; } })();
+                    const benefitsPath = user?.account_type === 'landlord' ? '/landlord/package-management' : '/user/package-management';
+                    navigate(benefitsPath);
+                }}
+                onCancel={() => setIsPackageLimitAlertOpen(false)}
                 type="alert"
             />
         </div>

@@ -25,10 +25,11 @@ export const useMatchingFlow = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
   const [showContactCard, setShowContactCard] = useState(false);
+  const [matchActionError, setMatchActionError] = useState(null);
 
   // RTK Query Hooks
   const { data: userProfileData, isLoading: isLoadingProfile, isError: isProfileError } = useGetMatchingProfileQuery();
-  const { data: suggestionsData, isLoading: isLoadingSuggestions } = useGetRoommateSuggestionsQuery();
+  const { data: suggestionsData, isLoading: isLoadingSuggestions, error: suggestionsError } = useGetRoommateSuggestionsQuery();
   const { data: matchHistoryData } = useGetMatchingHistoryQuery();
   const { data: skippedUsersData } = useGetRejectedRoommatesQuery();
 
@@ -72,6 +73,9 @@ export const useMatchingFlow = () => {
             instagram: profile.instagram || '',
             twitter: profile.twitter || '',
           },
+          name: profile.full_name || profile.name || profile.display_name || '',
+          avatar: profile.avatar_url || profile.avatar || profile.image || '',
+          joinedAt: profile.created_at ? new Date(profile.created_at).toLocaleDateString('vi-VN') : '',
         });
         
         setCurrentProfile({
@@ -108,6 +112,8 @@ export const useMatchingFlow = () => {
 
       if (hasContactInfo && step === MATCHING_STEPS.ONBOARDING) {
         setStep(MATCHING_STEPS.SUCCESS);
+      } else if (step === MATCHING_STEPS.ONBOARDING) {
+        setShowContactForm(true);
       }
     } catch (error) {
       console.error('Failed to create matching profile:', error);
@@ -138,6 +144,8 @@ export const useMatchingFlow = () => {
 
     if (hasProfile && step === MATCHING_STEPS.ONBOARDING) {
       setStep(MATCHING_STEPS.SUCCESS);
+    } else if (step === MATCHING_STEPS.ONBOARDING) {
+      setShowProfileForm(true);
     }
   };
 
@@ -161,19 +169,21 @@ export const useMatchingFlow = () => {
   const showActiveUserContact = async () => {
     if (!activeUser) return;
     
-    setShowContactCard(true);
-    
     const targetId = activeUser.account_id || activeUser.accountId || String(activeUser.id).replace('m-', '');
     
     try {
       await acceptRoommateMutation(targetId).unwrap();
       
+      setShowContactCard(true);
       setMatchHistory(prev => {
         if (prev.some(u => (u.account_id || u.id) === (activeUser.account_id || activeUser.id))) return prev;
         return [activeUser, ...prev];
       });
     } catch (error) {
       console.error('Failed to accept roommate:', error);
+      if (error?.status === 402) {
+        setMatchActionError(error);
+      }
     }
   };
 
@@ -238,5 +248,8 @@ export const useMatchingFlow = () => {
     showActiveUserContact,
     skipActiveUser,
     hideFocusedCard,
+    suggestionsError,
+    matchActionError,
+    clearMatchActionError: () => setMatchActionError(null)
   };
 };

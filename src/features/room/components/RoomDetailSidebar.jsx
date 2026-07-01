@@ -106,18 +106,85 @@ const RoomDetailSidebar = ({ price, deposit, owner, reference, roomId, postId, p
 
       {showContact && contactData && createPortal(
         <div className="modal-overlay" onClick={() => setShowContact(false)}>
-          <div className="room-detail-contact" onClick={(event) => event.stopPropagation()} style={{ width: '90%', maxWidth: 400, position: 'relative' }}>
-            <button type="button" className="modal-close-btn" onClick={() => setShowContact(false)}>
-              <X size={24} />
-            </button>
-            <h3>Thông tin liên hệ</h3>
-            <p>{contactData.name || owner.name}</p>
-            <p>📞 {contactData.phone || 'Chưa cập nhật'}</p>
-            <p>{contactData.social || 'Chưa có liên hệ khác'}</p>
+          <div
+            className="contact-modal-card"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {/* Header gradient */}
+            <div className="contact-modal-header">
+              <button
+                type="button"
+                className="contact-modal-close"
+                onClick={() => setShowContact(false)}
+                aria-label="Đóng"
+              >
+                <X size={20} />
+              </button>
+              <div className="contact-modal-avatar">
+                {owner.initials}
+              </div>
+              <h3 className="contact-modal-name">{contactData.name || owner.name}</h3>
+              <p className="contact-modal-role">{owner.role}</p>
+            </div>
+
+            {/* Contact items */}
+            <div className="contact-modal-body">
+              {contactData.phone && (
+                <a href={`tel:${contactData.phone}`} className="contact-modal-item">
+                  <span className="contact-modal-item-icon">📞</span>
+                  <div className="contact-modal-item-info">
+                    <span className="contact-modal-item-label">Số điện thoại</span>
+                    <span className="contact-modal-item-value">{contactData.phone}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="contact-modal-copy-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigator.clipboard.writeText(contactData.phone);
+                    }}
+                    title="Sao chép"
+                  >
+                    📋
+                  </button>
+                </a>
+              )}
+
+              {!contactData.phone && (
+                <div className="contact-modal-item contact-modal-item--muted">
+                  <span className="contact-modal-item-icon">📞</span>
+                  <div className="contact-modal-item-info">
+                    <span className="contact-modal-item-label">Số điện thoại</span>
+                    <span className="contact-modal-item-value">Chưa cập nhật</span>
+                  </div>
+                </div>
+              )}
+
+              {contactData.social && (
+                <a
+                  href={contactData.social.startsWith('http') ? contactData.social : `#`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="contact-modal-item"
+                >
+                  <span className="contact-modal-item-icon">🔗</span>
+                  <div className="contact-modal-item-info">
+                    <span className="contact-modal-item-label">Mạng xã hội / Zalo</span>
+                    <span className="contact-modal-item-value contact-modal-item-link">{contactData.social}</span>
+                  </div>
+                </a>
+              )}
+
+              <div className="contact-modal-note">
+                <span>💡</span>
+                <p>Vui lòng liên hệ trong giờ hành chính (8:00 – 21:00). Hãy đề cập bạn xem qua RommieMatch.</p>
+              </div>
+            </div>
           </div>
         </div>,
         document.body,
       )}
+
 
       {showRentalRequest && createPortal(
         <div className="modal-overlay" onClick={() => setShowRentalRequest(false)}>

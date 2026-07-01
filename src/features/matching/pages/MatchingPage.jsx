@@ -22,6 +22,7 @@ const MatchingPage = () => {
   const [editingSection, setEditingSection] = useState('');
   const [selectedHistoryContact, setSelectedHistoryContact] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isPackageLimitAlertOpen, setIsPackageLimitAlertOpen] = useState(false);
   
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const navigate = useNavigate();
@@ -32,6 +33,15 @@ const MatchingPage = () => {
       setShowLoginModal(true);
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (matching.suggestionsError?.status === 402 || matching.matchActionError?.status === 402) {
+      setIsPackageLimitAlertOpen(true);
+      if (matching.matchActionError?.status === 402) {
+        matching.clearMatchActionError();
+      }
+    }
+  }, [matching.suggestionsError, matching.matchActionError]);
 
   const handleAction = (actionCallback) => {
     if (!isAuthenticated) {
@@ -275,6 +285,22 @@ const MatchingPage = () => {
         cancelText="Đóng"
         onConfirm={() => navigate('/login', { state: { from: location } })}
         onCancel={() => setShowLoginModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={isPackageLimitAlertOpen}
+        title="Hết lượt sử dụng"
+        message="Bạn đã hết lượt sử dụng AI Matching. Vui lòng nâng cấp gói dịch vụ để nhận thêm gợi ý."
+        confirmText="Xem gói dịch vụ"
+        cancelText="Đóng"
+        onConfirm={() => {
+            setIsPackageLimitAlertOpen(false);
+            const user = (() => { try { return JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch { return null; } })();
+            const benefitsPath = user?.account_type === 'landlord' ? '/landlord/package-management' : '/user/package-management';
+            navigate(benefitsPath);
+        }}
+        onCancel={() => setIsPackageLimitAlertOpen(false)}
+        type="alert"
       />
     </main>
   );

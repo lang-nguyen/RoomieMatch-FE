@@ -18,7 +18,7 @@ import {
 import '../homepage/Homepage.css';
 import './RoomPage.css';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
 
 const formatRelativeTime = (createdAt) => {
   if (!createdAt) return 'Vừa đăng';
@@ -107,7 +107,8 @@ const RoomPage = () => {
     keyword: appliedFilters.keyword || undefined,
   }), [appliedFilters.city, appliedFilters.district, appliedFilters.keyword, appliedFilters.sort, appliedFilters.type, currentPage]);
 
-  const { data, isLoading } = useGetPostsQuery(queryParams);
+  const { data, isLoading, isFetching } = useGetPostsQuery(queryParams);
+  const { data: recommendedData } = useGetPostsQuery({ page: 1, page_size: 3 });
 
   useEffect(() => {
     if (hash === '#room-list' && !isLoading && data) {
@@ -120,7 +121,7 @@ const RoomPage = () => {
   const rooms = useMemo(() => (data?.items || []).map(mapPostToRoom), [data]);
   const totalRooms = data?.total ?? 0;
   const totalPages = data?.total_pages ?? 0;
-  const recommendedRooms = useMemo(() => rooms.slice(0, 3), [rooms]);
+  const recommendedRooms = useMemo(() => (recommendedData?.items || []).map(mapPostToRoom), [recommendedData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -145,6 +146,9 @@ const RoomPage = () => {
       cleaned.page = page;
       setUrlSearchParams(cleaned);
       setCurrentPage(page);
+      if (roomListRef.current) {
+        roomListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 
@@ -190,7 +194,7 @@ const RoomPage = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={goToPage}
-          isLoading={isLoading}
+          isLoading={isLoading || isFetching}
         />
       </div>
 

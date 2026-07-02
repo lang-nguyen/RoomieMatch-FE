@@ -15,6 +15,14 @@ const getStatusLabel = (status) => {
   return status || 'Chưa cập nhật';
 };
 
+const getStatusClass = (status) => {
+  if (status === 'active') return styles.statusActive;
+  if (status === 'pending') return styles.statusPending;
+  if (status === 'failed' || status === 'cancelled') return styles.statusFailed;
+  if (status === 'paid') return styles.statusPaid;
+  return styles.statusDefault;
+};
+
 const LandlordPackageManagementPage = () => {
   const { data, isLoading } = useGetLandlordPackageHistoryQuery();
   const history = data?.items ?? [];
@@ -52,7 +60,11 @@ const LandlordPackageManagementPage = () => {
                   <td>{formatMoney(item.price)}</td>
                   <td className={styles.date}>{formatDate(item.purchaseDate)}</td>
                   <td>{formatDate(item.expiredDate)}</td>
-                  <td>{getStatusLabel(item.status)}</td>
+                  <td>
+                    <span className={`${styles.statusBadge} ${getStatusClass(item.status)}`}>
+                      {getStatusLabel(item.status)}
+                    </span>
+                  </td>
                   <td>
                     <Link className={styles.detailLink} to={`/landlord/package-management/${item.id}`}>
                       Chi tiết

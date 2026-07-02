@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react';
+import { Check, ChevronLeft, Home, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAddRoomForm } from '../../hooks/useAddRoomForm';
 import StepBasicInfo from './StepBasicInfo';
@@ -9,8 +9,8 @@ import styles from './AddRoomForm.module.css';
 
 const STEPS = [
   { id: 0, label: 'Thông tin cơ bản' },
-  { id: 1, label: 'Hình ảnh & Tiện ích' },
-  { id: 2, label: 'Vị trí & Lân cận' },
+  { id: 1, label: 'Hình ảnh & tiện ích' },
+  { id: 2, label: 'Vị trí & chi phí' },
   { id: 3, label: 'Xác nhận' },
 ];
 
@@ -30,23 +30,26 @@ const AddRoomForm = () => {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
       <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>{isEditing ? 'Chỉnh sửa phòng trọ' : 'Thêm trọ mới'}</h1>
-          <p className={styles.subtitle}>{isEditing ? 'Cập nhật thông tin và bổ sung hình ảnh phòng trọ' : 'Điền đầy đủ thông tin để tạo hồ sơ phòng trọ'}</p>
+        <div className={styles.heading}>
+          <span className={styles.titleIcon}><Home size={19} /></span>
+          <div>
+            <h1 className={styles.title}>{isEditing ? 'Chỉnh sửa phòng trọ' : 'Thêm trọ mới'}</h1>
+            <p className={styles.subtitle}>{isEditing ? 'Cập nhật thông tin và hình ảnh phòng trọ' : 'Điền đầy đủ thông tin để tạo hồ sơ phòng trọ'}</p>
+          </div>
         </div>
         <div className={styles.actions}>
           <button className={styles.backBtn} onClick={() => navigate('/landlord/rooms')}>
             <ChevronLeft size={16} /> Quay lại
           </button>
-          <button className={styles.saveBtn} onClick={handleSubmit} disabled={isSubmitting}>Lưu phòng trọ</button>
+          <button className={styles.saveBtn} onClick={handleSubmit} disabled={isSubmitting}>
+            <Save size={15} /> Lưu phòng trọ
+          </button>
         </div>
       </div>
 
-      {/* Stepper */}
       <div className={styles.stepper}>
-        {STEPS.map((step, idx) => (
+        {STEPS.map((step, index) => (
           <div key={step.id} className={styles.stepWrapper}>
             <button
               className={`${styles.stepIndicator} ${currentStep === step.id ? styles.stepActive : ''} ${currentStep > step.id ? styles.stepCompleted : ''}`}
@@ -54,21 +57,18 @@ const AddRoomForm = () => {
               disabled={!isEditing && currentStep < step.id}
             >
               <div className={styles.stepCircle}>
-                {currentStep > step.id ? '✓' : step.id + 1}
+                {currentStep > step.id ? <Check size={13} /> : step.id + 1}
               </div>
               <span className={styles.stepLabel}>{step.label}</span>
             </button>
-            {idx < STEPS.length - 1 && (
+            {index < STEPS.length - 1 && (
               <div className={`${styles.stepLine} ${currentStep > step.id ? styles.stepLineActive : ''}`} />
             )}
           </div>
         ))}
       </div>
 
-      {/* Form Content */}
-      <div className={styles.content}>
-        {renderStep()}
-      </div>
+      <div className={styles.content}>{renderStep()}</div>
     </div>
   );
 };

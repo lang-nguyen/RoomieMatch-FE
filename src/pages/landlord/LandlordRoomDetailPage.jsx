@@ -1,12 +1,12 @@
-import { ChevronLeft, MapPin, Phone, Share2, Users, Wallet } from 'lucide-react';
+import { ChevronLeft, Edit3, MapPin, Share2, Trash2, Users, Wallet } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetLandlordRoomByIdQuery } from '../../features/landlord/api/landlordApi';
-import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
-import StatusBadge from '../../shared/components/StatusBadge';
+import { useState } from 'react';
+import { useDeleteRoomMutation, useGetLandlordRoomByIdQuery } from '../../features/landlord/api/landlordApi';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 import sharedStyles from './LandlordPageShared.module.css';
 import styles from './LandlordRoomDetailPage.module.css';
 
-const formatMoney = (value) => `${Number(value || 0).toLocaleString('vi-VN')} VND`;
+const formatMoney = (value) => `${Number(value || 0).toLocaleString('vi-VN')} VNĐ`;
 
 const CostItem = ({ label, value }) => (
   <div className={styles.costItem}>
@@ -28,54 +28,63 @@ const FactItem = ({ icon: Icon, label, value }) => (
 const LandlordRoomDetailPage = () => {
   const navigate = useNavigate();
   const { roomId } = useParams();
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { data: room, isLoading, isError } = useGetLandlordRoomByIdQuery({ id: roomId });
+  const [deleteRoom] = useDeleteRoomMutation();
 
-  if (isLoading) {
-    return <div className={sharedStyles.page}>Dang tai thong tin phong...</div>;
-  }
+  if (isLoading) return <div className={sharedStyles.page}>Đang tải thông tin phòng...</div>;
 
   if (isError || !room) {
     return (
       <div className={sharedStyles.page}>
         <div className={styles.emptyState}>
-          <h3>Khong tim thay phong tro</h3>
+          <h3>Không tìm thấy phòng trọ</h3>
           <button type="button" className={styles.backBtn} onClick={() => navigate('/landlord/rooms')}>
-            Quay lai danh sach
+            Quay lại danh sách
           </button>
         </div>
       </div>
     );
   }
 
-  const address = room.full_address || room.address || 'Dang cap nhat dia chi';
+  const address = room.full_address || room.address || 'Đang cập nhật địa chỉ';
   const images = room.images || [];
+  const name = room.title || room.name || 'Chi tiết phòng trọ';
 
   return (
     <div className={`${sharedStyles.page} ${styles.page}`}>
-      <div className={styles.topBar}>
-        <button type="button" className={styles.backBtn} onClick={() => navigate('/landlord/rooms')}>
-          <ChevronLeft size={16} />
-          Quay lai
-        </button>
-        <button type="button" className={styles.editBtn} onClick={() => navigate(`/landlord/rooms/${room.id}/edit`)}>
-          Sua phong
-        </button>
+      <div className={styles.stickyHeader}>
+        <div className={styles.topBar}>
+          <div className={styles.titleRow}>
+            <button type="button" className={styles.backBtn} onClick={() => navigate('/landlord/rooms')}>
+              <ChevronLeft size={16} />
+              Quay lại
+            </button>
+            <div className={styles.titleBlock}>
+              <h1>{name}</h1>
+              <p>{address}</p>
+            </div>
+          </div>
+
+          <div className={styles.actionGroup}>
+            <button type="button" className={styles.editBtn} onClick={() => navigate(`/landlord/rooms/${room.id}/edit`)}>
+              <Edit3 size={15} /> Sửa
+            </button>
+            <button type="button" className={styles.deleteBtn} onClick={() => setConfirmDelete(true)}>
+              <Trash2 size={15} /> Xóa
+            </button>
+          </div>
+        </div>
       </div>
 
-      <LandlordPageHeader
-        title={room.title || room.name || 'Chi tiet phong tro'}
-        subtitle={address}
-        actions={<StatusBadge status={room.status} />}
-      />
-
       <div className={styles.gallery}>
-        {images.length ? images.map((image, index) => (
+        {images.length ? images.slice(0, 5).map((image, index) => (
           <div key={`${image}-${index}`} className={index === 0 ? styles.heroImage : styles.sideImage}>
-            <img src={image} alt={room.title || `Room ${index + 1}`} />
+            <img src={image} alt={`${name} ${index + 1}`} />
           </div>
         )) : (
           <div className={`${styles.heroImage} ${styles.placeholder}`}>
-            <span>Chua co anh phong</span>
+            <span>Chưa có ảnh phòng</span>
           </div>
         )}
       </div>
@@ -83,55 +92,60 @@ const LandlordRoomDetailPage = () => {
       <div className={styles.contentGrid}>
         <section className={styles.mainColumn}>
           <div className={styles.panel}>
-            <h2>Tong quan phong</h2>
+            <h2>Tổng quan phòng</h2>
             <div className={styles.factGrid}>
-              <FactItem icon={MapPin} label="Dia chi" value={address} />
-              <FactItem icon={Users} label="Suc chua" value={`${room.max_people || room.capacity || 1} nguoi`} />
-              <FactItem icon={Wallet} label="Loai phong" value={room.room_type || 'Phong tro'} />
-              <FactItem icon={Share2} label="Ma phong" value={room.room_code || room.code || `#${room.id}`} />
+              <FactItem icon={MapPin} label="Địa chỉ" value={address} />
+              <FactItem icon={Users} label="Sức chứa" value={`${room.max_people || room.capacity || 1} người`} />
+              <FactItem icon={Wallet} label="Loại phòng" value={room.room_type || 'Phòng trọ'} />
+              <FactItem icon={Share2} label="Mã phòng" value={room.room_code || room.code || `#${room.id}`} />
             </div>
           </div>
 
           <div className={styles.panel}>
-            <h2>Mo ta</h2>
-            <p className={styles.description}>{room.description || 'Chua co mo ta cho phong nay.'}</p>
+            <h2>Mô tả</h2>
+            <p className={styles.description}>{room.description || 'Chưa có mô tả cho phòng này.'}</p>
           </div>
 
           <div className={styles.panel}>
-            <h2>Tien ich</h2>
+            <h2>Tiện ích</h2>
             {room.amenities?.length ? (
               <div className={styles.amenities}>
                 {room.amenities.map((item) => <span key={item}>{item}</span>)}
               </div>
             ) : (
-              <p className={styles.description}>Chua co tien ich duoc cap nhat.</p>
+              <p className={styles.description}>Chưa có tiện ích được cập nhật.</p>
             )}
           </div>
         </section>
 
         <aside className={styles.sideColumn}>
           <div className={styles.panel}>
-            <h2>Chi phi</h2>
+            <h2>Chi phí</h2>
             <div className={styles.costList}>
-              <CostItem label="Gia phong" value={formatMoney(room.price)} />
-              <CostItem label="Tien coc" value={formatMoney(room.deposit)} />
-              <CostItem label="Tien dien" value={formatMoney(room.electricity_price)} />
-              <CostItem label="Tien nuoc" value={formatMoney(room.water_price)} />
-              <CostItem label="Tien internet" value={formatMoney(room.internet_price)} />
-              <CostItem label="Tien gui xe" value={formatMoney(room.parking_price)} />
-            </div>
-          </div>
-
-          <div className={styles.panel}>
-            <h2>Thong tin lien he</h2>
-            <div className={styles.contactList}>
-              <FactItem icon={Users} label="Nguoi lien he" value={room.contact_name || 'Chua cap nhat'} />
-              <FactItem icon={Phone} label="So dien thoai" value={room.contact_phone || 'Chua cap nhat'} />
-              <FactItem icon={Share2} label="Kenh khac" value={room.contact_social || 'Chua cap nhat'} />
+              <CostItem label="Giá phòng" value={formatMoney(room.price)} />
+              <CostItem label="Tiền cọc" value={formatMoney(room.deposit)} />
+              <CostItem label="Tiền điện" value={formatMoney(room.electricity_price)} />
+              <CostItem label="Tiền nước" value={formatMoney(room.water_price)} />
+              <CostItem label="Wifi" value={formatMoney(room.internet_price)} />
+              <CostItem label="Gửi xe" value={formatMoney(room.parking_price)} />
             </div>
           </div>
         </aside>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmDelete}
+        title="Xác nhận xóa phòng trọ"
+        message={`Bạn có chắc muốn xóa phòng "${name}"?`}
+        confirmText="Xóa phòng"
+        cancelText="Hủy"
+        onCancel={() => setConfirmDelete(false)}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={async () => {
+          await deleteRoom({ id: room.id }).unwrap();
+          navigate('/landlord/rooms');
+        }}
+      />
     </div>
   );
 };

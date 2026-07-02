@@ -12,50 +12,60 @@
   top: 0;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  font-family: 'Be Vietnam Pro', 'Be Vietnam', 'Segoe UI', sans-serif;
+}
+
+.sidebar button,
+.sidebar a {
+  font-family: inherit;
 }
 
 .sidebar::-webkit-scrollbar {
   display: none;
 }
 
-/* Logo */
-.logo {
+.sidebarLogo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 18px 20px;
+  gap: 9px;
+  padding: 19px 20px 16px;
   border-bottom: 1px solid #f5f5f5;
   margin-bottom: 8px;
 }
 
-.logoIcon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #c1440e, #ff8c42);
-  border-radius: 8px;
-  display: flex;
+.logoMark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #d45b13, #a63a0a);
   color: #fff;
+  box-shadow: 0 8px 18px rgba(212, 91, 19, 0.24);
   flex-shrink: 0;
 }
 
 .logoText {
-  font-size: 11px;
+  font-size: 18px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  color: #1f1b18;
+  letter-spacing: -0.2px;
+}
+
+.logoText span {
   color: #c1440e;
 }
 
 /* Sections */
 .section {
-  padding: 8px 0;
+  padding: 10px 0 8px;
   flex-shrink: 0;
 }
 
 .footer {
   margin-top: auto;
-  padding: 12px 0 0;
+  padding: 10px 0 0;
   border-top: 1px solid #f5f5f5;
   position: sticky;
   bottom: 0;

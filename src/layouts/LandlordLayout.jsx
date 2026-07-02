@@ -8,15 +8,15 @@ const LandlordLayout = () => {
   const location = useLocation();
   const { data: roomsData } = useGetLandlordRoomsQuery({ page: 1, pageSize: 4 });
   const { data: statsData } = useGetLandlordStatsQuery({ range: '7d' });
-  const hideRightPanel = location.pathname.startsWith('/landlord/posts') || location.pathname.startsWith('/landlord/stats') || location.pathname.startsWith('/landlord/rental-requests');
+  const showRightPanel = location.pathname === '/landlord' || location.pathname === '/landlord/';
   const ownedRooms = (roomsData?.items || []).map((room) => ({ id: room.id, name: room.title || room.name, code: room.room_code || room.code }));
-  const chartData = (statsData?.weeklyInteractions || []).map((item) => Math.min(100, Math.max(8, Number(item.views || 0) * 10)));
+  const roomStatus = statsData?.roomStatus || [];
 
   return (
-    <div className={`${styles.wrapper} ${hideRightPanel ? styles.wrapperWide : ''}`}>
+    <div className={`${styles.wrapper} ${!showRightPanel ? styles.wrapperWide : ''}`}>
       <LandlordSidebar />
       <main className={styles.main}><Outlet /></main>
-      {!hideRightPanel && <UserInfoPanel ownedRooms={ownedRooms} chartData={chartData} />}
+      {showRightPanel && <UserInfoPanel ownedRooms={ownedRooms} roomStatus={roomStatus} />}
     </div>
   );
 };

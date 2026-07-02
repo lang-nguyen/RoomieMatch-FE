@@ -5,7 +5,8 @@
 }
 
 .section {
-  max-width: 920px;
+  max-width: 1080px;
+  margin: 0 auto;
   border: 1px solid #eee8e4;
   border-radius: 12px;
   background: #fff;

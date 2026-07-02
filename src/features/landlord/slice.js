@@ -11,6 +11,9 @@ const landlordSlice = createSlice({
       filters: {
         search: '',
         status: '',
+        area: '',
+        roomType: '',
+        postedDate: '',
       },
     },
     // Current room being viewed/edited

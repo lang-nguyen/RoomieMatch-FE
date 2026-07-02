@@ -1,4 +1,4 @@
-import { Maximize2, Users, Tag } from 'lucide-react';
+import { Edit3, Eye, FilePlus2, Maximize2, Tag, Trash2, Users } from 'lucide-react';
 import StatusBadge from '../../../shared/components/StatusBadge';
 import styles from './LandlordRoomCard.module.css';
 
@@ -10,7 +10,7 @@ const CARD_GRADIENTS = [
   'linear-gradient(135deg, #f94144, #f3722c)',
 ];
 
-const getGradient = (id) => CARD_GRADIENTS[(id - 1) % CARD_GRADIENTS.length];
+const getGradient = (id) => CARD_GRADIENTS[(Number(id) - 1 || 0) % CARD_GRADIENTS.length];
 
 const LandlordRoomCard = ({ room, onView, onEdit, onDelete, onTogglePost }) => {
   const {
@@ -36,13 +36,12 @@ const LandlordRoomCard = ({ room, onView, onEdit, onDelete, onTogglePost }) => {
   const displayCapacity = capacity || max_people || 1;
   const displayPrice = Number(price) || 0;
   const hasThumbnail = images.length > 0;
+  const visibleAmenities = amenities.slice(0, 3);
+  const restAmenities = Math.max(0, amenities.length - visibleAmenities.length);
 
   return (
-    <div className={styles.card}>
-      <div
-        className={styles.thumbnail}
-        style={{ background: hasThumbnail ? undefined : getGradient(id) }}
-      >
+    <article className={styles.card}>
+      <div className={styles.thumbnail} style={{ background: hasThumbnail ? undefined : getGradient(id) }}>
         {hasThumbnail ? (
           <img src={images[0]} alt={displayName} className={styles.thumbnailImg} />
         ) : (
@@ -58,52 +57,56 @@ const LandlordRoomCard = ({ room, onView, onEdit, onDelete, onTogglePost }) => {
       </div>
 
       <div className={styles.info}>
-        <h3 className={styles.name}>{displayName}</h3>
+        <h3 className={styles.name} title={displayName}>{displayName}</h3>
         <p className={styles.address}>{displayAddress}</p>
 
-        <div className={styles.chips}>
-          <span className={styles.chip}>
-            <Maximize2 size={11} />
-            {Number(area) || 0} m²
-          </span>
-          <span className={styles.chip}>
-            <Users size={11} />
-            {displayCapacity} người
-          </span>
-          {amenities.slice(0, 2).map((a) => (
-            <span key={a} className={styles.chip}>
-              <Tag size={11} />
-              {a}
+        <div className={styles.chipRows}>
+          <div className={styles.chips}>
+            <span className={styles.chip}>
+              <Maximize2 size={11} />
+              {Number(area) || 0} m²
             </span>
-          ))}
+            <span className={styles.chip}>
+              <Users size={11} />
+              {displayCapacity} người
+            </span>
+          </div>
+
+          <div className={styles.chips}>
+            {visibleAmenities.map((amenity) => (
+              <span key={amenity} className={styles.chip}>
+                <Tag size={11} />
+                {amenity}
+              </span>
+            ))}
+            {restAmenities > 0 ? <span className={styles.chip}>+{restAmenities} tiện ích</span> : null}
+          </div>
         </div>
 
         <div className={styles.price}>
-          {displayPrice.toLocaleString('vi-VN')}d&nbsp;
+          {displayPrice.toLocaleString('vi-VN')} đ
           <span className={styles.priceUnit}>/ tháng</span>
         </div>
       </div>
 
       <div className={styles.actions}>
-        <button className={`${styles.actionButton} ${styles.actionButtonGhost}`} onClick={() => onView?.(room)}>
-          Chi tiết
+        <button className={styles.iconButton} onClick={() => onView?.(room)} title="Xem chi tiết" aria-label="Xem chi tiết">
+          <Eye size={15} />
         </button>
-        <button className={`${styles.actionButton} ${styles.actionButtonGhost}`} onClick={() => onEdit?.(room)}>
-          Sửa
-        </button>
-        <button
-          className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
-          onClick={() => onTogglePost?.(room)}
-        >
-          Dùng cho bài
+        <button className={styles.iconButton} onClick={() => onEdit?.(room)} title="Sửa phòng" aria-label="Sửa phòng">
+          <Edit3 size={15} />
         </button>
         {onDelete ? (
-          <button className={`${styles.actionButton} ${styles.actionButtonDanger}`} onClick={() => onDelete?.(room)}>
-            Xóa
+          <button className={`${styles.iconButton} ${styles.dangerButton}`} onClick={() => onDelete?.(room)} title="Xóa phòng" aria-label="Xóa phòng">
+            <Trash2 size={15} />
           </button>
         ) : null}
+        <button className={`${styles.iconButton} ${styles.postButton}`} onClick={() => onTogglePost?.(room)} title="Dùng cho bài" aria-label="Dùng cho bài">
+          <FilePlus2 size={15} />
+          <span>Dùng cho bài</span>
+        </button>
       </div>
-    </div>
+    </article>
   );
 };
 

@@ -8,7 +8,7 @@ const LandlordMiniHeader = ({ search, onSearchChange }) => {
         <input
           value={search}
           onChange={(event) => onSearchChange?.(event.target.value)}
-          placeholder="Tim theo tieu de bai viet hoac ID (#P001)..."
+          placeholder="Tìm theo tiêu đề bài viết hoặc ID (#P001)..."
           className={styles.searchInput}
         />
       </div>

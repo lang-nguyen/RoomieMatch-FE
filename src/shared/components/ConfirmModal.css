@@ -15,13 +15,15 @@
 
 .modal-container {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   width: 90%;
   max-width: 400px;
   padding: 24px;
+  border: 1px solid #f0e2da;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   position: relative;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Be Vietnam Pro', 'Be Vietnam', 'Segoe UI', sans-serif;
 }
 
 .modal-close-btn {
@@ -61,8 +63,8 @@
 }
 
 .modal-icon.confirm {
-  background-color: #fef2f2;
-  color: #ef4444; /* Red for logout warning */
+  background-color: #fff4ee;
+  color: #c1440e;
 }
 
 .modal-icon.alert {
@@ -81,11 +83,12 @@
   font-weight: 700;
   color: #111827;
   text-align: center;
+  width: 100%;
 }
 
 .modal-body {
   margin-bottom: 24px;
-  text-align: center;
+  text-align: left;
 }
 
 .modal-body p {
@@ -106,12 +109,14 @@
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
   transition: all 0.2s;
   border: none;
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 7px;
 }
 
 .modal-btn-cancel {
@@ -125,13 +130,13 @@
 }
 
 .modal-btn-confirm {
-  background-color: #ef4444;
+  background-color: #c1440e;
   color: white;
 }
 
 .modal-btn-confirm:hover {
-  background-color: #dc2626;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  background-color: #a93a0b;
+  box-shadow: 0 4px 12px rgba(193, 68, 14, 0.24);
 }
 
 .modal-icon.alert ~ .modal-title {

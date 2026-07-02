@@ -31,6 +31,36 @@
   box-shadow: 0 8px 18px rgba(32, 27, 24, 0.06);
 }
 
+.dateFilter {
+  height: 34px;
+  border: 1px solid #e7e1dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #9a928c;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 18px rgba(32, 27, 24, 0.06);
+}
+
+.dateFilter input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #5f5751;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dateFilterActive {
+  color: #c1440e;
+  border-color: #f3b99f;
+  background: #fff7f2;
+}
+
 .headerActions .activeRange,
 .headerActions .newPost {
   color: #fff;

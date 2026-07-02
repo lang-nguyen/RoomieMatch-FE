@@ -17,6 +17,9 @@ export const useLandlordRooms = () => {
     pageSize: PAGE_SIZE,
     search: filters.search,
     status: filters.status,
+    area: filters.area,
+    roomType: filters.roomType,
+    postedDate: filters.postedDate,
   });
 
   const rooms = data?.items ?? [];
@@ -30,6 +33,11 @@ export const useLandlordRooms = () => {
 
   const handleStatusChange = useCallback(
     (status) => dispatch(setRoomFilters({ status })),
+    [dispatch],
+  );
+
+  const handleFilterChange = useCallback(
+    (updates) => dispatch(setRoomFilters(updates)),
     [dispatch],
   );
 
@@ -62,6 +70,7 @@ export const useLandlordRooms = () => {
     isDeleting,
     handleSearchChange,
     handleStatusChange,
+    handleFilterChange,
     handlePageChange,
     handleDelete,
     refetch,

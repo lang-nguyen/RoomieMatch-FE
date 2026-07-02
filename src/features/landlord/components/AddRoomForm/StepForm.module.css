@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  text-align: left;
 }
 
 .sectionTitle {
@@ -40,8 +41,9 @@
 
 .label {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 800;
   color: #333;
+  text-align: left;
 }
 
 .required {
@@ -86,6 +88,9 @@
 }
 
 .backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   padding: 10px 24px;
   border-radius: 8px;
   font-size: 14px;
@@ -103,6 +108,9 @@
 
 .nextBtn,
 .submitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   padding: 10px 24px;
   border-radius: 8px;
   font-size: 14px;
@@ -122,7 +130,7 @@
 /* Checkboxes & Image upload */
 .checkboxGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-top: 8px;
 }
@@ -131,9 +139,20 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #eee0d7;
+  border-radius: 10px;
+  background: #fffaf7;
   font-size: 13px;
   color: #555;
   cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.checkboxLabel:hover {
+  border-color: rgba(193, 68, 14, 0.35);
+  background: #fff4ee;
 }
 
 .checkboxLabel input {
@@ -218,4 +237,52 @@
 .errorText {
   color: #b42318;
   font-size: 12px;
+}
+
+.successText {
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.confirmBox {
+  display: grid;
+  gap: 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 16px;
+  color: #2f2722;
+}
+
+.confirmBox p {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  text-align: left;
+}
+
+.confirmBox strong {
+  color: #9a3412;
+}
+
+.confirmBox span {
+  word-break: break-word;
+}
+
+@media (max-width: 760px) {
+  .row,
+  .footer {
+    flex-direction: column;
+  }
+
+  .checkboxGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .confirmBox p {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }

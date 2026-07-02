@@ -1,13 +1,14 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
-  Home,
-  ShoppingBag,
-  List,
   BarChart2,
+  FileText,
+  Home,
+  List,
   LogOut,
   Package,
-  FileText,
+  Shield,
+  ShoppingBag,
   UserCheck,
 } from 'lucide-react';
 import { logout } from '../../features/auth/slice';
@@ -23,8 +24,6 @@ const OVERVIEW_ITEMS = [
   { id: 'rental-requests', label: 'Xác nhận thuê', path: '/landlord/rental-requests', icon: UserCheck },
 ];
 
-const SETTINGS_ITEMS = [];
-
 const LandlordSidebar = ({ promotedUsers = [] }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -36,19 +35,14 @@ const LandlordSidebar = ({ promotedUsers = [] }) => {
 
   return (
     <aside className={styles.sidebar}>
-      {/* Logo */}
-      <div className={styles.logo}>
-        <div className={styles.logoIcon}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-          </svg>
+      <div className={styles.sidebarLogo}>
+        <div className={styles.logoMark}>
+          <Shield size={18} />
         </div>
-        <span className={styles.logoText}>ROOMIEMATCH</span>
+        <div className={styles.logoText}>Roomie<span>Match</span></div>
       </div>
 
-      {/* Overview */}
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>OVERVIEW</div>
         <nav className={styles.nav}>
           {OVERVIEW_ITEMS.map(({ id, label, path, icon: Icon, end }) => (
             <NavLink
@@ -66,19 +60,17 @@ const LandlordSidebar = ({ promotedUsers = [] }) => {
         </nav>
       </div>
 
-      {/* Promoted Users (Gói khuyến mãi) */}
       {promotedUsers.length > 0 && (
         <div className={styles.section}>
-          <div className={styles.sectionLabel}>GÓI KHUYẾN MÃI</div>
           <div className={styles.promotedList}>
-            {promotedUsers.map((u) => (
-              <div key={u.id} className={styles.promotedItem}>
+            {promotedUsers.map((user) => (
+              <div key={user.id} className={styles.promotedItem}>
                 <div className={styles.promotedAvatar}>
-                  {u.display_name?.[0] ?? 'U'}
+                  {user.display_name?.[0] ?? 'U'}
                 </div>
                 <div className={styles.promotedInfo}>
-                  <div className={styles.promotedName}>{u.display_name}</div>
-                  <div className={styles.promotedSub}>{u.subtitle}</div>
+                  <div className={styles.promotedName}>{user.display_name}</div>
+                  <div className={styles.promotedSub}>{user.subtitle}</div>
                 </div>
               </div>
             ))}
@@ -86,21 +78,7 @@ const LandlordSidebar = ({ promotedUsers = [] }) => {
         </div>
       )}
 
-      {/* Settings & Logout */}
       <div className={styles.footer}>
-        <div className={styles.sectionLabel}>CÀI ĐẶT</div>
-        {SETTINGS_ITEMS.map(({ id, label, path, icon: Icon }) => (
-          <NavLink
-            key={id}
-            to={path}
-            className={({ isActive }) =>
-              `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
-            }
-          >
-            <Icon size={16} className={styles.navIcon} />
-            <span>{label}</span>
-          </NavLink>
-        ))}
         <button className={styles.logoutBtn} onClick={handleLogout}>
           <LogOut size={16} className={styles.navIcon} />
           <span>Đăng xuất</span>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Upload } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Upload } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useAddRoomForm } from '../../hooks/useAddRoomForm';
 import { useDeleteLandlordRoomImageMutation, useGetPublicCategoriesQuery } from '../../api/landlordApi';
@@ -47,11 +47,11 @@ const StepAmenities = () => {
 
     files.forEach((file) => {
       if (!file.type.startsWith('image/')) {
-        invalid.push(`${file.name}: khong phai file anh`);
+        invalid.push(`${file.name}: không phải file ảnh`);
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        invalid.push(`${file.name}: vuot qua 5MB`);
+        invalid.push(`${file.name}: vượt quá 5MB`);
         return;
       }
       validFiles.push(file);
@@ -94,13 +94,13 @@ const StepAmenities = () => {
 
   return (
     <form className={styles.formContainer} onSubmit={handleNext}>
-      <h2 className={styles.sectionTitle}>Hinh anh phong tro</h2>
+      <h2 className={styles.sectionTitle}>Hình ảnh phòng trọ</h2>
       <label className={styles.uploadBox}>
         <Upload className={styles.uploadIcon} size={28} />
         <div className={styles.uploadText}>
-          <span>Chon anh phong</span> de tai len Cloudinary khi luu
+          <span>Chọn ảnh phòng</span> để tải lên khi lưu
         </div>
-        <div style={{ fontSize: 11, color: '#aaa' }}>PNG, JPG, WEBP - Toi da 10 anh, moi anh &lt; 5MB</div>
+        <div style={{ fontSize: 11, color: '#aaa' }}>PNG, JPG, WEBP - Tối đa 10 ảnh, mỗi ảnh &lt; 5MB</div>
         <input
           type="file"
           accept="image/png,image/jpeg,image/webp"
@@ -117,7 +117,7 @@ const StepAmenities = () => {
           {previews.map((preview, index) => (
             <div key={`${preview.file.name}-${preview.file.size}-${index}`} className={styles.previewItem}>
               <img src={preview.url} alt={preview.file.name} />
-              <button type="button" onClick={() => setPendingRemoval({ type: 'local', index })}>Xoa</button>
+              <button type="button" onClick={() => setPendingRemoval({ type: 'local', index })}>Xóa</button>
             </div>
           ))}
         </div>
@@ -127,20 +127,20 @@ const StepAmenities = () => {
         <div className={styles.previewGrid}>
           {existingImages.map((image) => (
             <div key={image.id} className={styles.previewItem}>
-              <img src={image.image_url} alt="Anh phong hien co" />
+              <img src={image.image_url} alt="Ảnh phòng hiện có" />
               <button
                 type="button"
                 disabled={deleteImageState.isLoading}
                 onClick={() => setPendingRemoval({ type: 'existing', image })}
               >
-                Xoa
+                Xóa
               </button>
             </div>
           ))}
         </div>
       )}
 
-      <h2 className={styles.sectionTitle} style={{ marginTop: 16 }}>Tien ich phong</h2>
+      <h2 className={styles.sectionTitle} style={{ marginTop: 16 }}>Tiện ích phòng</h2>
         <div className={styles.checkboxGrid}>
           {availableAmenities.map((item) => (
             <label key={item} className={styles.checkboxLabel}>
@@ -156,16 +156,16 @@ const StepAmenities = () => {
         </div>
 
       <div className={styles.footer}>
-        <button type="button" className={styles.backBtn} onClick={goBack}>Quay lai</button>
-        <button type="submit" className={styles.nextBtn}>Tiep theo</button>
+        <button type="button" className={styles.backBtn} onClick={goBack}><ChevronLeft size={15} /> Quay lại</button>
+        <button type="submit" className={styles.nextBtn}>Tiếp theo <ChevronRight size={15} /></button>
       </div>
 
       <ConfirmModal
         isOpen={Boolean(pendingRemoval)}
-        title="Xac nhan xoa anh phong"
-        message="Ban co chac muon xoa anh nay khoi phong tro?"
-        confirmText="Xoa anh"
-        cancelText="Huy"
+        title="Xác nhận xóa ảnh phòng"
+        message="Bạn có chắc muốn xóa ảnh này khỏi phòng trọ?"
+        confirmText="Xóa ảnh"
+        cancelText="Hủy"
         onCancel={() => setPendingRemoval(null)}
         onClose={() => setPendingRemoval(null)}
         onConfirm={async () => {

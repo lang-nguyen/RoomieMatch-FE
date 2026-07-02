@@ -1,78 +1,105 @@
-/* ── LandlordRoomsPage ───────────────────────────────────────────── */
+.page {
+  text-align: left;
+}
+
+.stickyTools {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: -32px -36px 22px;
+  padding: 28px 36px 16px;
+  background: rgba(247, 248, 252, 0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #ece7e2;
+}
+
 .addBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   padding: 9px 16px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   color: #fff;
   background: #c1440e;
   border: none;
-  border-radius: 10px;
+  border-radius: 9px;
   cursor: pointer;
-  flex-shrink: 0;
   box-shadow: 0 8px 18px rgba(193, 68, 14, 0.18);
-  transition: opacity 0.15s;
 }
 
-.addBtn:hover {
-  opacity: 0.9;
-}
-
-/* Filter bar */
-.filterBar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.filterPanel {
   background: #fff;
-  border-radius: 10px;
-  padding: 10px 14px;
-  border: 1px solid #eee8e4;
-  box-shadow: 0 8px 24px rgba(32, 27, 24, 0.04);
-  margin-bottom: 18px;
+  border: 1.5px solid #e8eaf2;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(28, 31, 46, 0.08);
 }
 
-.searchBox {
-  flex: 1;
+.roomToolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  padding: 20px;
+  flex-wrap: nowrap;
+}
+
+.searchControl {
+  flex: 1 1 340px;
+  min-width: 280px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 9px 12px;
+  border: 1.5px solid #e8eaf2;
+  border-radius: 10px;
+  background: #f8f9fc;
+  color: #9ba3bc;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.searchControl:focus-within {
+  border-color: #d45b13;
+  box-shadow: 0 0 0 3px rgba(212, 91, 19, 0.1);
 }
 
 .searchIcon {
-  color: #bbb;
+  color: #9ba3bc;
   flex-shrink: 0;
 }
 
 .searchInput {
   flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   font-size: 13px;
-  color: #333;
+  color: #1c1f2e;
   background: transparent;
 }
 
-.searchInput::placeholder {
-  color: #bbb;
+.roomToolbar select {
+  flex: 0 0 190px;
+  width: 190px;
 }
 
-.filterSelect {
-  font-size: 12px;
-  color: #555;
-  border: 1px solid #e8e8e8;
-  border-radius: 7px;
-  padding: 6px 10px;
-  background: #fff;
-  cursor: pointer;
-  outline: none;
+.infoNotice {
+  background: #fff7ed;
+  color: #9a3412;
+  padding: 12px 16px;
+  border: 1px solid #fed7aa;
+  border-radius: 9px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
 }
 
-/* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   transition: opacity 0.2s;
 }
@@ -82,45 +109,17 @@
   pointer-events: none;
 }
 
-/* Add CTA card */
-.addEmptyCard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: #fff;
-  border: 2px dashed #ffcbb0;
+.emptyState {
+  grid-column: 1 / -1;
+  padding: 34px 20px;
+  border: 1px dashed #e9d8ce;
   border-radius: 12px;
-  cursor: pointer;
-  min-height: 220px;
-  transition: all 0.2s;
-  color: #c1440e;
-}
-
-.addEmptyCard:hover {
-  background: #fff8f5;
-  border-color: #c1440e;
-}
-
-.addEmptyIcon {
-  font-size: 28px;
-  font-weight: 300;
-  color: #c1440e;
-}
-
-.addEmptyLabel {
-  font-size: 13px;
+  background: #fff;
+  color: #8a837e;
+  text-align: center;
   font-weight: 700;
-  color: #c1440e;
 }
 
-.addEmptySub {
-  font-size: 11px;
-  color: #ffb899;
-}
-
-/* Skeleton */
 .skeletonCard {
   background: #fff;
   border-radius: 14px;
@@ -148,12 +147,6 @@
   width: 100%;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Pagination */
 .pagination {
   display: flex;
   align-items: center;
@@ -163,15 +156,15 @@
 }
 
 .pageBtn {
-  width: 34px;
+  min-width: 34px;
   height: 34px;
   border-radius: 8px;
   border: 1px solid #e8e8e8;
   background: #fff;
+  padding: 0 12px;
   font-size: 13px;
   color: #555;
   cursor: pointer;
-  transition: all 0.15s;
 }
 
 .pageBtn:hover:not(:disabled) {
@@ -185,8 +178,55 @@
 }
 
 .pageBtnActive {
-  background: #c1440e !important;
-  color: #fff !important;
-  border-color: #c1440e !important;
-  font-weight: 700;
+  background: #c1440e;
+  color: #fff;
+  border-color: #c1440e;
+  font-weight: 800;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@media (max-width: 1180px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .roomToolbar {
+    flex-wrap: wrap;
+  }
+
+  .searchControl {
+    flex-basis: 100%;
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .stickyTools {
+    margin: -24px -18px 18px;
+    padding: 20px 18px 14px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .roomToolbar {
+    padding-inline: 16px;
+  }
+
+  .roomToolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .roomToolbar select,
+  .searchControl {
+    width: 100%;
+    min-width: 100%;
+    flex-basis: auto;
+  }
 }

@@ -1,5 +1,15 @@
+import { Check, ChevronLeft } from 'lucide-react';
 import { useAddRoomForm } from '../../hooks/useAddRoomForm';
 import styles from './StepForm.module.css';
+
+const formatMoney = (value) => `${Number(value || 0).toLocaleString('vi-VN')} VNĐ`;
+
+const Row = ({ label, value }) => (
+  <p>
+    <strong>{label}:</strong>
+    <span>{value || 'Chưa cập nhật'}</span>
+  </p>
+);
 
 const StepConfirm = () => {
   const { draft, isSubmitting, error, successMessage, goBack, handleSubmit } = useAddRoomForm();
@@ -7,23 +17,30 @@ const StepConfirm = () => {
   return (
     <div className={styles.formContainer}>
       <h2 className={styles.sectionTitle}>Xác nhận thông tin</h2>
-      
-      <div style={{ background: '#fafafa', padding: 16, borderRadius: 8, fontSize: 14 }}>
-        <p><strong>Tên phòng:</strong> {draft.name}</p>
-        <p><strong>Loại phòng:</strong> {draft.room_type}</p>
-        <p><strong>Diện tích:</strong> {draft.area} m²</p>
-        <p><strong>Địa chỉ:</strong> {draft.address}, {draft.district}, {draft.city}</p>
-        <p><strong>Giá thuê:</strong> {Number(draft.price || 0).toLocaleString()} VNĐ/tháng</p>
-        <p><strong>Tiện ích:</strong> {(draft.amenities || []).join(', ') || 'Không có'}</p>
+
+      <div className={styles.confirmBox}>
+        <Row label="Tên phòng" value={draft.name} />
+        <Row label="Loại phòng" value={draft.room_type} />
+        <Row label="Diện tích" value={draft.area ? `${draft.area} m²` : ''} />
+        <Row label="Địa chỉ" value={[draft.address, draft.district, draft.city].filter(Boolean).join(', ')} />
+        <Row label="Giá thuê" value={`${formatMoney(draft.price)}/tháng`} />
+        <Row label="Tiền cọc" value={formatMoney(draft.deposit)} />
+        <Row label="Tiền điện" value={formatMoney(draft.electricity_price)} />
+        <Row label="Tiền nước" value={formatMoney(draft.water_price)} />
+        <Row label="Wifi" value={formatMoney(draft.internet_price)} />
+        <Row label="Gửi xe" value={formatMoney(draft.parking_price)} />
+        <Row label="Tiện ích" value={(draft.amenities || []).join(', ') || 'Không có'} />
       </div>
 
-      {error && <div style={{ color: 'red', marginTop: 12 }}>{error}</div>}
-      {successMessage && <div style={{ color: 'green', marginTop: 12 }}>{successMessage}</div>}
+      {error && <div className={styles.errorText}>{error}</div>}
+      {successMessage && <div className={styles.successText}>{successMessage}</div>}
 
       <div className={styles.footer}>
-        <button type="button" className={styles.backBtn} onClick={goBack} disabled={isSubmitting}>Quay lại</button>
+        <button type="button" className={styles.backBtn} onClick={goBack} disabled={isSubmitting}>
+          <ChevronLeft size={15} /> Quay lại
+        </button>
         <button type="button" className={styles.submitBtn} onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? 'Đang lưu...' : 'Lưu và Đăng bài'}
+          <Check size={15} /> {isSubmitting ? 'Đang lưu...' : 'Lưu và đăng bài'}
         </button>
       </div>
     </div>

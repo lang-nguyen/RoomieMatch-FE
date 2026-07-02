@@ -113,26 +113,27 @@
 
 .dropdown-trigger {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #E0E0E0;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #333;
+  padding: 10px 42px 10px 14px;
+  border: 1.5px solid #E8EAF2;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #1C1F2E;
   background-color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
   height: 46px;
+  font-family: inherit;
 }
 
 .dropdown-trigger:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: rgba(212, 91, 19, 0.42);
 }
 
 .custom-dropdown-container.open .dropdown-trigger {
-  border-color: #E0E0E0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #D45B13;
+  box-shadow: 0 0 0 3px rgba(212, 91, 19, 0.1);
 }
 
 .dropdown-trigger.with-icon {
@@ -156,6 +157,8 @@
 }
 
 .dropdown-arrow {
+  position: absolute;
+  right: 14px;
   margin-left: 8px;
   transition: transform 0.2s;
 }
@@ -171,9 +174,9 @@
   width: 100%;
   margin-top: 8px;
   background-color: white;
-  border: 1px solid #E0E0E0;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1.5px solid #E8EAF2;
+  border-radius: 10px;
+  box-shadow: 0 18px 42px rgba(28, 31, 46, 0.14);
   z-index: 1000;
   /* High z-index to show over everything */
   overflow: hidden;
@@ -201,11 +204,11 @@
 }
 
 .dropdown-option {
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #333;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #1C1F2E;
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: background 0.18s ease, color 0.18s ease;
   background-color: white;
   text-align: left;
   /* Explicitly left align */
@@ -217,11 +220,12 @@
 }
 
 .dropdown-option:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   /* Bóng ngoài tạo nổi */
   z-index: 1;
   position: relative;
-  background-color: white;
+  color: #D45B13;
+  background-color: rgba(212, 91, 19, 0.1);
 }
 
 .dropdown-option.selected {

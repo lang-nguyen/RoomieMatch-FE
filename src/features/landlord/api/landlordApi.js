@@ -4,13 +4,16 @@ export const landlordApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
     getLandlordRooms: builder.query({
-      query: ({ page = 1, pageSize = 6, search = '', status = '' } = {}) => ({
+      query: ({ page = 1, pageSize = 6, search = '', status = '', area = '', roomType = '', postedDate = '' } = {}) => ({
         url: '/landlord/rooms',
         params: {
           page,
           page_size: pageSize,
           ...(search ? { search } : {}),
           ...(status ? { status } : {}),
+          ...(area ? { area, city: area, district: area } : {}),
+          ...(roomType ? { room_type: roomType } : {}),
+          ...(postedDate ? { posted_date: postedDate } : {}),
         },
       }),
       providesTags: ['LandlordRooms'],
@@ -66,9 +69,12 @@ export const landlordApi = baseApi.injectEndpoints({
     }),
 
     getLandlordStats: builder.query({
-      query: ({ range = '30d' } = {}) => ({
+      query: ({ range = '30d', date = '' } = {}) => ({
         url: '/landlord/stats',
-        params: { range },
+        params: {
+          range,
+          ...(date ? { date } : {}),
+        },
       }),
       providesTags: ['LandlordStats'],
     }),

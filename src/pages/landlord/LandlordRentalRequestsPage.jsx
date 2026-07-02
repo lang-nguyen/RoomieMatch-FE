@@ -6,62 +6,130 @@ import { getApiErrorMessage } from '../../shared/utils/getApiErrorMessage';
 import sharedStyles from './LandlordPageShared.module.css';
 import styles from './LandlordRentalRequestsPage.module.css';
 
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Chờ xử lý' },
+  { value: 'accepted', label: 'Đã chấp nhận' },
+  { value: 'rejected', label: 'Đã từ chối' },
+  { value: 'cancelled', label: 'Đã hủy' },
+];
+
+const STATUS_LABELS = {
+  pending: 'Chờ xử lý',
+  accepted: 'Đã chấp nhận',
+  rejected: 'Đã từ chối',
+  cancelled: 'Đã hủy',
+};
+
+const formatDate = (value) => {
+  if (!value) return 'Chưa cập nhật';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Chưa cập nhật' : date.toLocaleDateString('vi-VN');
+};
+
+const profileFacts = (request) => ([
+  { label: 'Điện thoại', value: request.tenant_phone, icon: Phone },
+  { label: 'Email', value: request.tenant_email, icon: Mail },
+  { label: 'Giới tính', value: request.tenant_gender, icon: User },
+  { label: 'Ngày sinh', value: request.tenant_date_of_birth ? formatDate(request.tenant_date_of_birth) : null, icon: CalendarDays },
+  { label: 'Địa chỉ', value: request.tenant_address, icon: MapPin },
+  { label: 'Quê quán', value: request.tenant_hometown, icon: MapPin },
+  { label: 'Facebook', value: request.tenant_facebook, icon: Mail },
+  { label: 'Instagram', value: request.tenant_instagram, icon: Mail },
+  { label: 'Twitter', value: request.tenant_twitter, icon: Mail },
+].filter((item) => item.value));
+
+const DecisionModal = ({ target, reason, setReason, isLoading, onClose, onConfirm }) => {
+  if (!target) return null;
+  const isReject = target.decision === 'rejected';
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.decisionModal} onClick={(event) => event.stopPropagation()}>
+        <button type="button" className={styles.modalClose} onClick={onClose} aria-label="Đóng">
+          <X size={18} />
+        </button>
+        <div className={`${styles.decisionIcon} ${isReject ? styles.rejectIcon : styles.acceptIcon}`}>
+          {isReject ? <X size={24} /> : <Check size={24} />}
+        </div>
+        <h3>{isReject ? 'Từ chối yêu cầu thuê' : 'Xác nhận khách thuê'}</h3>
+        <p>
+          {isReject
+            ? `Bạn muốn từ chối yêu cầu thuê của ${target.request.tenant_name}?`
+            : `Bạn muốn xác nhận ${target.request.tenant_name} đang thuê phòng này?`}
+        </p>
+        {isReject ? (
+          <label className={styles.reasonField}>
+            <span>Lý do từ chối</span>
+            <textarea
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder="Nhập lý do để khách thuê nắm rõ hơn..."
+              rows={4}
+            />
+          </label>
+        ) : (
+          <div className={styles.acceptNote}>Sau khi xác nhận, bài đăng liên quan sẽ được cập nhật trạng thái thuê.</div>
+        )}
+        <div className={styles.modalActions}>
+          <button type="button" className={styles.cancelModalBtn} onClick={onClose}>Quay lại</button>
+          <button
+            type="button"
+            className={isReject ? styles.rejectModalBtn : styles.acceptModalBtn}
+            onClick={onConfirm}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Đang xử lý...' : isReject ? 'Từ chối' : 'Đồng ý'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LandlordRentalRequestsPage = () => {
   const [status, setStatus] = useState('pending');
   const [search, setSearch] = useState('');
   const { data, isLoading } = useGetLandlordRentalRequestsQuery({ status, search });
   const [decide, decisionState] = useDecideLandlordRentalRequestMutation();
   const [message, setMessage] = useState('');
+  const [decisionTarget, setDecisionTarget] = useState(null);
+  const [reason, setReason] = useState('');
   const items = data?.items || [];
 
-  const statusOptions = [
-    { value: 'pending', label: 'Cho xu ly' },
-    { value: 'accepted', label: 'Da chap nhan' },
-    { value: 'rejected', label: 'Da tu choi' },
-    { value: 'cancelled', label: 'Da huy' },
-  ];
-
-  const statusLabels = {
-    pending: 'Cho xu ly',
-    accepted: 'Da chap nhan',
-    rejected: 'Da tu choi',
-    cancelled: 'Da huy',
+  const openDecisionModal = (request, decision) => {
+    setReason('');
+    setDecisionTarget({ request, decision });
   };
 
-  const formatDate = (value) => {
-    if (!value) return 'Chua cap nhat';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? 'Chua cap nhat' : date.toLocaleDateString('vi-VN');
-  };
-
-  const profileFacts = (request) => ([
-    { label: 'Dien thoai', value: request.tenant_phone, icon: Phone },
-    { label: 'Email', value: request.tenant_email, icon: Mail },
-    { label: 'Gioi tinh', value: request.tenant_gender, icon: User },
-    { label: 'Ngay sinh', value: request.tenant_date_of_birth ? formatDate(request.tenant_date_of_birth) : null, icon: CalendarDays },
-    { label: 'Dia chi', value: request.tenant_address, icon: MapPin },
-    { label: 'Que quan', value: request.tenant_hometown, icon: MapPin },
-    { label: 'Facebook', value: request.tenant_facebook, icon: Mail },
-    { label: 'Instagram', value: request.tenant_instagram, icon: Mail },
-    { label: 'Twitter', value: request.tenant_twitter, icon: Mail },
-  ].filter((item) => item.value));
-
-  const handleDecision = async (request, decision) => {
-    const reason = decision === 'rejected' ? window.prompt('Ly do tu choi (khong bat buoc):') : null;
+  const handleDecision = async () => {
+    if (!decisionTarget) return;
+    const { request, decision } = decisionTarget;
     try {
-      await decide({ id: request.id, decision, reason }).unwrap();
-      setMessage(decision === 'accepted' ? 'Da xac nhan thue. Bai dang da tu dong dong.' : 'Da tu choi yeu cau.');
+      await decide({ id: request.id, decision, reason: decision === 'rejected' ? reason : null }).unwrap();
+      setMessage(decision === 'accepted' ? 'Đã xác nhận thuê. Bài đăng đã tự động đóng.' : 'Đã từ chối yêu cầu.');
+      setDecisionTarget(null);
+      setReason('');
     } catch (error) {
-      setMessage(getApiErrorMessage(error, 'Khong the xu ly yeu cau.'));
+      setMessage(getApiErrorMessage(error, 'Không thể xử lý yêu cầu.'));
     }
   };
 
   return (
     <div className={sharedStyles.page}>
-      <LandlordPageHeader title="Yeu cau xac nhan thue" subtitle="Doi chieu thong tin khach va xac nhan nguoi dang thue phong" />
+      <LandlordPageHeader title="Yêu cầu xác nhận thuê" subtitle="Đối chiếu thông tin khách và xác nhận người đang thuê phòng" />
+
+      <div className={styles.searchBox}>
+        <Search size={16} className={styles.searchIcon} />
+        <input
+          className={styles.searchInput}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Tìm theo tên khách, số điện thoại, tên phòng, mã phòng hoặc mã bài..."
+        />
+      </div>
 
       <div className={styles.toolbar}>
-        {statusOptions.map((item) => (
+        {STATUS_OPTIONS.map((item) => (
           <button
             key={item.value}
             type="button"
@@ -74,20 +142,10 @@ const LandlordRentalRequestsPage = () => {
         ))}
       </div>
 
-      <div className={styles.searchBox}>
-        <Search size={16} className={styles.searchIcon} />
-        <input
-          className={styles.searchInput}
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Tim theo ten khach, so dien thoai, ten phong, ma phong hoac ma bai..."
-        />
-      </div>
-
       {message && <div className={styles.notice}>{message}</div>}
 
       {isLoading ? (
-        <div className={styles.emptyState}>Dang tai yeu cau thue...</div>
+        <div className={styles.emptyState}>Đang tải yêu cầu thuê...</div>
       ) : (
         <div className={styles.requestList}>
           {items.map((request) => (
@@ -104,53 +162,53 @@ const LandlordRentalRequestsPage = () => {
                   <div>
                     <h3>{request.tenant_name}</h3>
                     <p>
-                      {request.room_title || `Bai dang #${request.post_id}`}
+                      {request.room_title || `Bài đăng #${request.post_id}`}
                       {' · '}
-                      {request.room_code || `Phong #${request.room_id}`}
+                      {request.room_code || `Phòng #${request.room_id}`}
                     </p>
                   </div>
                 </div>
                 <span className={`${styles.statusBadge} ${styles[`status_${request.status}`] || ''}`}>
                   <Clock3 size={14} />
-                  {statusLabels[request.status] || request.status}
+                  {STATUS_LABELS[request.status] || request.status}
                 </span>
               </div>
 
               <div className={styles.contentGrid}>
                 <section className={styles.panel}>
-                  <h4>Thong tin thue</h4>
+                  <h4>Thông tin thuê</h4>
                   <div className={styles.factGrid}>
                     <div className={styles.factItem}>
-                      <span>Ngay bat dau</span>
+                      <span>Ngày bắt đầu</span>
                       <strong>{formatDate(request.start_date)}</strong>
                     </div>
                     <div className={styles.factItem}>
-                      <span>Ma bai dang</span>
+                      <span>Mã bài đăng</span>
                       <strong>{request.post_code || `#${request.post_id}`}</strong>
                     </div>
                     <div className={styles.factItem}>
-                      <span>Ma phong</span>
+                      <span>Mã phòng</span>
                       <strong>{request.room_code || `#${request.room_id}`}</strong>
                     </div>
                     <div className={styles.factItem}>
-                      <span>Thoi diem gui</span>
+                      <span>Thời điểm gửi</span>
                       <strong>{formatDate(request.created_at)}</strong>
                     </div>
                   </div>
                   <div className={styles.noteBox}>
-                    <span>Ghi chu tu khach thue</span>
-                    <p>{request.note || 'Khach thue chua de lai ghi chu.'}</p>
+                    <span>Ghi chú từ khách thuê</span>
+                    <p>{request.note || 'Khách thuê chưa để lại ghi chú.'}</p>
                   </div>
                   {request.decision_reason && (
                     <div className={styles.noteBox}>
-                      <span>Ly do xu ly</span>
+                      <span>Lý do xử lý</span>
                       <p>{request.decision_reason}</p>
                     </div>
                   )}
                 </section>
 
                 <section className={styles.panel}>
-                  <h4>Ho so khach thue</h4>
+                  <h4>Hồ sơ khách thuê</h4>
                   {profileFacts(request).length ? (
                     <div className={styles.profileGrid}>
                       {profileFacts(request).map((item) => {
@@ -167,29 +225,29 @@ const LandlordRentalRequestsPage = () => {
                       })}
                     </div>
                   ) : (
-                    <div className={styles.placeholderCard}>Khach thue chua cap nhat them ho so ca nhan.</div>
+                    <div className={styles.placeholderCard}>Khách thuê chưa cập nhật thêm hồ sơ cá nhân.</div>
                   )}
 
                   <div className={styles.noteBox}>
-                    <span>Gioi thieu</span>
-                    <p>{request.tenant_bio || 'Chua co mo ta ca nhan.'}</p>
+                    <span>Giới thiệu</span>
+                    <p>{request.tenant_bio || 'Chưa có mô tả cá nhân.'}</p>
                   </div>
 
                   <div className={styles.helperText}>
-                    Tim kiem ho tro ten, so dien thoai, ten phong va ma phong/ma bai neu co.
+                    Tìm kiếm hỗ trợ tên, số điện thoại, tên phòng và mã phòng hoặc mã bài nếu có.
                   </div>
                 </section>
               </div>
 
               {request.status === 'pending' && (
                 <div className={styles.actions}>
-                  <button className={styles.primaryBtn} disabled={decisionState.isLoading} onClick={() => handleDecision(request, 'accepted')}>
+                  <button className={styles.primaryBtn} disabled={decisionState.isLoading} onClick={() => openDecisionModal(request, 'accepted')}>
                     <Check size={16} />
-                    Xac nhan thue
+                    Xác nhận thuê
                   </button>
-                  <button className={styles.secondaryBtn} disabled={decisionState.isLoading} onClick={() => handleDecision(request, 'rejected')}>
+                  <button className={styles.secondaryBtn} disabled={decisionState.isLoading} onClick={() => openDecisionModal(request, 'rejected')}>
                     <X size={16} />
-                    Tu choi
+                    Từ chối
                   </button>
                 </div>
               )}
@@ -201,12 +259,21 @@ const LandlordRentalRequestsPage = () => {
       {!isLoading && !items.length && (
         <div className={styles.emptyState}>
           {search
-            ? 'Khong tim thay yeu cau nao phu hop voi tu khoa hien tai.'
+            ? 'Không tìm thấy yêu cầu nào phù hợp với từ khóa hiện tại.'
             : status === 'pending'
-              ? 'Chua co yeu cau thue nao dang cho xu ly.'
-              : 'Khong co yeu cau phu hop voi bo loc hien tai.'}
+              ? 'Chưa có yêu cầu thuê nào đang chờ xử lý.'
+              : 'Không có yêu cầu phù hợp với bộ lọc hiện tại.'}
         </div>
       )}
+
+      <DecisionModal
+        target={decisionTarget}
+        reason={reason}
+        setReason={setReason}
+        isLoading={decisionState.isLoading}
+        onClose={() => setDecisionTarget(null)}
+        onConfirm={handleDecision}
+      />
     </div>
   );
 };

@@ -4,14 +4,15 @@ import { useGetLandlordPackageHistoryQuery } from '../../features/landlord/api/l
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import styles from './LandlordPackageManagementPage.module.css';
 
-const formatMoney = (value) => `${value.toLocaleString('vi-VN')} VND`;
-const formatDate = (value) => new Intl.DateTimeFormat('vi-VN').format(new Date(value));
+const formatMoney = (value) => `${Number(value || 0).toLocaleString('vi-VN')} VNĐ`;
+const formatDate = (value) => (value ? new Intl.DateTimeFormat('vi-VN').format(new Date(value)) : 'Chưa cập nhật');
 const getStatusLabel = (status) => {
-  if (status === 'active') return 'Dang kich hoat';
-  if (status === 'pending') return 'Dang cho xac nhan';
-  if (status === 'failed') return 'Thanh toan that bai';
-  if (status === 'cancelled') return 'Da huy';
-  return status;
+  if (status === 'active') return 'Đang kích hoạt';
+  if (status === 'pending') return 'Đang chờ xác nhận';
+  if (status === 'failed') return 'Thanh toán thất bại';
+  if (status === 'cancelled') return 'Đã hủy';
+  if (status === 'paid') return 'Đã thanh toán';
+  return status || 'Chưa cập nhật';
 };
 
 const LandlordPackageManagementPage = () => {
@@ -22,29 +23,29 @@ const LandlordPackageManagementPage = () => {
     <div className={styles.page}>
       <LandlordPageHeader
         icon={Package}
-        title="Quan ly goi"
-        subtitle="Theo doi lich su mua, thoi han va trang thai cac goi dang su dung"
+        title="Quản lý gói"
+        subtitle="Theo dõi lịch sử mua, thời hạn và trạng thái các gói đang sử dụng"
       />
 
       <section className={styles.section}>
-        <h2>Lich su mua</h2>
+        <h2>Lịch sử mua</h2>
         <div className={styles.tableWrap}>
           <table>
             <thead>
               <tr>
-                <th>Goi</th>
-                <th>Gia</th>
-                <th>Ngay mua</th>
-                <th>Ngay den han</th>
-                <th>Trang thai</th>
-                <th></th>
+                <th>Gói</th>
+                <th>Giá</th>
+                <th>Ngày mua</th>
+                <th>Ngày đến hạn</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan="6" className={styles.empty}>Dang tai lich su mua...</td></tr>
+                <tr><td colSpan="6" className={styles.empty}>Đang tải lịch sử mua...</td></tr>
               ) : history.length === 0 ? (
-                <tr><td colSpan="6" className={styles.empty}>Chua co lich su mua goi.</td></tr>
+                <tr><td colSpan="6" className={styles.empty}>Chưa có lịch sử mua gói.</td></tr>
               ) : history.map((item) => (
                 <tr key={item.id}>
                   <td className={styles.packageName}>{item.packageName}</td>
@@ -54,7 +55,7 @@ const LandlordPackageManagementPage = () => {
                   <td>{getStatusLabel(item.status)}</td>
                   <td>
                     <Link className={styles.detailLink} to={`/landlord/package-management/${item.id}`}>
-                      Chi tiet
+                      Chi tiết
                     </Link>
                   </td>
                 </tr>

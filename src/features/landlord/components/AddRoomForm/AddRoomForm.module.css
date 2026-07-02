@@ -10,6 +10,26 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 16px;
+  text-align: left;
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.titleIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #fff4ee;
+  color: #c1440e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .title {
@@ -51,6 +71,9 @@
 }
 
 .saveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   background: #c1440e;
   color: #fff;
   border: none;
@@ -161,8 +184,9 @@
 /* Content */
 .content {
   background: #fff;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #eee8e4;
   border-radius: 12px;
   padding: 24px;
   min-height: 400px;
+  text-align: left;
 }

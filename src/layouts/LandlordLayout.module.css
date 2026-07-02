@@ -7,6 +7,14 @@
   align-items: flex-start;
 }
 
+.wrapper button,
+.wrapper input,
+.wrapper select,
+.wrapper textarea,
+.wrapper a {
+  font-family: inherit;
+}
+
 .main {
   flex: 1;
   min-width: 0;

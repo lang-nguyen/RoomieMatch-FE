@@ -1,8 +1,26 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  max-width: 980px;
+  gap: 14px;
+  max-width: 1080px;
+  font-family: 'Be Vietnam Pro', 'Be Vietnam', 'Segoe UI', sans-serif;
+}
+
+.container button,
+.container input,
+.container textarea {
+  font-family: inherit;
+}
+
+.profileCard {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #eee8e4;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(32, 27, 24, 0.04);
+  text-align: left;
 }
 
 .loadingState,
@@ -25,27 +43,25 @@
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .topSection {
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
+  gap: 14px;
+  align-items: center;
 }
 
 .avatarWrapper {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
   flex-shrink: 0;
 }
 
 .avatarRing {
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: conic-gradient(#c1440e 0% 76%, #f0f0f0 76% 100%);
+  background: #fff4ee;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -53,10 +69,11 @@
 }
 
 .avatarInner {
-  width: 86px;
-  height: 86px;
+  position: relative;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: #0ea5e9;
+  background: #c1440e;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -70,90 +87,88 @@
 }
 
 .avatarLetter {
-  font-size: 30px;
-  font-weight: 700;
+  font-size: 25px;
+  font-weight: 800;
   color: #fff;
+}
+
+.avatarOverlay {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+
+.avatarWrapper:hover .avatarOverlay {
+  opacity: 1;
 }
 
 .nameSection {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.nameLine {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
 }
 
 .displayName {
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
   color: #161616;
+  font-size: 20px;
+  font-weight: 800;
 }
 
 .nameInput {
   width: min(320px, 100%);
-  font-size: 22px;
-  font-weight: 700;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 9px;
+  padding: 8px 10px;
   color: #161616;
-  border: none;
-  border-bottom: 2px solid #c1440e;
+  font-size: 17px;
+  font-weight: 800;
   outline: none;
-  background: transparent;
-  padding: 2px 4px;
 }
 
-.editNameBtn {
-  border: none;
-  background: transparent;
-  color: #c1440e;
-  cursor: pointer;
-  padding: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.roleText {
+  margin: 3px 0 0;
+  color: #667085;
+  font-size: 12.5px;
+  font-weight: 700;
 }
 
 .actions {
-  margin-left: auto;
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .editBtn,
-.doneBtn,
 .cancelBtn,
 .saveBtn {
-  padding: 9px 18px;
-  border: none;
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-weight: 800;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.editBtn {
-  background: rgba(193, 68, 14, 0.18);
-  color: #c1440e;
-}
-
-.doneBtn,
+.editBtn,
 .saveBtn {
-  background: #dcfce7;
-  color: #16a34a;
+  background: #c1440e;
+  color: #fff;
 }
 
 .cancelBtn {
-  background: #f3f4f6;
-  color: #667085;
+  background: #fff;
+  border-color: #e7e1dd;
+  color: #5f5752;
 }
 
 .saveBtn:disabled {
@@ -161,173 +176,93 @@
   cursor: not-allowed;
 }
 
-.roleLine {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.roleText {
-  font-size: 15px;
-  font-weight: 600;
-  color: #667085;
-}
-
-.scores {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 6px;
-}
-
-.scoreBadgeWrapper {
-  width: 78px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-
-.scoreBadgeTop {
-  position: relative;
-  width: 64px;
-  height: 90px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-.scoreBadgeCircle {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: rgba(193, 68, 14, 0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.scoreValue {
-  font-size: 16px;
-  font-weight: 800;
-  color: #c1440e;
-}
-
-.scoreIcon {
-  position: absolute;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-}
-
-.scoreBadgeLabel {
-  margin-top: 0;
-  text-align: center;
-  font-size: 10.5px;
-  line-height: 1.35;
-  font-weight: 600;
-  color: #667085;
+.successMsg,
+.errorMsg {
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .successMsg {
   background: #f0fdf4;
-  color: #16a34a;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  border-left: 3px solid #4ade80;
+  color: #15803d;
 }
 
 .errorMsg {
   background: #fef2f2;
   color: #dc2626;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  border-left: 3px solid #f87171;
 }
 
 .infoGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 24px;
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px;
-  border: 1px solid #f1f3f5;
-  position: relative;
+  gap: 14px;
 }
 
-.infoGrid::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 36px;
-  bottom: 28px;
-  width: 1px;
-  background: rgba(193, 68, 14, 0.3);
-}
-
-.infoCol {
-  display: flex;
-  flex-direction: column;
+.infoCol,
+.bioSection {
+  border: 1px solid #f0e8e2;
+  border-radius: 12px;
+  background: #fffaf7;
+  padding: 14px;
 }
 
 .sectionTitle {
-  margin-bottom: 14px;
-  font-size: 20px;
-  font-weight: 700;
+  margin-bottom: 10px;
   color: #c1440e;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .infoBlock {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 
 .infoRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  min-height: 32px;
+  gap: 12px;
+  min-height: 28px;
 }
 
 .infoLabel {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a1a1a;
-  white-space: nowrap;
+  color: #1f1b18;
+  font-size: 12.5px;
+  font-weight: 800;
 }
 
 .infoValue {
-  font-size: 15px;
   color: #667085;
+  font-size: 12.5px;
+  word-break: break-word;
+}
+
+.infoInput,
+.bioTextarea {
+  width: 100%;
+  border: 1px solid #e6ded8;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
 }
 
 .infoInput {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  border-bottom: 1px solid #c1440e;
-  outline: none;
-  background: transparent;
-  padding: 3px 4px;
-  font-size: 14px;
-  color: #1f2937;
+  padding: 7px 9px;
+  font-size: 12.5px;
 }
 
 .verified,
 .unverified {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
+  width: fit-content;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 4px 9px;
   border-radius: 999px;
 }
 
@@ -341,56 +276,33 @@
   background: #fef2f2;
 }
 
-.bioSection {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px 28px;
-  border: 1px solid #f1f3f5;
-}
-
-.bioHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
 .bioText {
   margin: 0;
-  font-size: 14px;
   color: #667085;
-  line-height: 1.7;
+  font-size: 12.5px;
+  line-height: 1.6;
 }
 
 .bioTextarea {
-  width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 14px;
-  color: #374151;
-  line-height: 1.7;
+  min-height: 88px;
+  padding: 10px 12px;
+  font-size: 12.5px;
   resize: vertical;
-  outline: none;
-  font-family: inherit;
-  background: #fffaf6;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 900px) {
-  .topSection {
+  .topSection,
+  .actions {
+    align-items: flex-start;
     flex-direction: column;
   }
 
-  .actions {
-    margin-left: 0;
-  }
-
-  .infoGrid {
+  .infoGrid,
+  .infoRow {
     grid-template-columns: 1fr;
-    gap: 24px;
-  }
-
-  .infoGrid::before {
-    display: none;
   }
 }

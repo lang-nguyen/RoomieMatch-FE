@@ -4,7 +4,7 @@ import styles from './PostStatusBadge.module.css';
 const CONFIG = {
   pending: { label: 'Chờ duyệt', icon: Clock3 },
   approved: { label: 'Đã duyệt', icon: CheckCircle2 },
-  boosted: { label: 'Đang đẩy nổi bật', icon: Flame },
+  boosted: { label: 'Đang nổi bật', icon: Flame },
   rejected: { label: 'Từ chối', icon: XCircle },
   closed: { label: 'Đã đóng', icon: XCircle },
 };

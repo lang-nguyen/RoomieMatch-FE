@@ -41,6 +41,16 @@ import RouteErrorFallback, { NotFoundPage } from '../shared/components/RouteErro
 
 export const router = createBrowserRouter([
   {
+    path: '/payment/vnpay-return',
+    element: <VnpayReturnPage />,
+    errorElement: <RouteErrorFallback />,
+  },
+  {
+    path: '/user/payment/vnpay-return',
+    element: <VnpayReturnPage />,
+    errorElement: <RouteErrorFallback />,
+  },
+  {
     element: <RootLayout />,
     errorElement: <RouteErrorFallback />,
     children: [
@@ -63,14 +73,6 @@ export const router = createBrowserRouter([
       {
         path: '/contact',
         element: <ContactPage />,
-      },
-      {
-        path: '/payment/vnpay-return',
-        element: <VnpayReturnPage />,
-      },
-      {
-        path: '/user/payment/vnpay-return',
-        element: <VnpayReturnPage />,
       },
       {
         path: '/user',

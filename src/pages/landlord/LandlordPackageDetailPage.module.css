@@ -205,6 +205,7 @@
 
 .renewBtn:disabled {
   opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .upgradeText {
@@ -212,6 +213,25 @@
   text-align: center;
   text-decoration: none;
   font-size: 14px;
+}
+
+.renewHint,
+.renewHintMuted {
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.renewHint {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.renewHintMuted {
+  background: #f8fafc;
+  color: #64748b;
 }
 
 .detailColumn {

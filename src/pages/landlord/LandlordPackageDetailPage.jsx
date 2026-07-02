@@ -1,8 +1,7 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, Package, X } from 'lucide-react';
 import {
   useGetLandlordPackageUsageDetailQuery,
-  useRenewLandlordPackageMutation,
 } from '../../features/landlord/api/landlordApi';
 import PackageUsageBar from '../../features/landlord/components/PackageUsageBar';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
@@ -23,18 +22,39 @@ const percent = (value, limit) => {
   return Math.min(100, (value / limit) * 100);
 };
 
+const remainingQuota = (remaining, used, limit) => {
+  if (!limit) return null;
+  if (remaining !== undefined && remaining !== null) return Number(remaining);
+  return Math.max(0, Number(limit || 0) - Number(used || 0));
+};
+
 const LandlordPackageDetailPage = () => {
   const { invoiceId } = useParams();
+  const navigate = useNavigate();
   const { data, isLoading } = useGetLandlordPackageUsageDetailQuery({ id: invoiceId });
-  const [renewPackage, renewState] = useRenewLandlordPackageMutation();
   const detail = data?.detail;
 
   if (isLoading || !detail) {
     return <div className={styles.loading}>Đang tải chi tiết gói...</div>;
   }
 
-  const handleRenew = async () => {
-    await renewPackage({ packageId: detail.packageId }).unwrap();
+  const postsRemaining = remainingQuota(detail.postsRemaining, detail.postsUsed, detail.postsLimit);
+  const boostRemaining = remainingQuota(detail.boostRemaining, detail.boostUsed, detail.boostLimit);
+  const photoRemaining = remainingQuota(detail.photoRemaining, detail.photoUsed, detail.photoLimit);
+  const isExpired = detail.remainingDays !== null && detail.remainingDays <= 0;
+  const isQuotaExhausted = [postsRemaining, boostRemaining, photoRemaining].some((value) => value !== null && value <= 0);
+  const canRenew = detail.status !== 'pending' && (isExpired || isQuotaExhausted);
+  const renewalReason = detail.status === 'pending'
+    ? 'Đơn gói này đang chờ thanh toán/xác nhận, vui lòng hoàn tất giao dịch hoặc chọn mua lại từ danh sách gói.'
+    : isExpired
+    ? 'Gói đã hết hạn, bạn có thể gia hạn bằng cách thanh toán lại.'
+    : isQuotaExhausted
+      ? 'Một quyền lợi trong gói đã hết quota, bạn có thể gia hạn bằng cách thanh toán lại.'
+      : 'Gói vẫn còn thời hạn và quota, chưa cần gia hạn.';
+
+  const handleRenew = () => {
+    if (!canRenew) return;
+    navigate(`/landlord/packages/${detail.packageId}/payment`);
   };
 
   return (
@@ -86,10 +106,11 @@ const LandlordPackageDetailPage = () => {
             ))}
           </section>
 
-          <button className={styles.renewBtn} onClick={handleRenew} disabled={renewState.isLoading}>
-            {renewState.isLoading ? 'Đang gia hạn...' : 'Gia hạn gói này'}
+          <div className={canRenew ? styles.renewHint : styles.renewHintMuted}>{renewalReason}</div>
+          <button className={styles.renewBtn} onClick={handleRenew} disabled={!canRenew}>
+            Gia hạn gói này
           </button>
-          <Link className={styles.upgradeText} to="/landlord/packages">Nâng cấp lên Pro</Link>
+          <Link className={styles.upgradeText} to="/landlord/packages">Nâng cấp / đổi gói</Link>
         </aside>
 
         <main className={styles.detailColumn}>
@@ -164,7 +185,11 @@ const LandlordPackageDetailPage = () => {
                 <span>{detail.packageName} - {detail.price.toLocaleString('vi-VN')}đ/tháng</span>
               </div>
             </div>
-            <Link to={`/landlord/packages/${detail.packageId}/payment`}>Gia hạn ngay</Link>
+            {canRenew ? (
+              <Link to={`/landlord/packages/${detail.packageId}/payment`}>Gia hạn ngay</Link>
+            ) : (
+              <Link to="/landlord/packages">Nâng cấp / đổi gói</Link>
+            )}
           </section>
         </main>
       </div>

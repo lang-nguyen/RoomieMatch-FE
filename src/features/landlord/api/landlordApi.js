@@ -203,14 +203,6 @@ export const landlordApi = baseApi.injectEndpoints({
       providesTags: ['Packages'],
     }),
 
-    renewLandlordPackage: builder.mutation({
-      query: ({ packageId }) => ({
-        url: '/packages/purchase',
-        method: 'POST',
-        body: { package_id: Number(packageId) },
-      }),
-      invalidatesTags: ['Packages'],
-    }),
     getLandlordProfile: builder.query({
       query: () => '/users/me/profile',
       transformResponse: (response) => ({
@@ -318,7 +310,6 @@ export const {
   usePurchaseLandlordPackageMutation,
   useGetLandlordPackageHistoryQuery,
   useGetLandlordPackageUsageDetailQuery,
-  useRenewLandlordPackageMutation,
   useGetLandlordProfileQuery,
   useUpdateLandlordProfileMutation,
   useUploadLandlordAvatarMutation,

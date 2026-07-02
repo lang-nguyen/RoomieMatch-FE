@@ -32,6 +32,7 @@ const statusOptions = [
 
 const emptyPackage = {
   name: '',
+  description: '',
   icon: 'package',
   target_role: 'landlord',
   pricePerMonth: 99000,
@@ -41,6 +42,7 @@ const emptyPackage = {
 };
 
 const getPackageRevenue = (item) => item.totalPurchased * item.pricePerMonth;
+const getNumericId = (id) => Number.parseInt(String(id).replace(/\D/g, ''), 10);
 
 export const PackagesTab = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -119,6 +121,7 @@ export const PackagesTab = () => {
 
     setForm({
       name: item.name,
+      description: item.description || '',
       icon: item.icon,
       target_role: role,
       pricePerMonth: item.pricePerMonth,
@@ -162,6 +165,7 @@ export const PackagesTab = () => {
     
     const payload = {
       name: form.name,
+      description: form.description,
       icon: form.icon,
       target_role: form.target_role,
       price_cents: Number(form.pricePerMonth),
@@ -187,7 +191,7 @@ export const PackagesTab = () => {
 
     try {
       if (editingPackage) {
-        const id = parseInt(editingPackage.id.replace(/\D/g, ''), 10);
+        const id = getNumericId(editingPackage.id);
         await updatePackage({ id, ...payload });
       } else {
         payload.slug = makeSlug(form.name) + '-' + Date.now();
@@ -203,7 +207,7 @@ export const PackagesTab = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa gói này?")) return;
     try {
-      const numericId = parseInt(id.replace(/\D/g, ''), 10);
+      const numericId = getNumericId(id);
       await deletePackage(numericId).unwrap();
     } catch (error) {
       if (error.status === 400) {
@@ -215,7 +219,7 @@ export const PackagesTab = () => {
   };
 
   const handleToggleStatus = async (item) => {
-    const numericId = parseInt(item.id.replace(/\D/g, ''), 10);
+    const numericId = getNumericId(item.id);
     const isActive = item.status === 'active';
     await updatePackageStatus({
       id: numericId,
@@ -404,6 +408,15 @@ export const PackagesTab = () => {
                     </button>
                   ))}
                 </div>
+              </label>
+              <label className={styles.formWide}>
+                Mô tả gói
+                <textarea
+                  value={form.description}
+                  onChange={(event) => setForm((value) => ({ ...value, description: event.target.value }))}
+                  placeholder="VD: Gói Pro giúp chủ trọ đăng nhiều bài, upload thêm ảnh và đẩy tin nổi bật."
+                  rows={3}
+                />
               </label>
               <label>
                 Khách hàng

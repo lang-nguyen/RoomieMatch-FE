@@ -189,7 +189,7 @@ const Header = ({ initialActiveId = 'home' }) => {
             <div className="user-menu-container" ref={dropdownRef}>
               <div className="user-profile-trigger" onClick={toggleDropdown}>
                 <img
-                  src={profile?.avatar_url || profile?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${profile?.full_name || user?.username || 'U'}&backgroundColor=e5e7eb&textColor=4b5563`}
+                  src={profile?.avatar_url || profile?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${profile?.full_name || account?.username || 'U'}&backgroundColor=e5e7eb&textColor=4b5563`}
                   alt="Avatar"
                   className="user-avatar-img"
                 />

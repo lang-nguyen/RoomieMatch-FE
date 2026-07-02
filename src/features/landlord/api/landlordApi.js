@@ -334,18 +334,50 @@ const tierBySlug = {
   'landlord-vip': 'vip',
 };
 
+const parseJsonValue = (value) => {
+  if (typeof value !== 'string') return value;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+};
+
+const normalizeFeatureLabel = (feature) => {
+  if (typeof feature === 'string') return feature;
+  if (!feature || typeof feature !== 'object') return '';
+
+  const quantity = feature.quantity ?? feature.value ?? feature.limit;
+  const label = feature.label || feature.feature_name || feature.name || feature.title;
+
+  if (quantity !== undefined && label) return `${quantity} ${label}`;
+  return label || '';
+};
+
+const buildDisplayFeatures = (rawValue) => {
+  const rawFeatures = parseJsonValue(rawValue) || {};
+
+  if (Array.isArray(rawFeatures)) {
+    return rawFeatures.map(normalizeFeatureLabel).filter(Boolean);
+  }
+
+  if (typeof rawFeatures === 'object') {
+    const list = rawFeatures.list || rawFeatures.features || rawFeatures.benefits || rawFeatures.items;
+    if (Array.isArray(list) && list.length) {
+      return list.map(normalizeFeatureLabel).filter(Boolean);
+    }
+
+    return [];
+  }
+
+  return [];
+};
 
 
 const mapPackageFromApi = (pkg) => {
   const tier = tierBySlug[pkg.slug] || tierBySlug[String(pkg.name || '').toLowerCase()] || 'basic';
-  const rawFeatures = pkg.features || {};
-  
-  let displayList = [];
-  if (Array.isArray(rawFeatures)) {
-    displayList = rawFeatures;
-  } else if (rawFeatures.list && Array.isArray(rawFeatures.list)) {
-    displayList = rawFeatures.list;
-  }
+  const displayList = buildDisplayFeatures(pkg.features);
 
   const features = displayList.map((label) => ({
     label,
@@ -384,9 +416,10 @@ const getEntitlementQuantity = (entitlements, purchaseId, featureKey) => {
 };
 
 const getPackageFeatureLimit = (pkg, featureKey) => {
-  const features = pkg.raw?.features || {};
-  const value = !Array.isArray(features) ? features[featureKey] : null;
-  return Number.isInteger(value) ? value : 0;
+  const features = parseJsonValue(pkg.raw?.features) || {};
+  const value = !Array.isArray(features) && typeof features === 'object' ? features[featureKey] : null;
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : 0;
 };
 
 const mapLandlordPurchaseHistory = (purchases, packages, entitlements) => {

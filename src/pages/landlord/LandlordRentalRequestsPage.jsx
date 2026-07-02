@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CalendarDays, Check, Clock3, Mail, MapPin, Phone, Search, User, X } from 'lucide-react';
-import { useDecideLandlordRentalRequestMutation, useGetLandlordRentalRequestsQuery } from '../../features/landlord/api/landlordApi';
+import { useDecideLandlordRentalRequestMutation, useEndLandlordRentalRequestMutation, useGetLandlordRentalRequestsQuery } from '../../features/landlord/api/landlordApi';
 import LandlordPageHeader from '../../features/landlord/components/LandlordPageHeader';
 import { getApiErrorMessage } from '../../shared/utils/getApiErrorMessage';
 import sharedStyles from './LandlordPageShared.module.css';
@@ -9,6 +9,7 @@ import styles from './LandlordRentalRequestsPage.module.css';
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Chờ xử lý' },
   { value: 'accepted', label: 'Đã chấp nhận' },
+  { value: 'ended', label: 'Đã kết thúc' },
   { value: 'rejected', label: 'Đã từ chối' },
   { value: 'cancelled', label: 'Đã hủy' },
 ];
@@ -16,6 +17,7 @@ const STATUS_OPTIONS = [
 const STATUS_LABELS = {
   pending: 'Chờ xử lý',
   accepted: 'Đã chấp nhận',
+  ended: 'Đã kết thúc',
   rejected: 'Đã từ chối',
   cancelled: 'Đã hủy',
 };
@@ -86,13 +88,50 @@ const DecisionModal = ({ target, reason, setReason, isLoading, onClose, onConfir
   );
 };
 
+const EndRentalModal = ({ target, isLoading, onClose, onConfirm }) => {
+  if (!target) return null;
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.decisionModal} onClick={(event) => event.stopPropagation()}>
+        <button type="button" className={styles.modalClose} onClick={onClose} aria-label="Đóng">
+          <X size={18} />
+        </button>
+        <div className={`${styles.decisionIcon} ${styles.endIcon}`}>
+          <Clock3 size={24} />
+        </div>
+        <h3>Kết thúc lượt thuê</h3>
+        <p>
+          Kết thúc lượt thuê của {target.tenant_name}? Phòng sẽ chuyển về trạng thái trống để có thể đăng lại.
+        </p>
+        <div className={styles.endNote}>
+          Bài đăng cũ vẫn được đóng. Khi cần cho thuê tiếp, bạn có thể tạo bài đăng mới từ phòng này.
+        </div>
+        <div className={styles.modalActions}>
+          <button type="button" className={styles.cancelModalBtn} onClick={onClose}>Quay lại</button>
+          <button
+            type="button"
+            className={styles.endModalBtn}
+            onClick={onConfirm}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Đang xử lý...' : 'Kết thúc thuê'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LandlordRentalRequestsPage = () => {
   const [status, setStatus] = useState('pending');
   const [search, setSearch] = useState('');
   const { data, isLoading } = useGetLandlordRentalRequestsQuery({ status, search });
   const [decide, decisionState] = useDecideLandlordRentalRequestMutation();
+  const [endRental, endRentalState] = useEndLandlordRentalRequestMutation();
   const [message, setMessage] = useState('');
   const [decisionTarget, setDecisionTarget] = useState(null);
+  const [endTarget, setEndTarget] = useState(null);
   const [reason, setReason] = useState('');
   const items = data?.items || [];
 
@@ -111,6 +150,17 @@ const LandlordRentalRequestsPage = () => {
       setReason('');
     } catch (error) {
       setMessage(getApiErrorMessage(error, 'Không thể xử lý yêu cầu.'));
+    }
+  };
+
+  const handleEndRental = async () => {
+    if (!endTarget) return;
+    try {
+      await endRental({ id: endTarget.id }).unwrap();
+      setMessage('Đã kết thúc lượt thuê. Phòng đã chuyển về trạng thái trống và có thể đăng lại.');
+      setEndTarget(null);
+    } catch (error) {
+      setMessage(getApiErrorMessage(error, 'Không thể kết thúc lượt thuê.'));
     }
   };
 
@@ -251,6 +301,15 @@ const LandlordRentalRequestsPage = () => {
                   </button>
                 </div>
               )}
+
+              {request.status === 'accepted' && (
+                <div className={styles.actions}>
+                  <button className={styles.secondaryBtn} disabled={endRentalState.isLoading} onClick={() => setEndTarget(request)}>
+                    <X size={16} />
+                    Kết thúc thuê
+                  </button>
+                </div>
+              )}
             </article>
           ))}
         </div>
@@ -273,6 +332,12 @@ const LandlordRentalRequestsPage = () => {
         isLoading={decisionState.isLoading}
         onClose={() => setDecisionTarget(null)}
         onConfirm={handleDecision}
+      />
+      <EndRentalModal
+        target={endTarget}
+        isLoading={endRentalState.isLoading}
+        onClose={() => setEndTarget(null)}
+        onConfirm={handleEndRental}
       />
     </div>
   );

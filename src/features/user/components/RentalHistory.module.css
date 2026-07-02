@@ -243,3 +243,106 @@
   box-shadow: 0 6px 16px rgba(234, 88, 12, 0.4);
   transform: translateY(-2px);
 }
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+  box-shadow: none;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.reviewModal {
+  position: relative;
+  width: min(520px, 100%);
+  border: 0;
+  border-radius: 18px;
+  background: #fff;
+  padding: 24px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.reviewModal h2 {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 22px;
+}
+
+.reviewModal p {
+  margin: 0 0 18px;
+  color: #64748b;
+}
+
+.modalClose {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+
+.ratingPicker {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.starButton {
+  border: 0;
+  background: transparent;
+  color: #e5e7eb;
+  cursor: pointer;
+  font-size: 32px;
+  line-height: 1;
+  padding: 0;
+}
+
+.starActive {
+  color: #fbbf24;
+}
+
+.reviewTextarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  font: inherit;
+  outline: none;
+}
+
+.reviewTextarea:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+}
+
+.reviewError {
+  margin-top: 10px;
+  color: #be123c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}

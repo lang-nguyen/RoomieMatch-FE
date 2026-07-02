@@ -16,7 +16,7 @@ const STEPS = [
 
 const AddRoomForm = () => {
   const navigate = useNavigate();
-  const { currentStep, goToStep, isEditing, handleSubmit, isSubmitting } = useAddRoomForm();
+  const { currentStep, goToStep, isEditing, handleSubmit, isSubmitting, error, successMessage } = useAddRoomForm();
 
   const renderStep = () => {
     switch (currentStep) {
@@ -67,6 +67,9 @@ const AddRoomForm = () => {
           </div>
         ))}
       </div>
+
+      {error ? <div className={styles.errorNotice}>{error}</div> : null}
+      {successMessage ? <div className={styles.successNotice}>{successMessage}</div> : null}
 
       <div className={styles.content}>{renderStep()}</div>
     </div>

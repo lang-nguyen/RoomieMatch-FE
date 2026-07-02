@@ -7,8 +7,11 @@ import {
   setAddRoomDraft,
   replaceAddRoomDraft,
   clearAddRoomDraft,
+  setError as setLandlordError,
+  clearError,
   selectAddRoomStep,
   selectAddRoomDraft,
+  selectLandlordError,
 } from '../slice';
 import { getApiErrorMessage } from '../../../shared/utils/getApiErrorMessage';
 import { clearAddRoomImageFiles, getAddRoomImageFiles } from '../utils/addRoomImageFiles';
@@ -16,6 +19,7 @@ import { clearAddRoomImageFiles, getAddRoomImageFiles } from '../utils/addRoomIm
 const TOTAL_STEPS = 4;
 const numberOrNull = (value) => value === undefined || value === null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
 const intOr = (value, fallback) => Number.isNaN(Number.parseInt(value, 10)) ? fallback : Number.parseInt(value, 10);
+const isBlank = (value) => value === undefined || value === null || String(value).trim() === '';
 const buildRoomPayload = (draft) => {
   const street = draft.address || draft.street || '';
   return {
@@ -29,16 +33,30 @@ const buildRoomPayload = (draft) => {
   };
 };
 
+const validateDraft = (draft) => {
+  const requiredFields = [
+    { key: 'name', step: 0, message: 'Vui lòng nhập tên phòng trọ.' },
+    { key: 'room_type', step: 0, message: 'Vui lòng chọn loại phòng.' },
+    { key: 'area', step: 0, message: 'Vui lòng nhập diện tích phòng.' },
+    { key: 'city', step: 2, message: 'Vui lòng chọn tỉnh/thành phố.' },
+    { key: 'district', step: 2, message: 'Vui lòng chọn quận/huyện.' },
+    { key: 'address', fallbackKey: 'street', step: 2, message: 'Vui lòng nhập địa chỉ phòng.' },
+    { key: 'price', step: 2, message: 'Vui lòng nhập giá thuê.' },
+  ];
+
+  return requiredFields.find((field) => isBlank(draft[field.key]) && (!field.fallbackKey || isBlank(draft[field.fallbackKey]))) || null;
+};
+
 export const useAddRoomForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { roomId } = useParams();
   const currentStep = useSelector(selectAddRoomStep);
   const draft = useSelector(selectAddRoomDraft);
+  const formError = useSelector(selectLandlordError);
   const [addRoom, addState] = useAddRoomMutation();
   const [updateRoom, updateState] = useUpdateRoomMutation();
   const { data: editRoom } = useGetLandlordRoomByIdQuery({ id: roomId }, { skip: !roomId });
-  const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
@@ -79,20 +97,30 @@ export const useAddRoomForm = () => {
     clearAddRoomImageFiles();
   }, [dispatch, draft?.__sourceRoomId, editRoom, roomId]);
 
-  const updateDraft = (data) => dispatch(setAddRoomDraft(data));
-  const goNext = () => currentStep < TOTAL_STEPS - 1 && dispatch(setAddRoomStep(currentStep + 1));
-  const goBack = () => currentStep > 0 && dispatch(setAddRoomStep(currentStep - 1));
+  const updateDraft = (data) => { dispatch(clearError()); dispatch(setAddRoomDraft(data)); };
+  const goNext = () => { dispatch(clearError()); currentStep < TOTAL_STEPS - 1 && dispatch(setAddRoomStep(currentStep + 1)); };
+  const goBack = () => { dispatch(clearError()); currentStep > 0 && dispatch(setAddRoomStep(currentStep - 1)); };
   const goToStep = (step) => dispatch(setAddRoomStep(step));
-  const handleSubmit = async () => {
-    if (!draft) return;
-    setError('');
+  const handleSubmit = async ({ publish = false } = {}) => {
+    dispatch(clearError());
+    if (!draft) {
+      dispatch(setLandlordError('Vui lòng nhập thông tin phòng trọ trước khi lưu.'));
+      dispatch(setAddRoomStep(0));
+      return;
+    }
+    const invalid = validateDraft(draft);
+    if (invalid) {
+      dispatch(setLandlordError(invalid.message));
+      dispatch(setAddRoomStep(invalid.step));
+      return;
+    }
     try {
-      const request = roomId ? updateRoom({ id: roomId, payload: buildRoomPayload(draft), images: getAddRoomImageFiles() }) : addRoom({ payload: buildRoomPayload(draft), images: getAddRoomImageFiles(), publish: false });
+      const request = roomId ? updateRoom({ id: roomId, payload: buildRoomPayload(draft), images: getAddRoomImageFiles() }) : addRoom({ payload: buildRoomPayload(draft), images: getAddRoomImageFiles(), publish });
       await request.unwrap();
-      setSuccessMessage(roomId ? 'Cập nhật phòng trọ thành công!' : 'Thêm phòng trọ thành công!');
-      clearAddRoomImageFiles(); dispatch(clearAddRoomDraft()); window.setTimeout(() => navigate('/landlord/rooms'), 600);
-    } catch (requestError) { setError(getApiErrorMessage(requestError, roomId ? 'Cập nhật phòng thất bại' : 'Thêm phòng thất bại')); }
+      setSuccessMessage(roomId ? 'Cập nhật phòng trọ thành công!' : publish ? 'Thêm phòng và gửi bài đăng chờ duyệt thành công!' : 'Thêm phòng trọ thành công!');
+      clearAddRoomImageFiles(); dispatch(clearAddRoomDraft()); window.setTimeout(() => navigate(publish ? '/landlord/posts' : '/landlord/rooms'), 600);
+    } catch (requestError) { dispatch(setLandlordError(getApiErrorMessage(requestError, roomId ? 'Cập nhật phòng thất bại' : 'Thêm phòng thất bại'))); }
   };
-  const handleCancel = () => { clearAddRoomImageFiles(); dispatch(clearAddRoomDraft()); navigate('/landlord/rooms'); };
-  return { currentStep, totalSteps: TOTAL_STEPS, draft: draft ?? {}, isSubmitting: addState.isLoading || updateState.isLoading, isEditing: Boolean(roomId), error, successMessage, updateDraft, goNext, goBack, goToStep, handleSubmit, handleCancel };
+  const handleCancel = () => { clearAddRoomImageFiles(); dispatch(clearError()); dispatch(clearAddRoomDraft()); navigate('/landlord/rooms'); };
+  return { currentStep, totalSteps: TOTAL_STEPS, draft: draft ?? {}, isSubmitting: addState.isLoading || updateState.isLoading, isEditing: Boolean(roomId), error: formError, successMessage, updateDraft, goNext, goBack, goToStep, handleSubmit, handleCancel };
 };

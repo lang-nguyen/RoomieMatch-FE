@@ -172,7 +172,8 @@
 }
 
 .status_rejected,
-.status_cancelled {
+.status_cancelled,
+.status_ended {
   background: #fff0f2;
   color: #cf4259;
 }
@@ -401,6 +402,11 @@
   color: #cf4259;
 }
 
+.endIcon {
+  background: #fff7ed;
+  color: #c26a1a;
+}
+
 .decisionModal h3 {
   margin: 0 0 10px;
   color: #211c19;
@@ -453,6 +459,17 @@
   font-weight: 700;
 }
 
+.endNote {
+  margin-top: 16px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .modalActions {
   display: flex;
   gap: 10px;
@@ -461,7 +478,8 @@
 
 .cancelModalBtn,
 .acceptModalBtn,
-.rejectModalBtn {
+.rejectModalBtn,
+.endModalBtn {
   flex: 1;
   height: 42px;
   border-radius: 10px;
@@ -491,8 +509,15 @@
   color: #fff;
 }
 
+.endModalBtn {
+  border: 0;
+  background: #c26a1a;
+  color: #fff;
+}
+
 .acceptModalBtn:disabled,
-.rejectModalBtn:disabled {
+.rejectModalBtn:disabled,
+.endModalBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

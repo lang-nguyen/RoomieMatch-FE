@@ -288,6 +288,10 @@ export const landlordApi = baseApi.injectEndpoints({
       query: ({ id, decision, reason }) => ({ url: `/landlord/rental-requests/${id}`, method: 'PATCH', body: { decision, reason } }),
       invalidatesTags: ['RentalRequests', 'LandlordRooms', 'LandlordPosts', 'LandlordStats', 'Posts', 'LandlordNotifications'],
     }),
+    endLandlordRentalRequest: builder.mutation({
+      query: ({ id }) => ({ url: `/landlord/rental-requests/${id}/end`, method: 'PATCH' }),
+      invalidatesTags: ['RentalRequests', 'LandlordRooms', 'LandlordPosts', 'LandlordStats', 'Posts', 'LandlordNotifications'],
+    }),
     createLandlordVnpayPayment: builder.mutation({
       query: ({ packageId }) => ({ url: '/payments/vnpay/create_url', method: 'POST', body: { package_id: Number(packageId) } }),
     }),
@@ -324,6 +328,7 @@ export const {
   useSubmitLandlordVerificationMutation,
   useGetLandlordRentalRequestsQuery,
   useDecideLandlordRentalRequestMutation,
+  useEndLandlordRentalRequestMutation,
   useCreateLandlordVnpayPaymentMutation,
   useGetPublicCategoriesQuery,
 } = landlordApi;

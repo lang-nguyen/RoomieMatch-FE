@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import AddRoomForm from '../../features/landlord/components/AddRoomForm/AddRoomForm';
-import { clearAddRoomDraft } from '../../features/landlord/slice';
+import { clearAddRoomDraft, clearError } from '../../features/landlord/slice';
 import sharedStyles from './LandlordPageShared.module.css';
 
 const LandlordAddRoomPage = () => {
@@ -10,6 +10,7 @@ const LandlordAddRoomPage = () => {
   const { roomId } = useParams();
 
   useEffect(() => {
+    dispatch(clearError());
     if (!roomId) {
       dispatch(clearAddRoomDraft());
     }

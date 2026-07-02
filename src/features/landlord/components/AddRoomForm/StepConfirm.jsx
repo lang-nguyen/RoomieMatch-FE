@@ -39,7 +39,7 @@ const StepConfirm = () => {
         <button type="button" className={styles.backBtn} onClick={goBack} disabled={isSubmitting}>
           <ChevronLeft size={15} /> Quay lại
         </button>
-        <button type="button" className={styles.submitBtn} onClick={handleSubmit} disabled={isSubmitting}>
+        <button type="button" className={styles.submitBtn} onClick={() => handleSubmit({ publish: true })} disabled={isSubmitting}>
           <Check size={15} /> {isSubmitting ? 'Đang lưu...' : 'Lưu và đăng bài'}
         </button>
       </div>

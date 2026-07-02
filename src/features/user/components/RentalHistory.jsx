@@ -1,25 +1,45 @@
-import React, { useMemo } from 'react';
-import { Search, Star, ExternalLink } from 'lucide-react';
+import { useMemo } from 'react';
+import { Search, Star, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useCancelRentalRequestMutation, useGetMyRentalRequestsQuery, useGetRentalHistoryQuery } from '../api/userApi';
+import { useAddRoomReviewMutation } from '../../homepage/api/postsApi';
 import styles from './RentalHistory.module.css';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80';
 
 const RentalHistory = () => {
   const navigate = useNavigate();
-  const { data, isLoading, isError } = useGetRentalHistoryQuery();
+  const { data, isLoading, isError, refetch } = useGetRentalHistoryQuery();
   const { data: requestData } = useGetMyRentalRequestsQuery();
   const [cancelRequest, cancelState] = useCancelRentalRequestMutation();
+  const [addReview, reviewState] = useAddRoomReviewMutation();
+  const [reviewTarget, setReviewTarget] = useState(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewError, setReviewError] = useState('');
 
-  const rentals = data?.items || [];
+  const rentals = useMemo(() => data?.items || [], [data]);
 
-  // Navigate đến trang chi tiết bài đăng, scroll xuống phần đánh giá
   const handleReview = (rental) => {
-    const postId = rental.post_id;
-    if (postId) {
-      navigate(`/room/${postId}#reviews`);
+    setReviewTarget(rental);
+    setReviewRating(5);
+    setReviewComment('');
+    setReviewError('');
+  };
+
+  const handleSubmitReview = async (event) => {
+    event.preventDefault();
+    if (!reviewTarget?.room_id) return;
+    setReviewError('');
+    try {
+      await addReview({ roomId: reviewTarget.room_id, rating: reviewRating, comment: reviewComment }).unwrap();
+      refetch();
+      setReviewTarget(null);
+      setReviewComment('');
+    } catch (error) {
+      const detail = error?.data?.detail || '';
+      setReviewError(detail || 'Không thể gửi đánh giá. Vui lòng thử lại.');
     }
   };
 
@@ -146,7 +166,7 @@ const RentalHistory = () => {
                       </div>
                     </div>
                   ) : (
-                    /* Chưa đánh giá – navigate sang trang chi tiết */
+                    /* Chưa đánh giá – gửi trực tiếp theo room_id, không phụ thuộc bài đăng còn active */
                     <button
                       className={`${styles.btn} ${styles.btnPrimary}`}
                       disabled={!rental.can_review}
@@ -155,17 +175,20 @@ const RentalHistory = () => {
                     >
                       <Star className={styles.btnIcon} />
                       Đánh giá
-                      <ExternalLink size={13} style={{ marginLeft: 4 }} />
                     </button>
                   )}
 
                   {/* Nút xem chi tiết */}
-                  {rental.post_id && (
+                  {rental.post_id && rental.can_view_post ? (
                     <button
                       className={`${styles.btn} ${styles.btnSecondary}`}
-                      onClick={() => navigate(`/room/${rental.post_id}`)}
+                      onClick={() => navigate(`/rooms/${rental.post_id}`)}
                     >
                       Xem bài đăng
+                    </button>
+                  ) : (
+                    <button className={`${styles.btn} ${styles.btnSecondary}`} disabled title="Bài đăng đã đóng sau khi thuê">
+                      Bài đã đóng
                     </button>
                   )}
                 </div>
@@ -179,6 +202,52 @@ const RentalHistory = () => {
           {rentals.length === 0 && (
             <div>Chưa có lịch sử thuê phòng.</div>
           )}
+        </div>
+      )}
+
+      {reviewTarget && (
+        <div className={styles.modalOverlay} onClick={() => setReviewTarget(null)}>
+          <form className={styles.reviewModal} onSubmit={handleSubmitReview} onClick={(event) => event.stopPropagation()}>
+            <button type="button" className={styles.modalClose} onClick={() => setReviewTarget(null)} aria-label="Đóng">
+              <X size={18} />
+            </button>
+            <h2>Đánh giá phòng</h2>
+            <p>{reviewTarget.title}</p>
+
+            <div className={styles.ratingPicker}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={styles.starButton}
+                  onClick={() => setReviewRating(star)}
+                  aria-label={`${star} sao`}
+                >
+                  <span className={star <= reviewRating ? styles.starActive : ''}>★</span>
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              className={styles.reviewTextarea}
+              value={reviewComment}
+              onChange={(event) => setReviewComment(event.target.value)}
+              placeholder="Chia sẻ trải nghiệm thuê phòng của bạn..."
+              rows={5}
+              maxLength={1000}
+            />
+
+            {reviewError ? <div className={styles.reviewError}>{reviewError}</div> : null}
+
+            <div className={styles.modalActions}>
+              <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setReviewTarget(null)}>
+                Hủy
+              </button>
+              <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={reviewState.isLoading}>
+                {reviewState.isLoading ? 'Đang gửi...' : 'Gửi đánh giá'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

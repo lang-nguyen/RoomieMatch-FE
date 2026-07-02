@@ -36,10 +36,13 @@ import LandlordStatsPage from '../pages/landlord/LandlordStatsPage';
 import LandlordRentalRequestsPage from '../pages/landlord/LandlordRentalRequestsPage';
 import RequireAuth from '../shared/components/RequireAuth';
 import { ACCOUNT_TYPES } from '../shared/constants/roles';
+import RouteErrorFallback, { NotFoundPage } from '../shared/components/RouteErrorFallback';
+
 
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    errorElement: <RouteErrorFallback />,
     children: [
       {
         path: '/',
@@ -103,6 +106,7 @@ export const router = createBrowserRouter([
   },
   {
     element: <AuthLayout />,
+    errorElement: <RouteErrorFallback />,
     children: [
       {
         path: '/login',
@@ -125,6 +129,7 @@ export const router = createBrowserRouter([
   {
     path: '/landlord',
     element: <RequireAuth allowedRoles={[ACCOUNT_TYPES.LANDLORD]} />,
+    errorElement: <RouteErrorFallback />,
     children: [
       {
         element: <LandlordLayout />,
@@ -151,6 +156,7 @@ export const router = createBrowserRouter([
   {
     path: '/admin',
     element: <RequireAuth allowedRoles={[ACCOUNT_TYPES.ADMIN]} />,
+    errorElement: <RouteErrorFallback />,
     children: [
       {
         index: true,
@@ -161,5 +167,9 @@ export const router = createBrowserRouter([
   {
     path: '/unauthorized',
     element: <div>Bạn không có quyền truy cập trang này.</div>,
+  },
+  {
+    path: '*',
+    element: <NotFoundPage />,
   },
 ]);

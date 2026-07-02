@@ -1,14 +1,9 @@
-import { ArrowLeft, Check, CreditCard, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import styles from './PackageManagement.module.css';
 import { useState } from 'react';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
 import { useGetAllPackagesQuery, useGetPackageEntitlementsQuery, useGetPackageHistoryQuery, useCreateVnpayPaymentMutation } from '../api/userApi';
-
-const formatCurrency = (cents) => {
-  if (!cents && cents !== 0) return '0 VND';
-  return `${cents.toLocaleString('vi-VN')} VND`;
-};
 
 const translateFeatureKey = (key) => {
   const map = {
@@ -21,6 +16,28 @@ const translateFeatureKey = (key) => {
     'active_subscription': 'Thời hạn gói dịch vụ'
   };
   return map[key] || key;
+};
+
+const getPackageDisplayFeatures = (pkg) => {
+  let rawFeatures;
+  try {
+    rawFeatures = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : (pkg.features || {});
+  } catch {
+    rawFeatures = {};
+  }
+
+  if (Array.isArray(rawFeatures)) {
+    return rawFeatures.filter(Boolean);
+  }
+
+  if (rawFeatures && typeof rawFeatures === 'object') {
+    const list = rawFeatures.list || rawFeatures.features || rawFeatures.benefits || rawFeatures.items;
+    if (Array.isArray(list) && list.length) {
+      return list.filter(Boolean);
+    }
+  }
+
+  return [];
 };
 
 const PackageManagement = () => {
@@ -50,7 +67,7 @@ const PackageManagement = () => {
       } else {
         throw new Error('No payment url returned');
       }
-    } catch(err) {
+    } catch {
       setAlertModal({ isOpen: true, type: 'alert', message: 'Tạo thanh toán VNPAY thất bại. Xin vui lòng thử lại.', title: 'Lỗi' });
     }
     setSelectedPkgId(null);
@@ -165,21 +182,10 @@ const PackageManagement = () => {
                   
                   <ul className={styles.pricingFeatures}>
                     {(() => {
-                      let displayList = [];
-                      try {
-                        const rawFeatures = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : (pkg.features || {});
-                        if (Array.isArray(rawFeatures)) {
-                          displayList = rawFeatures;
-                        } else if (rawFeatures.list && Array.isArray(rawFeatures.list)) {
-                          displayList = rawFeatures.list;
-                        }
-                      } catch (e) {}
-                      
-                      if (displayList.length === 0) {
-                         displayList = ['Nâng cấp trải nghiệm', 'Hỗ trợ ưu tiên'];
-                      }
-                      
-                      return displayList.map((feature, idx) => (
+                      const displayList = getPackageDisplayFeatures(pkg);
+                      const fallbackList = displayList.length ? displayList : ['Nâng cấp trải nghiệm', 'Hỗ trợ ưu tiên'];
+
+                      return fallbackList.map((feature, idx) => (
                         <li key={idx} className={styles.pricingFeature}>
                           <Check className={styles.featureIcon} size={18} />
                           <span>{feature}</span>

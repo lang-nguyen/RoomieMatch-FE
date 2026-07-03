@@ -24,10 +24,11 @@ export const OrdersTab = () => {
   const [search, setSearch] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [page, setPage] = useState(1);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const { data: orders = [], isLoading, refetch } = useGetOrdersQuery({ status });
   const { data: allOrders = [] } = useGetOrdersQuery({});
-  const [updateOrderStatus] = useUpdateOrderStatusMutation();
-  const [deleteOrder] = useDeleteOrderMutation();
+  const [updateOrderStatus, { isLoading: isUpdatingStatus }] = useUpdateOrderStatusMutation();
+  const [deleteOrder, { isLoading: isDeletingOrder }] = useDeleteOrderMutation();
 
   const filteredOrders = useMemo(() => {
     let result = orders;
@@ -61,14 +62,34 @@ export const OrdersTab = () => {
   );
 
   const handleStatus = async (id, nextStatus) => {
-    await updateOrderStatus({ id, status: nextStatus });
-    refetch();
+    try {
+      const response = await updateOrderStatus({ id, status: nextStatus }).unwrap();
+      setSelectedOrder((current) =>
+        current?.id === id
+          ? { ...current, status: nextStatus, statusLabel: response?.statusLabel || statusText[nextStatus] }
+          : current
+      );
+      refetch();
+    } catch (error) {
+      console.error('Failed to update order status', error);
+      alert('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng.');
+    }
   };
 
   const handleDelete = async (id) => {
-    await deleteOrder(id);
-    refetch();
+    if (!window.confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) return;
+
+    try {
+      await deleteOrder(id).unwrap();
+      setSelectedOrder((current) => (current?.id === id ? null : current));
+      refetch();
+    } catch (error) {
+      console.error('Failed to delete order', error);
+      alert('Có lỗi xảy ra khi xóa đơn hàng.');
+    }
   };
+
+  const isMutatingOrder = isUpdatingStatus || isDeletingOrder;
 
   return (
     <div className={styles.featureStack}>
@@ -178,7 +199,7 @@ export const OrdersTab = () => {
                 <tr>
                   <td colSpan="7">Đang tải đơn hàng...</td>
                 </tr>
-              ) : (
+              ) : paged.items.length ? (
                 paged.items.map((order) => (
                   <tr key={order.id}>
                     <td>{order.id}</td>
@@ -214,22 +235,26 @@ export const OrdersTab = () => {
                     <td>{order.date}</td>
                     <td>
                       <div className={styles.actionGroup}>
-                        <button type="button" className={styles.actionButton} title="Xem chi tiết" onClick={() => alert('Tính năng quản lý chi tiết đơn hàng đang được cập nhật')}>
+                        <button type="button" className={styles.actionButton} title="Xem chi tiết" onClick={() => setSelectedOrder(order)}>
                           <AdminIcon name="eye" size={14} />
                         </button>
-                        <button type="button" className={styles.actionButton} title="Thành công" onClick={() => handleStatus(order.id, 'success')}>
+                        <button type="button" className={styles.actionButton} title="Thành công" disabled={isMutatingOrder || order.status === 'success'} onClick={() => handleStatus(order.id, 'success')}>
                           <AdminIcon name="check" size={14} />
                         </button>
-                        <button type="button" className={styles.actionButton} title="Thất bại" onClick={() => handleStatus(order.id, 'failed')}>
+                        <button type="button" className={styles.actionButton} title="Thất bại" disabled={isMutatingOrder || order.status === 'failed'} onClick={() => handleStatus(order.id, 'failed')}>
                           <AdminIcon name="x-circle" size={14} />
                         </button>
-                        <button type="button" className={styles.actionButton} title="Xóa" onClick={() => handleDelete(order.id)}>
+                        <button type="button" className={styles.actionButton} title="Xóa" disabled={isMutatingOrder} onClick={() => handleDelete(order.id)}>
                           <AdminIcon name="trash" size={14} />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))
+              ) : (
+                <tr>
+                  <td colSpan="7">Không có đơn hàng phù hợp.</td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -253,6 +278,78 @@ export const OrdersTab = () => {
           </div>
         </div>
       </section>
+
+      {selectedOrder && (
+        <div className={styles.modalOverlay} role="presentation" onMouseDown={() => setSelectedOrder(null)}>
+          <section className={styles.modalCard} onMouseDown={(event) => event.stopPropagation()}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Chi tiết đơn hàng</h2>
+                <p>{selectedOrder.id} - {selectedOrder.username}</p>
+              </div>
+              <button type="button" className={styles.actionButton} onClick={() => setSelectedOrder(null)}>
+                <AdminIcon name="close" size={15} />
+              </button>
+            </div>
+
+            <div className={styles.detailGrid}>
+              <article>
+                <span>Mã đơn</span>
+                <strong>{selectedOrder.id}</strong>
+              </article>
+              <article>
+                <span>Trạng thái</span>
+                <strong>{selectedOrder.statusLabel || statusText[selectedOrder.status]}</strong>
+              </article>
+              <article>
+                <span>Khách hàng</span>
+                <strong>{selectedOrder.username}</strong>
+              </article>
+              <article>
+                <span>Email</span>
+                <strong>{selectedOrder.email}</strong>
+              </article>
+              <article>
+                <span>Gói dịch vụ</span>
+                <strong>{selectedOrder.packageName}</strong>
+              </article>
+              <article>
+                <span>Số tiền</span>
+                <strong>{formatCurrency(selectedOrder.price)}</strong>
+              </article>
+              <article>
+                <span>Ngày giao dịch</span>
+                <strong>{selectedOrder.date}</strong>
+              </article>
+              <article>
+                <span>Thanh toán</span>
+                <strong>{selectedOrder.status === 'success' ? 'Đã ghi nhận' : selectedOrder.status === 'pending' ? 'Chờ xác nhận' : 'Không thành công'}</strong>
+              </article>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.buttonSmall}
+                disabled={isMutatingOrder || selectedOrder.status === 'failed'}
+                onClick={() => handleStatus(selectedOrder.id, 'failed')}
+              >
+                <AdminIcon name="x-circle" size={13} />
+                Đánh dấu thất bại
+              </button>
+              <button
+                type="button"
+                className={`${styles.buttonSmall} ${styles.buttonPrimary}`}
+                disabled={isMutatingOrder || selectedOrder.status === 'success'}
+                onClick={() => handleStatus(selectedOrder.id, 'success')}
+              >
+                <AdminIcon name="check" size={13} />
+                Xác nhận thành công
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 };

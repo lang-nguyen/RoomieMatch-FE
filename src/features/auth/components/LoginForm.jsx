@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useGoogleLogin } from '@react-oauth/google';
+import { Eye, EyeOff } from 'lucide-react';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { useGoogleLoginMutation } from '../api/authApi';
 import { setCredentials, setError, clearError } from '../slice';
@@ -27,6 +28,7 @@ export const LoginForm = () => {
   
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [pendingToken, setPendingToken] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleGoogleSuccess = async (tokenResponse) => {
     const token = tokenResponse.access_token;
@@ -90,13 +92,22 @@ export const LoginForm = () => {
         </div>
         <div className={styles.inputGroup}>
           <input 
-            type="password" 
+            type={showPassword ? 'text' : 'password'} 
             placeholder="Mật khẩu" 
-            className={styles.input} 
+            className={`${styles.input} ${styles.passwordInput}`} 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required 
           />
+          <button
+            type="button"
+            className={styles.passwordToggle}
+            onClick={() => setShowPassword((value) => !value)}
+            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
         </div>
 
         <button type="submit" className={styles.primaryButton} disabled={isLoading || isGoogleLoading}>

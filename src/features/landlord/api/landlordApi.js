@@ -159,14 +159,17 @@ export const landlordApi = baseApi.injectEndpoints({
 
     getLandlordPackageHistory: builder.query({
       async queryFn(_args, _queryApi, _extraOptions, baseQuery) {
-        const [purchasesResult, packagesResult, entitlementsResult] = await Promise.all([
+        const [purchasesResult, packagesResult, entitlementsResult, postsResult, statsResult] = await Promise.all([
           baseQuery({ url: '/packages/me/purchases', method: 'GET' }),
           baseQuery({ url: '/packages/', method: 'GET', params: { target_role: 'landlord' } }),
           baseQuery({ url: '/packages/me/entitlements', method: 'GET' }),
+          baseQuery({ url: '/landlord/posts', method: 'GET', params: { page: 1, page_size: 1 } }),
+          baseQuery({ url: '/landlord/stats', method: 'GET', params: { range: '30d' } }),
         ]);
 
         const error = purchasesResult.error || packagesResult.error || entitlementsResult.error;
         if (error) return { error };
+        const usageSummary = buildLandlordUsageSummary(postsResult.data, statsResult.data);
 
         return {
           data: {
@@ -174,33 +177,38 @@ export const landlordApi = baseApi.injectEndpoints({
               purchasesResult.data || [],
               packagesResult.data || [],
               entitlementsResult.data || [],
+              usageSummary,
             ),
           },
         };
       },
-      providesTags: ['Packages'],
+      providesTags: ['Packages', 'LandlordPosts', 'LandlordStats'],
     }),
 
     getLandlordPackageUsageDetail: builder.query({
       async queryFn({ id }, _queryApi, _extraOptions, baseQuery) {
-        const [purchasesResult, packagesResult, entitlementsResult] = await Promise.all([
+        const [purchasesResult, packagesResult, entitlementsResult, postsResult, statsResult] = await Promise.all([
           baseQuery({ url: '/packages/me/purchases', method: 'GET' }),
           baseQuery({ url: '/packages/', method: 'GET', params: { target_role: 'landlord' } }),
           baseQuery({ url: '/packages/me/entitlements', method: 'GET' }),
+          baseQuery({ url: '/landlord/posts', method: 'GET', params: { page: 1, page_size: 1 } }),
+          baseQuery({ url: '/landlord/stats', method: 'GET', params: { range: '30d' } }),
         ]);
 
         const error = purchasesResult.error || packagesResult.error || entitlementsResult.error;
         if (error) return { error };
+        const usageSummary = buildLandlordUsageSummary(postsResult.data, statsResult.data);
 
         const items = mapLandlordPurchaseHistory(
           purchasesResult.data || [],
           packagesResult.data || [],
           entitlementsResult.data || [],
+          usageSummary,
         );
 
         return { data: { detail: items.find((item) => String(item.id) === String(id)) || null } };
       },
-      providesTags: ['Packages'],
+      providesTags: ['Packages', 'LandlordPosts', 'LandlordStats'],
     }),
 
     getLandlordProfile: builder.query({
@@ -424,7 +432,20 @@ const getPackageFeatureLimit = (pkg, featureKey) => {
   return Number.isFinite(numericValue) ? numericValue : 0;
 };
 
-const mapLandlordPurchaseHistory = (purchases, packages, entitlements) => {
+const buildLandlordUsageSummary = (postsData, statsData) => {
+  const counts = postsData?.counts || {};
+  const activeFromCounts = Number(counts.approved || 0) + Number(counts.boosted || 0);
+  const activeFromItems = Array.isArray(postsData?.items)
+    ? postsData.items.filter((post) => ['approved', 'boosted', 'active'].includes(post.status)).length
+    : 0;
+
+  return {
+    activePosts: activeFromCounts || activeFromItems,
+    roomViews: Number(statsData?.total_views || 0),
+  };
+};
+
+const mapLandlordPurchaseHistory = (purchases, packages, entitlements, usageSummary = {}) => {
   const packageById = new Map(packages.map((pkg) => [Number(pkg.id), mapPackageFromApi(pkg)]));
 
   return purchases
@@ -457,7 +478,7 @@ const mapLandlordPurchaseHistory = (purchases, packages, entitlements) => {
         autoRenew: false,
         postsUsed: Math.max(0, postsLimit - postsRemaining),
         postsLimit,
-        activePosts: 0,
+        activePosts: usageSummary.activePosts ?? 0,
         boostUsed: Math.max(0, boostLimit - boostRemaining),
         boostLimit,
         boostRemaining,
@@ -465,7 +486,7 @@ const mapLandlordPurchaseHistory = (purchases, packages, entitlements) => {
         photoLimit,
         photoRemaining,
         postsRemaining,
-        roomViews: 0,
+        roomViews: usageSummary.roomViews ?? 0,
         remainingDays: expiredDate
           ? Math.max(0, Math.ceil((new Date(expiredDate) - new Date()) / 86400000))
           : null,

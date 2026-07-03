@@ -35,6 +35,7 @@ const SkeletonCard = () => (
 const LandlordRoomsPage = () => {
   const navigate = useNavigate();
   const [roomToDelete, setRoomToDelete] = useState(null);
+  const [roomBlockedForPost, setRoomBlockedForPost] = useState(null);
   const { data: categories } = useGetPublicCategoriesQuery();
   const {
     rooms,
@@ -83,6 +84,11 @@ const LandlordRoomsPage = () => {
   );
 
   const handleTogglePost = (room) => {
+    if (room.status === 'rented') {
+      setRoomBlockedForPost(room);
+      return;
+    }
+
     navigate(`/landlord/posts/create?roomId=${room.id}`);
   };
 
@@ -200,6 +206,17 @@ const LandlordRoomsPage = () => {
           await handleDelete(roomToDelete.id);
           setRoomToDelete(null);
         }}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(roomBlockedForPost)}
+        type="alert"
+        title="Phòng đang được thuê"
+        message={roomBlockedForPost ? `Phòng "${roomBlockedForPost.name || roomBlockedForPost.title}" đang có người thuê nên chưa thể dùng để tạo bài đăng mới. Hãy kết thúc lượt thuê hoặc chọn phòng đang trống.` : ''}
+        confirmText="Đã hiểu"
+        onCancel={() => setRoomBlockedForPost(null)}
+        onClose={() => setRoomBlockedForPost(null)}
+        onConfirm={() => setRoomBlockedForPost(null)}
       />
     </div>
   );
